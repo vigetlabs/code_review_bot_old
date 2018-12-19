@@ -1,4 +1,5 @@
 extern crate actix_web;
+extern crate listenfd;
 extern crate serde;
 extern crate serde_json;
 
@@ -9,15 +10,17 @@ extern crate reqwest;
 mod github;
 use github::GithubClient;
 
+use actix_web::middleware::Logger;
 use actix_web::{http, server, App, Form, HttpResponse, State};
+use listenfd::ListenFd;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 struct SlackResponse {
     text: String,
     response_type: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct SlackRequest {
     text: String,
     token: String,
@@ -59,7 +62,7 @@ fn prepare_response(text: String) -> actix_web::Result<HttpResponse> {
     let body = serde_json::to_string(&SlackResponse {
         text: text,
         response_type: "in_channel".to_string(),
-    }).unwrap();
+    })?;
 
     Ok(HttpResponse::Ok()
         .content_type("application/json")
@@ -67,14 +70,30 @@ fn prepare_response(text: String) -> actix_web::Result<HttpResponse> {
 }
 
 pub fn application(github_url: String) -> App<AppConfig> {
-    App::with_state(AppConfig::new(github_url)).resource("/code_review_bot", |r| {
-        r.method(http::Method::POST).with(code_review_bot)
-    })
+    App::with_state(AppConfig::new(github_url))
+        .middleware(Logger::default())
+        .resource("/review", |r| {
+            r.method(http::Method::POST).with(code_review_bot)
+        })
 }
 
-pub fn start_server() {
+pub fn start_server(port: u32) -> Result<&'static str, std::io::Error> {
     server::new(move || application("https://api.github.com".to_string()))
-        .bind("0.0.0.0:8088")
-        .unwrap()
+        .bind(format!("0.0.0.0:{}", port))?
         .run();
+
+    Ok("Done")
+}
+
+pub fn start_dev_server(port: u32) -> Result<&'static str, std::io::Error> {
+    let mut listenfd = ListenFd::from_env();
+    let server = server::new(move || application("https://api.github.com".to_string()));
+
+    if let Some(l) = listenfd.take_tcp_listener(0)? {
+        server.listen(l)
+    } else {
+        server.bind(format!("0.0.0.0:{}", port))?
+    }.run();
+
+    Ok("Done")
 }

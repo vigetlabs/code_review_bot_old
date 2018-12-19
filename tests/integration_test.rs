@@ -47,7 +47,7 @@ fn accept_webhook_with_repo_url() {
         code_review_bot::application(mockito::SERVER_URL.to_string())
     });
     let request = server
-        .client(http::Method::POST, "/code_review_bot")
+        .client(http::Method::POST, "/review")
         .content_type("application/x-www-form-urlencoded")
         .form(form_data)
         .unwrap();
