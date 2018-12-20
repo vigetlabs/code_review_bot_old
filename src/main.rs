@@ -24,8 +24,8 @@ fn main() {
 
     let opt = Opt::from_args();
     if opt.dev {
-        start_dev_server(opt.port).expect("Could not start server");
+        start_dev_server(opt.port)
     } else {
-        start_server(opt.port).expect("Could not start server");
-    }
+        start_server(opt.port)
+    }.expect("Could not start server");
 }

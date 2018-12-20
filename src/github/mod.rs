@@ -1,4 +1,8 @@
+extern crate url;
+
+use self::url::Url;
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Deserialize)]
 struct Owner {
@@ -17,6 +21,52 @@ struct Repository {
   html_url: String,
   description: Option<String>,
   owner: Owner,
+}
+
+#[derive(Debug)]
+pub struct PullRequest {
+  pub owner: String,
+  pub name: String,
+  pub id: String,
+}
+
+#[derive(Debug)]
+pub enum ParseError {
+  MissingSegment,
+  Parse(url::ParseError),
+}
+
+impl fmt::Display for ParseError {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "malformed repo url")
+  }
+}
+
+impl std::error::Error for ParseError {
+  fn description(&self) -> &str {
+    "malformed repo url"
+  }
+
+  fn cause(&self) -> Option<&std::error::Error> {
+    None
+  }
+}
+
+impl FromStr for PullRequest {
+  type Err = ParseError;
+
+  fn from_str(s: &str) -> Result<Self, Self::Err> {
+    let repository_url = Url::parse(s).map_err(ParseError::Parse)?;
+    let mut path = repository_url
+      .path_segments()
+      .ok_or(ParseError::MissingSegment)?;
+
+    Ok(Self {
+      owner: path.nth(0).ok_or(ParseError::MissingSegment)?.to_string(),
+      name: path.nth(0).ok_or(ParseError::MissingSegment)?.to_string(),
+      id: path.nth(1).ok_or(ParseError::MissingSegment)?.to_string(),
+    })
+  }
 }
 
 pub struct GithubClient {
@@ -65,5 +115,26 @@ impl fmt::Display for SearchResult {
       }).collect::<Vec<String>>()
       .join("\n");
     write!(f, "{}", res)
+  }
+}
+
+#[cfg(test)]
+mod test {
+  use super::*;
+
+  #[test]
+  fn test_parse_url_sucess() {
+    let repo: PullRequest = "http://github.com/facebook/react/pulls/1234"
+      .parse()
+      .expect("Can't parse url");
+    assert_eq!(repo.id, "1234");
+    assert_eq!(repo.owner, "facebook");
+    assert_eq!(repo.name, "react");
+  }
+
+  #[test]
+  fn test_parse_url_failure() {
+    let repo = "totally invalid url".parse::<PullRequest>();
+    assert!(repo.is_err(), "Should not parse")
   }
 }

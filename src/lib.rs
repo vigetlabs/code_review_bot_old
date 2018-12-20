@@ -8,10 +8,10 @@ extern crate serde_derive;
 extern crate reqwest;
 
 mod github;
-use github::GithubClient;
+use github::{GithubClient, ParseError, PullRequest};
 
 use actix_web::middleware::Logger;
-use actix_web::{http, server, App, Form, HttpResponse, State};
+use actix_web::{http, server, App, Form, HttpResponse, ResponseError, State};
 use listenfd::ListenFd;
 
 #[derive(Serialize, Debug)]
@@ -38,19 +38,26 @@ impl AppConfig {
     }
 }
 
+impl ResponseError for ParseError {
+    fn error_response(&self) -> HttpResponse {
+        HttpResponse::Ok().body(format!("Something went wrong: {}", self))
+    }
+}
+
 fn code_review_bot(
     (form, state): (Form<SlackRequest>, State<AppConfig>),
 ) -> actix_web::Result<HttpResponse> {
     if form.text.trim().is_empty() {
         return prepare_response(
             "Specify repository name to search. \
-             For example: /code_review_bot linut"
+             For example: /code_review_bot linux"
                 .to_string(),
         );
     }
 
-    let repository = form.text.to_lowercase().to_string();
-    let response_body = match state.github.search(&repository, 10) {
+    let url = form.text.to_lowercase().to_string();
+    let repo: PullRequest = url.parse()?;
+    let response_body = match state.github.search(&repo.name, 10) {
         Ok(result) => format!("{}", &result),
         Err(e) => format!("Something went wrong: {}", e),
     };
