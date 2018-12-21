@@ -38,9 +38,7 @@ fn code_review_bot(
 ) -> actix_web::Result<HttpResponse> {
     if form.text.trim().is_empty() {
         let response = state.slack.immediate_response(
-            "Specify repository name to search. \
-             For example: /code_review_bot linux"
-                .to_string(),
+            "Specify pull request For example: /code_review_bot http://github.com/facebook/react/pulls/123".to_string(),
         )?;
         return prepare_response(response);
     }
@@ -57,8 +55,7 @@ fn code_review_bot(
         .response(format!("{}", pr_response), &form.response_url)
         .map_err(error::ErrorNotFound)?;
 
-    let response = state.slack.immediate_response("PR submitted".to_string())?;
-    prepare_response(response)
+    prepare_response("".to_string())
 }
 
 fn prepare_response(body: String) -> actix_web::Result<HttpResponse> {
