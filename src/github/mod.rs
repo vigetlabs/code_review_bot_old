@@ -5,22 +5,42 @@ use std::fmt;
 use std::str::FromStr;
 
 #[derive(Deserialize)]
-struct Owner {
+struct User {
   login: String,
-  html_url: String,
 }
 
 #[derive(Deserialize)]
-pub struct SearchResult {
-  items: Vec<Repository>,
+pub struct PRResult {
+  url: String,
+  title: String,
+  body: String,
+  state: PRState,
+  merged: bool,
+  review_comments: u32,
+  additions: u32,
+  deletions: u32,
+
+  user: User,
 }
 
 #[derive(Deserialize)]
-struct Repository {
-  name: String,
-  html_url: String,
-  description: Option<String>,
-  owner: Owner,
+#[serde(rename_all = "lowercase")]
+pub enum PRState {
+  Open,
+  Closed,
+}
+
+impl fmt::Display for PRResult {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "(+{additions} -{deletions}) {url} by {user}",
+      additions = self.additions,
+      deletions = self.deletions,
+      url = self.url,
+      user = self.user.login
+    )
+  }
 }
 
 #[derive(Debug)]
@@ -78,43 +98,16 @@ impl GithubClient {
     GithubClient { url: url }
   }
 
-  pub fn search(&self, q: &str, per_page: u32) -> reqwest::Result<SearchResult> {
+  pub fn get_pr(&self, pull_request: &PullRequest) -> reqwest::Result<PRResult> {
     let request_url = format!(
-      "{url}/search/repositories?q={q}&per_page={per_page}",
+      "{url}/repos/{owner}/{repo}/pulls/{id}",
       url = self.url,
-      q = q,
-      per_page = per_page
+      owner = pull_request.owner,
+      repo = pull_request.name,
+      id = pull_request.id
     );
 
-    let mut request = match reqwest::get(&request_url)?.error_for_status() {
-      Ok(res) => res,
-      Err(e) => {
-        println!("Error {}", e);
-        return Err(e);
-      }
-    };
-
-    request.json()
-  }
-}
-
-impl fmt::Display for SearchResult {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let res = self
-      .items
-      .iter()
-      .map(|repo| {
-        format!(
-          "<{0}|{1}> by <{2}|{3}>\n{4}\n----",
-          repo.html_url,
-          repo.name,
-          repo.owner.html_url,
-          repo.owner.login,
-          repo.description.as_ref().unwrap_or(&String::new())
-        )
-      }).collect::<Vec<String>>()
-      .join("\n");
-    write!(f, "{}", res)
+    reqwest::get(&request_url)?.error_for_status()?.json()
   }
 }
 

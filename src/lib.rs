@@ -56,8 +56,8 @@ fn code_review_bot(
     }
 
     let url = form.text.to_lowercase().to_string();
-    let repo: PullRequest = url.parse()?;
-    let response_body = match state.github.search(&repo.name, 10) {
+    let pull_request: PullRequest = url.parse()?;
+    let response_body = match state.github.get_pr(&pull_request) {
         Ok(result) => format!("{}", &result),
         Err(e) => format!("Something went wrong: {}", e),
     };
