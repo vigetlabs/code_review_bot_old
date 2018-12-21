@@ -13,23 +13,36 @@ struct FormData {
     token: String,
 }
 
+// pub struct PRResult {
+//   html_url: String,
+//   title: String,
+//   body: String,
+//   state: PRState,
+//   merged: bool,
+//   review_comments: u32,
+//   additions: u32,
+//   deletions: u32,
+
+//   user: User,
+// }
+
 fn search_mock() -> mockito::Mock {
     let json = r#"
         {
-            "items": [
-                {
-                    "name": "React",
-                    "html_url": "http://github.com/react/react",
-                    "description": "I am awesome",
-                    "owner": {
-                        "login": "react-dude",
-                        "html_url": "http://github.com/react-dude"
-                    }
-                }
-            ]
+            "html_url": "https:://github.com/facebook/react/pulls/123",
+            "title": "React Pull Request",
+            "body": "Merge this, please",
+            "state": "open",
+            "merged": false,
+            "review_comments": 1,
+            "additions": 42,
+            "deletions": 1,
+            "user": {
+                "login": "joeyjoejoejr"
+            }
         }
     "#;
-    mock("GET", "/search/repositories?q=react&per_page=10")
+    mock("GET", "/repos/facebook/react/pulls/123")
         .with_status(200)
         .with_body(json)
         .create()
@@ -39,12 +52,12 @@ fn search_mock() -> mockito::Mock {
 fn accept_webhook_with_repo_url() {
     let _m = search_mock();
     let form_data = FormData {
-        text: "react".to_string(),
+        text: "https://github.com/facebook/react/pulls/123".to_string(),
         token: "test_token".to_string(),
     };
 
     let mut server = test::TestServer::with_factory(|| {
-        code_review_bot::application(mockito::SERVER_URL.to_string())
+        code_review_bot::application(mockito::SERVER_URL, "token").unwrap()
     });
     let request = server
         .client(http::Method::POST, "/review")
@@ -57,7 +70,5 @@ fn accept_webhook_with_repo_url() {
     let bytes = server.execute(response.body()).unwrap();
     let body = std::str::from_utf8(&bytes).unwrap();
 
-    assert!(body.contains("React"));
-    assert!(body.contains("I am awesome"));
-    assert!(body.contains("react-dude"));
+    assert!(body.contains("(+42 -1) https:://github.com/facebook/react/pulls/123 by joeyjoejoejr"));
 }

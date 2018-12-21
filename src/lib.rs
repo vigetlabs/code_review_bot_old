@@ -31,10 +31,10 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    pub fn new(github_url: String) -> AppConfig {
-        AppConfig {
-            github: GithubClient::new(github_url),
-        }
+    pub fn new(github_url: String, github_token: &str) -> Result<AppConfig, &'static str> {
+        Ok(AppConfig {
+            github: GithubClient::new(github_url, &github_token)?,
+        })
     }
 }
 
@@ -76,25 +76,27 @@ fn prepare_response(text: String) -> actix_web::Result<HttpResponse> {
         .body(body))
 }
 
-pub fn application(github_url: String) -> App<AppConfig> {
-    App::with_state(AppConfig::new(github_url))
-        .middleware(Logger::default())
-        .resource("/review", |r| {
-            r.method(http::Method::POST).with(code_review_bot)
-        })
+pub fn application(github_url: &str, github_token: &str) -> Result<App<AppConfig>, &'static str> {
+    Ok(
+        App::with_state(AppConfig::new(github_url.to_string(), github_token)?)
+            .middleware(Logger::default())
+            .resource("/review", |r| {
+                r.method(http::Method::POST).with(code_review_bot)
+            }),
+    )
 }
 
-pub fn start_server(port: u32) -> Result<&'static str, std::io::Error> {
-    server::new(move || application("https://api.github.com".to_string()))
+pub fn start_server(port: u32, github_token: String) -> Result<&'static str, std::io::Error> {
+    server::new(move || application("https://api.github.com", &github_token).unwrap())
         .bind(format!("0.0.0.0:{}", port))?
         .run();
 
     Ok("Done")
 }
 
-pub fn start_dev_server(port: u32) -> Result<&'static str, std::io::Error> {
+pub fn start_dev_server(port: u32, github_token: String) -> Result<&'static str, std::io::Error> {
     let mut listenfd = ListenFd::from_env();
-    let server = server::new(move || application("https://api.github.com".to_string()));
+    let server = server::new(move || application("https://api.github.com", &github_token).unwrap());
 
     if let Some(l) = listenfd.take_tcp_listener(0)? {
         server.listen(l)

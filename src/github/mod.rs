@@ -11,7 +11,7 @@ struct User {
 
 #[derive(Deserialize)]
 pub struct PRResult {
-  url: String,
+  html_url: String,
   title: String,
   body: String,
   state: PRState,
@@ -37,7 +37,7 @@ impl fmt::Display for PRResult {
       "(+{additions} -{deletions}) {url} by {user}",
       additions = self.additions,
       deletions = self.deletions,
-      url = self.url,
+      url = self.html_url,
       user = self.user.login
     )
   }
@@ -91,11 +91,26 @@ impl FromStr for PullRequest {
 
 pub struct GithubClient {
   url: String,
+  client: reqwest::Client,
 }
 
 impl GithubClient {
-  pub fn new(url: String) -> GithubClient {
-    GithubClient { url: url }
+  pub fn new(url: String, token: &str) -> Result<GithubClient, &'static str> {
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert(
+      reqwest::header::AUTHORIZATION,
+      reqwest::header::HeaderValue::from_str(&format!("bearer {}", token))
+        .map_err(|_| "Invalid header value")?,
+    );
+    let client = reqwest::Client::builder()
+      .default_headers(headers)
+      .build()
+      .map_err(|_| "Cannot build client")?;
+
+    Ok(GithubClient {
+      url: url,
+      client: client,
+    })
   }
 
   pub fn get_pr(&self, pull_request: &PullRequest) -> reqwest::Result<PRResult> {
@@ -107,7 +122,12 @@ impl GithubClient {
       id = pull_request.id
     );
 
-    reqwest::get(&request_url)?.error_for_status()?.json()
+    self
+      .client
+      .get(&request_url)
+      .send()?
+      .error_for_status()?
+      .json()
   }
 }
 
