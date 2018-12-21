@@ -10,67 +10,58 @@ extern crate reqwest;
 mod github;
 use github::{GithubClient, ParseError, PullRequest};
 
+mod slack;
+use slack::{SlackClient, SlackRequest};
+
 use actix_web::middleware::Logger;
-use actix_web::{http, server, App, Form, HttpResponse, ResponseError, State};
+use actix_web::{error, http, server, App, Form, HttpResponse, ResponseError, State};
 use listenfd::ListenFd;
-
-#[derive(Serialize, Debug)]
-struct SlackResponse {
-    text: String,
-    response_type: String,
-}
-
-#[derive(Deserialize, Debug)]
-struct SlackRequest {
-    text: String,
-    token: String,
-}
 
 pub struct AppConfig {
     pub github: GithubClient,
+    pub slack: SlackClient,
 }
 
 impl AppConfig {
     pub fn new(github_url: String, github_token: &str) -> Result<AppConfig, &'static str> {
         Ok(AppConfig {
             github: GithubClient::new(github_url, &github_token)?,
+            slack: SlackClient::new()?,
         })
     }
 }
 
-impl ResponseError for ParseError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponse::Ok().body(format!("Something went wrong: {}", self))
-    }
-}
+impl ResponseError for ParseError {}
 
 fn code_review_bot(
     (form, state): (Form<SlackRequest>, State<AppConfig>),
 ) -> actix_web::Result<HttpResponse> {
     if form.text.trim().is_empty() {
-        return prepare_response(
+        let response = state.slack.immediate_response(
             "Specify repository name to search. \
              For example: /code_review_bot linux"
                 .to_string(),
-        );
+        )?;
+        return prepare_response(response);
     }
 
     let url = form.text.to_lowercase().to_string();
     let pull_request: PullRequest = url.parse()?;
-    let response_body = match state.github.get_pr(&pull_request) {
-        Ok(result) => format!("{}", &result),
-        Err(e) => format!("Something went wrong: {}", e),
-    };
+    let pr_response = state
+        .github
+        .get_pr(&pull_request)
+        .map_err(error::ErrorNotFound)?;
 
-    prepare_response(response_body)
+    state
+        .slack
+        .response(format!("{}", pr_response), &form.response_url)
+        .map_err(error::ErrorNotFound)?;
+
+    let response = state.slack.immediate_response("PR submitted".to_string())?;
+    prepare_response(response)
 }
 
-fn prepare_response(text: String) -> actix_web::Result<HttpResponse> {
-    let body = serde_json::to_string(&SlackResponse {
-        text: text,
-        response_type: "in_channel".to_string(),
-    })?;
-
+fn prepare_response(body: String) -> actix_web::Result<HttpResponse> {
     Ok(HttpResponse::Ok()
         .content_type("application/json")
         .body(body))
