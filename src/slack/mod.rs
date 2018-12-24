@@ -1,6 +1,10 @@
+mod attachment;
+use github;
+
 #[derive(Serialize, Debug)]
 pub struct SlackResponse {
-  text: String,
+  text: Option<String>,
+  attachments: Option<Vec<attachment::Attachment>>,
   response_type: String,
 }
 
@@ -26,14 +30,20 @@ impl SlackClient {
 
   pub fn immediate_response(&self, text: String) -> Result<String, serde_json::Error> {
     serde_json::to_string(&SlackResponse {
-      text: text,
+      text: Some(text),
+      attachments: None,
       response_type: "ephemeral".to_string(),
     })
   }
 
-  pub fn response(&self, text: String, response_url: &str) -> Result<(), &'static str> {
+  pub fn response(
+    &self,
+    pull_request: github::PRResult,
+    response_url: &str,
+  ) -> Result<(), &'static str> {
     let response = serde_json::to_string(&SlackResponse {
-      text: text,
+      text: None,
+      attachments: Some(vec![attachment::Attachment::from_repository(pull_request)]),
       response_type: "in_channel".to_string(),
     }).map_err(|_| "Json serialize error")?;
 

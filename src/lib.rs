@@ -52,7 +52,7 @@ fn code_review_bot(
 
     state
         .slack
-        .response(format!("{}", pr_response), &form.response_url)
+        .response(pr_response, &form.response_url)
         .map_err(error::ErrorNotFound)?;
 
     prepare_response("".to_string())

@@ -5,22 +5,24 @@ use std::fmt;
 use std::str::FromStr;
 
 #[derive(Deserialize)]
-struct User {
-  login: String,
+pub struct User {
+  pub login: String,
+  pub avatar_url: String,
+  pub html_url: String,
 }
 
 #[derive(Deserialize)]
 pub struct PRResult {
-  html_url: String,
-  title: String,
-  body: String,
-  state: PRState,
-  merged: bool,
-  review_comments: u32,
-  additions: u32,
-  deletions: u32,
+  pub html_url: String,
+  pub title: String,
+  pub body: String,
+  pub state: PRState,
+  pub merged: bool,
+  pub review_comments: u32,
+  pub additions: u32,
+  pub deletions: u32,
 
-  user: User,
+  pub user: User,
 }
 
 #[derive(Deserialize)]
@@ -40,6 +42,18 @@ impl fmt::Display for PRResult {
       url = self.html_url,
       user = self.user.login
     )
+  }
+}
+
+impl PRResult {
+  pub fn color(&self) -> String {
+    if let PRState::Open = self.state {
+      "#34d058".to_string()
+    } else if self.merged {
+      "#6f42c1".to_string()
+    } else {
+      "#cb2431".to_string()
+    }
   }
 }
 
