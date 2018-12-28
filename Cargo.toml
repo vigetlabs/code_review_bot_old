@@ -1,0 +1,22 @@
+[package]
+name = "code_review_bot"
+version = "0.1.0"
+authors = ["Joe Jackson <cpmhjoe@gmail.com>"]
+
+[dependencies]
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
+
+actix = "0.7"
+actix-web = "0.7"
+log = "0.4.0"
+env_logger = "0.6.0"
+
+reqwest = "0.9"
+mockito = "0.14.0"
+url = "1.7"
+
+structopt = "0.2"
+listenfd = "0.3"
+dotenv = "0.13"
