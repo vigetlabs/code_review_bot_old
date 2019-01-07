@@ -28,16 +28,19 @@ pub struct Attachment {
 
 impl Attachment {
   pub fn from_repository(pull_request: github::PRResult) -> Attachment {
+    let color = pull_request.color();
+    let body_text = pull_request.body_text();
+
     Attachment {
       fallback: format!("{}", pull_request),
-      color: Some(pull_request.color()),
+      color: Some(color),
       pretext: None,
       author_name: Some(pull_request.user.login),
       author_link: Some(pull_request.user.html_url),
       author_icon: Some(pull_request.user.avatar_url),
       title: Some(pull_request.title),
       title_link: Some(pull_request.html_url),
-      text: pull_request.body,
+      text: body_text,
       fields: Some(vec![
         Field {
           title: "Size".to_string(),

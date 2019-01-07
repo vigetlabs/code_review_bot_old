@@ -55,6 +55,19 @@ impl PRResult {
       "#cb2431".to_string()
     }
   }
+
+  pub fn body_text(&self) -> String {
+    let len = self.body.len();
+    let mut text = self.body.clone();
+    text.truncate(280);
+    let new_len = text.len();
+
+    if new_len < len {
+      text = format!("{}...", text);
+    }
+
+    text
+  }
 }
 
 #[derive(Debug)]
