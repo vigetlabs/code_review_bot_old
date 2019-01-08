@@ -29,7 +29,6 @@ pub struct Attachment {
 impl Attachment {
   pub fn from_repository(pull_request: github::PRResult) -> Attachment {
     let color = pull_request.color();
-    let body_text = pull_request.body_text();
 
     Attachment {
       fallback: format!("{}", pull_request),
@@ -40,7 +39,7 @@ impl Attachment {
       author_icon: Some(pull_request.user.avatar_url),
       title: Some(pull_request.title),
       title_link: Some(pull_request.html_url),
-      text: body_text,
+      text: "".to_string(),
       fields: Some(vec![
         Field {
           title: "Size".to_string(),
