@@ -2,6 +2,7 @@ extern crate url;
 
 use self::url::Url;
 use std::fmt;
+use std::path::Path;
 use std::str::FromStr;
 
 #[derive(Deserialize)]
@@ -30,6 +31,11 @@ pub struct PRResult {
 pub enum PRState {
   Open,
   Closed,
+}
+
+#[derive(Deserialize)]
+struct FileResult {
+  filename: String,
 }
 
 impl fmt::Display for PRResult {
@@ -142,6 +148,30 @@ impl GithubClient {
       .send()?
       .error_for_status()?
       .json()
+  }
+
+  pub fn get_files(&self, pull_request: &PullRequest) -> reqwest::Result<Vec<&str>> {
+    let request_url = format!(
+      "{url}/repos/{owner}/{repo}/pulls/{id}/files",
+      url = self.url,
+      owner = pull_request.owner,
+      repo = pull_request.name,
+      id = pull_request.id
+    );
+
+    let res: Vec<FileResult> = self
+      .client
+      .get(&request_url)
+      .send()?
+      .error_for_status()?
+      .json()?;
+
+    let file_extensions = res
+      .iter()
+      .filter_map(|file_res| Path::new(&file_res.filename).extension())
+      .filter_map(|os_str| os_str.to_str());
+
+    Ok(file_extensions.collect())
   }
 }
 

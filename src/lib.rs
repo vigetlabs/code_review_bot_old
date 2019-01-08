@@ -50,9 +50,14 @@ fn code_review_bot(
         .get_pr(&pull_request)
         .map_err(error::ErrorNotFound)?;
 
+    let pr_files = state
+        .github
+        .get_files(&pull_request)
+        .map_err(error::ErrorNotFound)?;
+
     state
         .slack
-        .response(pr_response, &form.response_url)
+        .response(pr_response, pr_files.clone(), &form.response_url)
         .map_err(error::ErrorNotFound)?;
 
     prepare_response("".to_string())

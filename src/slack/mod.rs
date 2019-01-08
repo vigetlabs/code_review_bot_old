@@ -39,11 +39,15 @@ impl SlackClient {
   pub fn response(
     &self,
     pull_request: github::PRResult,
+    files: Vec<&str>,
     response_url: &str,
   ) -> Result<(), &'static str> {
     let response = serde_json::to_string(&SlackResponse {
       text: None,
-      attachments: Some(vec![attachment::Attachment::from_repository(pull_request)]),
+      attachments: Some(vec![attachment::Attachment::from_repository(
+        pull_request,
+        files,
+      )]),
       response_type: "in_channel".to_string(),
     }).map_err(|_| "Json serialize error")?;
 
