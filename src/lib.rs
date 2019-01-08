@@ -1,11 +1,7 @@
 use actix_web;
 
-
-
-
 #[macro_use]
 extern crate serde_derive;
-
 
 mod github;
 use crate::github::{GithubClient, ParseError, PullRequest};
@@ -23,7 +19,8 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    pub fn new(github_url: String, github_token: &str) -> Result<AppConfig, &'static str> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(github_url: String, github_token: &str) -> Result<Self, &'static str> {
         Ok(AppConfig {
             github: GithubClient::new(github_url, &github_token)?,
             slack: SlackClient::new()?,
@@ -95,7 +92,8 @@ pub fn start_dev_server(port: u32, github_token: String) -> Result<&'static str,
         server.listen(l)
     } else {
         server.bind(format!("0.0.0.0:{}", port))?
-    }.run();
+    }
+    .run();
 
     Ok("Done")
 }

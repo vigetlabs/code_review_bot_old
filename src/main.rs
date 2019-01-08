@@ -1,5 +1,3 @@
-
-
 use env_logger;
 use structopt;
 
@@ -33,5 +31,6 @@ fn main() {
         start_dev_server(opt.port, github_token)
     } else {
         start_server(opt.port, github_token)
-    }.expect("Could not start server");
+    }
+    .expect("Could not start server");
 }

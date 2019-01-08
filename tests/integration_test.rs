@@ -1,4 +1,3 @@
-
 use code_review_bot;
 #[macro_use]
 extern crate serde_derive;
