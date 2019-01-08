@@ -1,4 +1,4 @@
-extern crate url;
+use url;
 
 use self::url::Url;
 use std::fmt;
@@ -39,7 +39,7 @@ struct FileResult {
 }
 
 impl fmt::Display for PRResult {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(
       f,
       "(+{additions} -{deletions}) {url} by {user}",
@@ -77,7 +77,7 @@ pub enum ParseError {
 }
 
 impl fmt::Display for ParseError {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "malformed repo url")
   }
 }
@@ -87,7 +87,7 @@ impl std::error::Error for ParseError {
     "malformed repo url"
   }
 
-  fn cause(&self) -> Option<&std::error::Error> {
+  fn cause(&self) -> Option<&dyn std::error::Error> {
     None
   }
 }

@@ -1,11 +1,11 @@
-extern crate actix_web;
-extern crate listenfd;
-extern crate serde;
-extern crate serde_json;
+use actix_web;
+
+
+
 
 #[macro_use]
 extern crate serde_derive;
-extern crate reqwest;
+
 
 mod github;
 use crate::github::{GithubClient, ParseError, PullRequest};

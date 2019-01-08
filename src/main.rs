@@ -1,7 +1,7 @@
-extern crate code_review_bot;
-extern crate dotenv;
-extern crate env_logger;
-extern crate structopt;
+
+
+use env_logger;
+use structopt;
 
 use code_review_bot::{start_dev_server, start_server};
 use dotenv::dotenv;

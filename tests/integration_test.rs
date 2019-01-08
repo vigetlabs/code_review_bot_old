@@ -1,8 +1,8 @@
-extern crate actix_web;
-extern crate code_review_bot;
+
+use code_review_bot;
 #[macro_use]
 extern crate serde_derive;
-extern crate mockito;
+use mockito;
 
 use actix_web::{http, test, HttpMessage};
 use mockito::mock;
