@@ -1,4 +1,4 @@
-use github;
+use crate::github;
 
 #[derive(Serialize, Debug)]
 pub struct Field {
@@ -27,7 +27,7 @@ pub struct Attachment {
 }
 
 impl Attachment {
-  pub fn from_repository(pull_request: github::PRResult, files: &[String]) -> Attachment {
+  pub fn from_repository(pull_request: github::PRResult, _files: &[String]) -> Attachment {
     let color = pull_request.color();
 
     Attachment {

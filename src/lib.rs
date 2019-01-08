@@ -8,10 +8,10 @@ extern crate serde_derive;
 extern crate reqwest;
 
 mod github;
-use github::{GithubClient, ParseError, PullRequest};
+use crate::github::{GithubClient, ParseError, PullRequest};
 
 mod slack;
-use slack::{SlackClient, SlackRequest};
+use crate::slack::{SlackClient, SlackRequest};
 
 use actix_web::middleware::Logger;
 use actix_web::{error, http, server, App, Form, HttpResponse, ResponseError, State};

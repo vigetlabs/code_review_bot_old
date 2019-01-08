@@ -1,5 +1,5 @@
 mod attachment;
-use github;
+use crate::github;
 
 #[derive(Serialize, Debug)]
 pub struct SlackResponse {
