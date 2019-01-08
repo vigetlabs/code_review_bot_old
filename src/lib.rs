@@ -57,7 +57,7 @@ fn code_review_bot(
 
     state
         .slack
-        .response(pr_response, pr_files.clone(), &form.response_url)
+        .response(pr_response, &pr_files, &form.response_url)
         .map_err(error::ErrorNotFound)?;
 
     prepare_response("".to_string())

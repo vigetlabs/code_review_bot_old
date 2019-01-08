@@ -27,7 +27,7 @@ pub struct Attachment {
 }
 
 impl Attachment {
-  pub fn from_repository(pull_request: github::PRResult, files: Vec<&str>) -> Attachment {
+  pub fn from_repository(pull_request: github::PRResult, files: &[String]) -> Attachment {
     let color = pull_request.color();
 
     Attachment {

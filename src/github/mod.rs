@@ -150,7 +150,7 @@ impl GithubClient {
       .json()
   }
 
-  pub fn get_files(&self, pull_request: &PullRequest) -> reqwest::Result<Vec<&str>> {
+  pub fn get_files(&self, pull_request: &PullRequest) -> reqwest::Result<Vec<String>> {
     let request_url = format!(
       "{url}/repos/{owner}/{repo}/pulls/{id}/files",
       url = self.url,
@@ -166,12 +166,14 @@ impl GithubClient {
       .error_for_status()?
       .json()?;
 
-    let file_extensions = res
+    let file_extensions: Vec<String> = res
       .iter()
       .filter_map(|file_res| Path::new(&file_res.filename).extension())
-      .filter_map(|os_str| os_str.to_str());
+      .filter_map(|os_str| os_str.to_str())
+      .map(|string| string.to_string())
+      .collect();
 
-    Ok(file_extensions.collect())
+    Ok(file_extensions)
   }
 }
 
