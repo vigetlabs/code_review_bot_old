@@ -163,12 +163,15 @@ impl GithubClient {
             .error_for_status()?
             .json()?;
 
-        let file_extensions: Vec<String> = res
+        let mut file_extensions: Vec<String> = res
             .iter()
             .filter_map(|file_res| Path::new(&file_res.filename).extension())
             .filter_map(|os_str| os_str.to_str())
-            .map(|string| string.to_string())
+            .map(|string| format!(".{}", string).to_string())
             .collect();
+
+        file_extensions.sort();
+        file_extensions.dedup();
 
         Ok(file_extensions)
     }

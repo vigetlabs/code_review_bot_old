@@ -27,7 +27,7 @@ pub struct Attachment {
 }
 
 impl Attachment {
-    pub fn from_repository(pull_request: github::PRResult, _files: &[String]) -> Attachment {
+    pub fn from_pull_request(pull_request: github::PRResult, files: &str) -> Attachment {
         let color = pull_request.color();
 
         Attachment {
@@ -48,7 +48,7 @@ impl Attachment {
                 },
                 Field {
                     title: "Files".to_string(),
-                    value: "".to_string(),
+                    value: files.to_string(),
                     short: Some(true),
                 },
             ]),

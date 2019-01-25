@@ -40,12 +40,12 @@ impl SlackClient {
     pub fn response(
         &self,
         pull_request: github::PRResult,
-        files: &[String],
+        files: &str,
         response_url: &str,
     ) -> Result<(), &'static str> {
         let response = serde_json::to_string(&SlackResponse {
             text: None,
-            attachments: Some(vec![attachment::Attachment::from_repository(
+            attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
             )]),
