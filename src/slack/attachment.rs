@@ -29,6 +29,11 @@ pub struct Attachment {
 impl Attachment {
     pub fn from_pull_request(pull_request: github::PRResult, files: &str) -> Attachment {
         let color = pull_request.color();
+        let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
+        let title = format!(
+            "{}: {}",
+            pull_request.base.repo.full_name, pull_request.title
+        );
 
         Attachment {
             fallback: format!("{}", pull_request),
@@ -37,21 +42,10 @@ impl Attachment {
             author_name: Some(pull_request.user.login),
             author_link: Some(pull_request.user.html_url),
             author_icon: Some(pull_request.user.avatar_url),
-            title: Some(pull_request.title),
+            title: Some(title),
             title_link: Some(pull_request.html_url),
-            text: "".to_string(),
-            fields: Some(vec![
-                Field {
-                    title: "Size".to_string(),
-                    value: format!("(+{} -{})", pull_request.additions, pull_request.deletions),
-                    short: Some(true),
-                },
-                Field {
-                    title: "Files".to_string(),
-                    value: files.to_string(),
-                    short: Some(true),
-                },
-            ]),
+            text: format!("{} {}", files, additions),
+            fields: None,
             image_url: None,
             thumb_url: None,
             footer: None,

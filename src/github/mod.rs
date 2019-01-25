@@ -5,14 +5,24 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
     pub html_url: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+pub struct Repo {
+    pub full_name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Base {
+    pub repo: Repo,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct PRResult {
     pub html_url: String,
     pub title: String,
@@ -24,9 +34,10 @@ pub struct PRResult {
     pub deletions: u32,
 
     pub user: User,
+    pub base: Base,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum PRState {
     Open,
