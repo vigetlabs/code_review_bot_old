@@ -15,18 +15,27 @@ pub struct SlackRequest {
     pub response_url: String,
 }
 
+#[derive(Clone)]
 pub struct SlackClient {
+    url: String,
     client: reqwest::Client,
 }
 
 impl SlackClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> Result<SlackClient, &'static str> {
+    pub fn new(url: String, token: &str) -> Result<SlackClient, &'static str> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("bearer {}", token))
+                .map_err(|_| "Invalid header value")?,
+        );
         let client = reqwest::Client::builder()
+            .default_headers(headers)
             .build()
             .map_err(|_| "Cannot build client")?;
 
-        Ok(SlackClient { client })
+        Ok(SlackClient { url, client })
     }
 
     pub fn immediate_response(&self, text: String) -> Result<String, serde_json::Error> {

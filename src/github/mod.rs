@@ -140,6 +140,7 @@ impl FromStr for PullRequest {
     }
 }
 
+#[derive(Clone)]
 pub struct GithubClient {
     url: String,
     client: reqwest::Client,
