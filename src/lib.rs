@@ -57,6 +57,10 @@ pub fn application(
         r.method(http::Method::POST)
             .with(routes::slack_webhook::route)
     }))
+   .resource("/github_event", |r| {
+       r.method(http::Method::POST)
+           .with(routes::github_webhook::route)
+    })
 }
 
 pub fn start_server(

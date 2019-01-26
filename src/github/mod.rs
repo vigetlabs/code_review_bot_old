@@ -6,6 +6,26 @@ use std::path::Path;
 use std::str::FromStr;
 
 #[derive(Deserialize, Debug)]
+pub struct PullRequestEvent {
+    pub number: u32,
+    pub action: PRAction,
+    pub pull_request: PRResult,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum PRAction {
+    Assigned,
+    Unassigned,
+    ReviewRequsted,
+    ReviewRequestRemoved,
+    Labeled,
+    Unlabled,
+    Opened,
+    Closed,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
