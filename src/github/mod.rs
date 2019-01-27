@@ -44,6 +44,7 @@ pub struct Base {
 
 #[derive(Deserialize, Debug)]
 pub struct PRResult {
+    pub url: String,
     pub html_url: String,
     pub title: String,
     pub body: String,
@@ -179,14 +180,8 @@ impl GithubClient {
             .json()
     }
 
-    pub fn get_files(&self, pull_request: &PullRequest) -> reqwest::Result<Vec<String>> {
-        let request_url = format!(
-            "{url}/repos/{owner}/{repo}/pulls/{id}/files",
-            url = self.url,
-            owner = pull_request.owner,
-            repo = pull_request.name,
-            id = pull_request.id
-        );
+    pub fn get_files(&self, pull_request: &PRResult) -> reqwest::Result<Vec<String>> {
+        let request_url = format!("{}/files", pull_request.url);
 
         let res: Vec<FileResult> = self
             .client

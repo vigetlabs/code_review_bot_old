@@ -22,7 +22,7 @@ pub fn route(
 
   let pr_files: String = state
     .github
-    .get_files(&pull_request)
+    .get_files(&pr_response)
     .map_err(error::ErrorNotFound)?
     .iter()
     .filter_map(|ext| state.language_lookup.get(ext))
@@ -32,7 +32,7 @@ pub fn route(
 
   state
     .slack
-    .response(pr_response, &pr_files, &form.response_url)
+    .response(&pr_response, &pr_files, &form.response_url)
     .map_err(error::ErrorNotFound)?;
 
   prepare_response("".to_string())
