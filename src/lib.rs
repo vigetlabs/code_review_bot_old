@@ -1,17 +1,16 @@
-extern crate actix_web;
-extern crate listenfd;
-extern crate serde;
-extern crate serde_json;
+use actix_web;
 
 #[macro_use]
 extern crate serde_derive;
-extern crate reqwest;
 
 mod github;
-use github::{GithubClient, ParseError, PullRequest};
+use crate::github::{GithubClient, ParseError, PullRequest};
 
 mod slack;
-use slack::{SlackClient, SlackRequest};
+use crate::slack::{SlackClient, SlackRequest};
+
+mod utils;
+pub use crate::utils::{load_languages, Languages};
 
 use actix_web::middleware::Logger;
 use actix_web::{error, http, server, App, Form, HttpResponse, ResponseError, State};
@@ -20,13 +19,20 @@ use listenfd::ListenFd;
 pub struct AppConfig {
     pub github: GithubClient,
     pub slack: SlackClient,
+    pub language_lookup: Languages,
 }
 
 impl AppConfig {
-    pub fn new(github_url: String, github_token: &str) -> Result<AppConfig, &'static str> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(
+        github_url: String,
+        github_token: &str,
+        language_lookup: Languages,
+    ) -> Result<Self, &'static str> {
         Ok(AppConfig {
             github: GithubClient::new(github_url, &github_token)?,
             slack: SlackClient::new()?,
+            language_lookup,
         })
     }
 }
@@ -50,9 +56,19 @@ fn code_review_bot(
         .get_pr(&pull_request)
         .map_err(error::ErrorNotFound)?;
 
+    let pr_files: String = state
+        .github
+        .get_files(&pull_request)
+        .map_err(error::ErrorNotFound)?
+        .iter()
+        .filter_map(|ext| state.language_lookup.get(ext))
+        .map(|icon| icon.to_string())
+        .collect::<Vec<String>>()
+        .join(" ");
+
     state
         .slack
-        .response(pr_response, &form.response_url)
+        .response(pr_response, &pr_files, &form.response_url)
         .map_err(error::ErrorNotFound)?;
 
     prepare_response("".to_string())
@@ -64,33 +80,62 @@ fn prepare_response(body: String) -> actix_web::Result<HttpResponse> {
         .body(body))
 }
 
-pub fn application(github_url: &str, github_token: &str) -> Result<App<AppConfig>, &'static str> {
-    Ok(
-        App::with_state(AppConfig::new(github_url.to_string(), github_token)?)
-            .middleware(Logger::default())
-            .resource("/review", |r| {
-                r.method(http::Method::POST).with(code_review_bot)
-            }),
-    )
+pub fn application(
+    github_url: &str,
+    github_token: &str,
+    language_lookup: Languages,
+) -> Result<App<AppConfig>, &'static str> {
+    Ok(App::with_state(AppConfig::new(
+        github_url.to_string(),
+        github_token,
+        language_lookup,
+    )?)
+    .middleware(Logger::default())
+    .resource("/review", |r| {
+        r.method(http::Method::POST).with(code_review_bot)
+    }))
 }
 
-pub fn start_server(port: u32, github_token: String) -> Result<&'static str, std::io::Error> {
-    server::new(move || application("https://api.github.com", &github_token).unwrap())
-        .bind(format!("0.0.0.0:{}", port))?
-        .run();
+pub fn start_server(
+    port: u32,
+    github_token: String,
+    language_lookup: Languages,
+) -> Result<&'static str, std::io::Error> {
+    server::new(move || {
+        application(
+            "https://api.github.com",
+            &github_token,
+            language_lookup.clone(),
+        )
+        .unwrap()
+    })
+    .bind(format!("0.0.0.0:{}", port))?
+    .run();
 
     Ok("Done")
 }
 
-pub fn start_dev_server(port: u32, github_token: String) -> Result<&'static str, std::io::Error> {
+pub fn start_dev_server(
+    port: u32,
+    github_token: String,
+    language_lookup: Languages,
+) -> Result<&'static str, std::io::Error> {
     let mut listenfd = ListenFd::from_env();
-    let server = server::new(move || application("https://api.github.com", &github_token).unwrap());
+    let server = server::new(move || {
+        application(
+            "https://api.github.com",
+            &github_token,
+            language_lookup.clone(),
+        )
+        .unwrap()
+    });
 
     if let Some(l) = listenfd.take_tcp_listener(0)? {
         server.listen(l)
     } else {
         server.bind(format!("0.0.0.0:{}", port))?
-    }.run();
+    }
+    .run();
 
     Ok("Done")
 }

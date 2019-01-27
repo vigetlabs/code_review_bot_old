@@ -1,9 +1,7 @@
-extern crate code_review_bot;
-extern crate dotenv;
-extern crate env_logger;
-extern crate structopt;
+use env_logger;
+use structopt;
 
-use code_review_bot::{start_dev_server, start_server};
+use code_review_bot::{load_languages, start_dev_server, start_server};
 use dotenv::dotenv;
 use structopt::StructOpt;
 
@@ -27,11 +25,13 @@ fn main() {
     env_logger::init();
 
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
+    let language_lookup = load_languages().expect("Can't load language lookup");
 
     let opt = Opt::from_args();
     if opt.dev {
-        start_dev_server(opt.port, github_token)
+        start_dev_server(opt.port, github_token, language_lookup)
     } else {
-        start_server(opt.port, github_token)
-    }.expect("Could not start server");
+        start_server(opt.port, github_token, language_lookup)
+    }
+    .expect("Could not start server");
 }
