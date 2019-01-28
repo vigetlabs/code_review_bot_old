@@ -5,15 +5,46 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+pub struct PullRequestEvent {
+    pub number: u32,
+    pub action: PRAction,
+    pub pull_request: PRResult,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum PRAction {
+    Assigned,
+    Unassigned,
+    ReviewRequsted,
+    ReviewRequestRemoved,
+    Labeled,
+    Unlabled,
+    Opened,
+    Closed,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
     pub html_url: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
+pub struct Repo {
+    pub full_name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Base {
+    pub repo: Repo,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct PRResult {
+    pub url: String,
     pub html_url: String,
     pub title: String,
     pub body: String,
@@ -24,9 +55,10 @@ pub struct PRResult {
     pub deletions: u32,
 
     pub user: User,
+    pub base: Base,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum PRState {
     Open,
@@ -109,6 +141,7 @@ impl FromStr for PullRequest {
     }
 }
 
+#[derive(Clone)]
 pub struct GithubClient {
     url: String,
     client: reqwest::Client,
@@ -147,14 +180,8 @@ impl GithubClient {
             .json()
     }
 
-    pub fn get_files(&self, pull_request: &PullRequest) -> reqwest::Result<Vec<String>> {
-        let request_url = format!(
-            "{url}/repos/{owner}/{repo}/pulls/{id}/files",
-            url = self.url,
-            owner = pull_request.owner,
-            repo = pull_request.name,
-            id = pull_request.id
-        );
+    pub fn get_files(&self, pull_request: &PRResult) -> reqwest::Result<Vec<String>> {
+        let request_url = format!("{}/files", pull_request.url);
 
         let res: Vec<FileResult> = self
             .client

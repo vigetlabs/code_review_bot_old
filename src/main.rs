@@ -1,7 +1,7 @@
 use env_logger;
 use structopt;
 
-use code_review_bot::{load_languages, start_dev_server, start_server};
+use code_review_bot::{load_languages, start_dev_server, start_server, AppConfig};
 use dotenv::dotenv;
 use structopt::StructOpt;
 
@@ -25,13 +25,17 @@ fn main() {
     env_logger::init();
 
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
+    let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
     let language_lookup = load_languages().expect("Can't load language lookup");
+
+    let app_config = AppConfig::new(&github_token, &slack_token, language_lookup)
+        .expect("Can't create app config");
 
     let opt = Opt::from_args();
     if opt.dev {
-        start_dev_server(opt.port, github_token, language_lookup)
+        start_dev_server(opt.port, app_config)
     } else {
-        start_server(opt.port, github_token, language_lookup)
+        start_server(opt.port, app_config)
     }
     .expect("Could not start server");
 }

@@ -8,6 +8,13 @@ pub struct SlackResponse {
     response_type: String,
 }
 
+#[derive(Serialize, Debug)]
+pub struct SlackMessagePost {
+    text: Option<String>,
+    channel: String,
+    attachments: Option<Vec<attachment::Attachment>>,
+}
+
 #[derive(Deserialize, Debug)]
 pub struct SlackRequest {
     pub text: String,
@@ -15,18 +22,56 @@ pub struct SlackRequest {
     pub response_url: String,
 }
 
+#[derive(Clone)]
 pub struct SlackClient {
+    url: String,
     client: reqwest::Client,
 }
 
 impl SlackClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new() -> Result<SlackClient, &'static str> {
+    pub fn new(url: String, token: &str) -> Result<SlackClient, &'static str> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("Bearer {}", token))
+                .map_err(|_| "Invalid header value")?,
+        );
         let client = reqwest::Client::builder()
+            .default_headers(headers)
             .build()
             .map_err(|_| "Cannot build client")?;
 
-        Ok(SlackClient { client })
+        Ok(SlackClient { url, client })
+    }
+
+    pub fn post_message(
+        &self,
+        pull_request: &github::PRResult,
+        files: &str,
+    ) -> Result<(), &'static str> {
+        let response = serde_json::to_string(&SlackMessagePost {
+            text: None,
+            channel: "#code-review-bot-test".to_string(),
+            attachments: Some(vec![attachment::Attachment::from_pull_request(
+                pull_request,
+                files,
+            )]),
+        })
+        .map_err(|_| "Json serialize error")?;
+
+        println!("{}", response);
+        let mut res = self
+            .client
+            .post(&format!("{}/{}", self.url, "chat.postMessage"))
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(response)
+            .send()
+            .map_err(|_| "Slack send error")?;
+
+        println!("{}", res.text().unwrap());
+
+        Ok(())
     }
 
     pub fn immediate_response(&self, text: String) -> Result<String, serde_json::Error> {
@@ -39,7 +84,7 @@ impl SlackClient {
 
     pub fn response(
         &self,
-        pull_request: github::PRResult,
+        pull_request: &github::PRResult,
         files: &str,
         response_url: &str,
     ) -> Result<(), &'static str> {
