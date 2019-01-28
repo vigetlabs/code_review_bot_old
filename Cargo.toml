@@ -22,3 +22,6 @@ url = "1.7"
 structopt = "0.2"
 listenfd = "0.3"
 dotenv = "0.13"
+
+diesel = { version = "1.4", features = ["postgres", "r2d2"] }
+

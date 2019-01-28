@@ -22,13 +22,8 @@ pub fn route(
 
   let pr_files: String = state
     .github
-    .get_files(&pr_response)
-    .map_err(error::ErrorNotFound)?
-    .iter()
-    .filter_map(|ext| state.language_lookup.get(ext))
-    .map(|icon| icon.to_string())
-    .collect::<Vec<String>>()
-    .join(" ");
+    .get_files(&pr_response, &state.language_lookup)
+    .map_err(error::ErrorBadRequest)?;
 
   state
     .slack

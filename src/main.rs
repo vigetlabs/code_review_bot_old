@@ -5,6 +5,8 @@ use code_review_bot::{load_languages, start_dev_server, start_server, AppConfig}
 use dotenv::dotenv;
 use structopt::StructOpt;
 
+use diesel::prelude::*;
+
 /// A slack bot server
 #[derive(StructOpt, Debug)]
 #[structopt(name = "code_review_bot")]
@@ -28,7 +30,10 @@ fn main() {
     let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
     let language_lookup = load_languages().expect("Can't load language lookup");
 
-    let app_config = AppConfig::new(&github_token, &slack_token, language_lookup)
+    let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
+    let connection = PgConnection::establish(&database_url).expect("Can't connect to database");
+
+    let app_config = AppConfig::new(&github_token, &slack_token, language_lookup, connection)
         .expect("Can't create app config");
 
     let opt = Opt::from_args();
