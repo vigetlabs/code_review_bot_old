@@ -1,10 +1,9 @@
 use crate::github::{PRAction, PullRequestEvent};
 use crate::utils::app_config::AppConfig;
 use actix_web::{error, HttpResponse, Json, State};
-use diesel::RunQueryDsl;
+use futures::future::Future;
 
-use crate::models::{NewPullRequest, PullRequest};
-use crate::schema::pull_requests;
+use crate::models::NewPullRequest;
 
 pub fn route(
   (json, state): (Json<PullRequestEvent>, State<AppConfig>),
@@ -21,20 +20,23 @@ pub fn route(
       .post_message(pull_request, &pr_files)
       .map_err(error::ErrorNotFound)?;
 
-    let new_pull_request = NewPullRequest {
-      github_id: &format!(
-        "{}-{}",
-        pull_request.base.repo.full_name, pull_request.number
-      ),
-      state: "open",
-      slack_message_id: &result.ts,
-    };
+    let github_id = format!(
+      "{}-{}",
+      pull_request.base.repo.full_name, pull_request.number
+    );
+    let slack_message_id = result.ts;
 
-    let connection = state.connection.lock().unwrap();
-
-    diesel::insert_into(pull_requests::table)
-      .values(&new_pull_request)
-      .get_result::<PullRequest>(&*connection)
+    // TODO: Move this to a future -- This is not an ideal way to do this.
+    // Currently it's waiting on the future to complete but should chain actions
+    // on the future to be executed later
+    let _ = state
+      .db
+      .send(NewPullRequest {
+        github_id,
+        state: "open".to_string(),
+        slack_message_id,
+      })
+      .wait()
       .map_err(error::ErrorBadRequest)?;
   }
 

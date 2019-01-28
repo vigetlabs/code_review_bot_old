@@ -16,7 +16,7 @@ mod slack;
 
 mod utils;
 pub use crate::utils::app_config::AppConfig;
-pub use crate::utils::{load_languages, Languages};
+pub use crate::utils::{db, load_languages, Languages};
 
 mod routes;
 
