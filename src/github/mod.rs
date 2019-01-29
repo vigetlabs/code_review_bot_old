@@ -24,6 +24,7 @@ pub enum PRAction {
     Labeled,
     Unlabled,
     Opened,
+    Reopened,
     Closed,
 }
 
