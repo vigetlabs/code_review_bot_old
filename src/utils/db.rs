@@ -11,11 +11,20 @@ pub struct FindPullRequest {
   pub github_id: String,
 }
 
+pub struct UpdatePullReqeustState {
+  pub github_id: String,
+  pub state: String,
+}
+
 impl Message for FindPullRequest {
   type Result = Result<PullRequest, Error>;
 }
 
 impl Message for NewPullRequest {
+  type Result = Result<PullRequest, Error>;
+}
+
+impl Message for UpdatePullReqeustState {
   type Result = Result<PullRequest, Error>;
 }
 
@@ -49,6 +58,21 @@ impl Handler<FindPullRequest> for DBExecutor {
     pull_requests
       .filter(github_id.eq(&msg.github_id))
       .first(conn)
+      .map_err(error::ErrorNotFound)
+  }
+}
+
+impl Handler<UpdatePullReqeustState> for DBExecutor {
+  type Result = Result<PullRequest, Error>;
+
+  fn handle(&mut self, msg: UpdatePullReqeustState, _: &mut Self::Context) -> Self::Result {
+    use crate::schema::pull_requests::dsl::*;
+
+    let conn = &*self.0.get().map_err(error::ErrorInternalServerError)?;
+
+    diesel::update(pull_requests.filter(github_id.eq(&msg.github_id)))
+      .set(state.eq(&msg.state))
+      .get_result(conn)
       .map_err(error::ErrorNotFound)
   }
 }

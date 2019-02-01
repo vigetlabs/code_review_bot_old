@@ -1,7 +1,7 @@
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
 use crate::slack::Reaction;
 use crate::utils::app_config::AppConfig;
-use crate::utils::db::FindPullRequest;
+use crate::utils::db::{FindPullRequest, UpdatePullReqeustState};
 use actix_web::AsyncResponder;
 use actix_web::{error, FutureResponse, HttpResponse, Json, State};
 use futures::future;
@@ -47,11 +47,12 @@ pub fn pull_request(
   } else if let PRAction::Closed = json.action {
     return state
       .db
-      .send(FindPullRequest {
+      .send(UpdatePullReqeustState {
         github_id: github_id(
           &json.pull_request.base.repo.full_name,
           json.pull_request.number,
         ),
+        state: "closed".to_string(),
       })
       .map_err(error::ErrorNotFound)
       .and_then(move |res| match res {
