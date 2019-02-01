@@ -18,6 +18,7 @@ impl AppConfig {
   pub fn new(
     github_token: &str,
     slack_token: &str,
+    channel: &str,
     language_lookup: Languages,
     db: Addr<db::DBExecutor>,
   ) -> Result<Self, &'static str> {
@@ -26,7 +27,7 @@ impl AppConfig {
 
     Ok(AppConfig {
       github: GithubClient::new(github_url, &github_token)?,
-      slack: SlackClient::new(slack_url, &slack_token)?,
+      slack: SlackClient::new(slack_url, &slack_token, channel.to_string())?,
       language_lookup,
       db,
     })

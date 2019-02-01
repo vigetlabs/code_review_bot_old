@@ -36,6 +36,7 @@ fn main() {
     // Load variables and language lookup
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
     let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
+    let slack_channel = std::env::var("SLACK_CHANNEL").expect("Can't find var SLACK_CHANNEL");
     let language_lookup = load_languages().expect("Can't load language lookup");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
 
@@ -47,8 +48,14 @@ fn main() {
     let addr = SyncArbiter::start(3, move || db::DBExecutor(pool.clone()));
 
     // Create AppConfig
-    let app_config = AppConfig::new(&github_token, &slack_token, language_lookup, addr)
-        .expect("Can't create app config");
+    let app_config = AppConfig::new(
+        &github_token,
+        &slack_token,
+        &slack_channel,
+        language_lookup,
+        addr,
+    )
+    .expect("Can't create app config");
 
     // Get options
     let opt = Opt::from_args();

@@ -14,7 +14,7 @@ pub struct PullRequestEvent {
     pub pull_request: PRResult,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum PRAction {
     Assigned,
@@ -26,6 +26,47 @@ pub enum PRAction {
     Opened,
     Reopened,
     Closed,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ReviewEvent {
+    pub action: ReviewAction,
+    pub pull_request: ReviewPR,
+    pub review: PRReview,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum ReviewAction {
+    Submitted,
+    Editied,
+    Dismissed,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct PRReview {
+    pub state: PRReviewState,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum PRReviewState {
+    ChangesRequested,
+    Approved,
+    Commented,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ReviewPR {
+    pub url: String,
+    pub html_url: String,
+    pub title: String,
+    pub body: String,
+    pub state: PRState,
+    pub number: u32,
+
+    pub user: User,
+    pub base: Base,
 }
 
 #[derive(Clone, Deserialize, Debug)]

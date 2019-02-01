@@ -39,7 +39,10 @@ pub fn application(app_config: AppConfig) -> App<AppConfig> {
         .resource("/github_event", |r| {
             r.method(http::Method::POST)
                 .filter(pred::Header("X-GitHub-Event", "pull_request"))
-                .with(routes::github_webhook::route)
+                .with(routes::github_webhook::pull_request);
+            r.method(http::Method::POST)
+                .filter(pred::Header("X-GitHub-Event", "pull_request_review"))
+                .with(routes::github_webhook::review);
         })
 }
 
