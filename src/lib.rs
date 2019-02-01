@@ -3,6 +3,12 @@ use actix_web;
 #[macro_use]
 extern crate serde_derive;
 
+#[macro_use]
+extern crate diesel;
+
+mod models;
+mod schema;
+
 mod github;
 use crate::github::ParseError;
 
@@ -10,7 +16,7 @@ mod slack;
 
 mod utils;
 pub use crate::utils::app_config::AppConfig;
-pub use crate::utils::{load_languages, Languages};
+pub use crate::utils::{db, load_languages, Languages};
 
 mod routes;
 
@@ -19,7 +25,7 @@ use actix_web::{http, pred, server, App, ResponseError};
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
-    "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T\n \"%{X-GitHub-Event}i\"";
+    "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
 
 impl ResponseError for ParseError {}
 

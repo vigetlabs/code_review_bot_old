@@ -5,6 +5,8 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
+use crate::utils::Languages;
+
 #[derive(Deserialize, Debug)]
 pub struct PullRequestEvent {
     pub number: u32,
@@ -22,27 +24,28 @@ pub enum PRAction {
     Labeled,
     Unlabled,
     Opened,
+    Reopened,
     Closed,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct User {
     pub login: String,
     pub avatar_url: String,
     pub html_url: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Repo {
     pub full_name: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Base {
     pub repo: Repo,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct PRResult {
     pub url: String,
     pub html_url: String,
@@ -53,12 +56,13 @@ pub struct PRResult {
     pub review_comments: u32,
     pub additions: u32,
     pub deletions: u32,
+    pub number: u32,
 
     pub user: User,
     pub base: Base,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum PRState {
     Open,
@@ -180,7 +184,11 @@ impl GithubClient {
             .json()
     }
 
-    pub fn get_files(&self, pull_request: &PRResult) -> reqwest::Result<Vec<String>> {
+    pub fn get_files(
+        &self,
+        pull_request: &PRResult,
+        lookup: &Languages,
+    ) -> reqwest::Result<String> {
         let request_url = format!("{}/files", pull_request.url);
 
         let res: Vec<FileResult> = self
@@ -195,12 +203,14 @@ impl GithubClient {
             .filter_map(|file_res| Path::new(&file_res.filename).extension())
             .filter_map(|os_str| os_str.to_str())
             .map(|string| format!(".{}", string).to_string())
+            .filter_map(|ext| lookup.get(&ext))
+            .map(|icon| icon.to_string())
             .collect();
 
         file_extensions.sort();
         file_extensions.dedup();
 
-        Ok(file_extensions)
+        Ok(file_extensions.join(" "))
     }
 }
 

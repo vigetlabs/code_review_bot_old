@@ -1,6 +1,7 @@
 extern crate serde_yaml;
 
 pub mod app_config;
+pub mod db;
 
 use std::collections::HashMap;
 use std::fs;

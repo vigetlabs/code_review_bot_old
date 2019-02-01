@@ -16,6 +16,12 @@ pub struct SlackMessagePost {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct SlackMessagePostResponse {
+    pub channel: String,
+    pub ts: String,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct SlackRequest {
     pub text: String,
     token: String,
@@ -49,8 +55,8 @@ impl SlackClient {
         &self,
         pull_request: &github::PRResult,
         files: &str,
-    ) -> Result<(), &'static str> {
-        let response = serde_json::to_string(&SlackMessagePost {
+    ) -> Result<SlackMessagePostResponse, &'static str> {
+        let message = serde_json::to_string(&SlackMessagePost {
             text: None,
             channel: "#code-review-bot-test".to_string(),
             attachments: Some(vec![attachment::Attachment::from_pull_request(
@@ -60,18 +66,16 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
-        println!("{}", response);
-        let mut res = self
-            .client
+        self.client
             .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(response)
+            .body(message)
             .send()
-            .map_err(|_| "Slack send error")?;
-
-        println!("{}", res.text().unwrap());
-
-        Ok(())
+            .map_err(|_| "Slack post error")?
+            .error_for_status()
+            .map_err(|_| "Slack post error")?
+            .json()
+            .map_err(|_| "Json parse error")
     }
 
     pub fn immediate_response(&self, text: String) -> Result<String, serde_json::Error> {
