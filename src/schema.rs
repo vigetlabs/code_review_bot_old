@@ -4,5 +4,6 @@ table! {
         github_id -> Varchar,
         state -> Varchar,
         slack_message_id -> Varchar,
+        channel -> Varchar,
     }
 }

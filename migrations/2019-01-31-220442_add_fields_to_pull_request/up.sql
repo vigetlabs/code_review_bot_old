@@ -1,0 +1,1 @@
+ALTER TABLE pull_requests ADD COLUMN channel VARCHAR NOT NULL DEFAULT '';
