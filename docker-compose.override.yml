@@ -1,0 +1,8 @@
+version: '3'
+services:
+  web:
+    command: systemfd --no-pid -s http::0.0.0.0:8088 -- cargo watch -x 'run -- -d'
+    volumes:
+      - .:/app
+    ports:
+      - "8088:8088"
