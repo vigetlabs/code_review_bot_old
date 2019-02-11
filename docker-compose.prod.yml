@@ -1,0 +1,11 @@
+version: '3'
+services:
+  web:
+    command: code_review_bot -p 80
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    environment:
+      - SLACK_CHANNEL="#code-review"
+    ports:
+      - "80:80"
