@@ -4,7 +4,7 @@ use crate::github;
 use std::fmt;
 
 #[derive(Serialize, Debug)]
-pub struct SlackResponse {
+pub struct SlackMessageResponse {
     text: Option<String>,
     attachments: Option<Vec<attachment::Attachment>>,
     response_type: String,
@@ -35,14 +35,16 @@ pub struct SlackCreateComment {
 
 #[derive(Deserialize, Debug)]
 pub struct SlackMessagePostResponse {
-    pub channel: String,
-    pub ts: String,
+    pub channel: Option<String>,
+    pub ts: Option<String>,
+    pub ok: bool,
+    pub error: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct SlackMessageUpdateResponse {
-    pub channel: String,
-    pub ts: String,
+    pub channel: Option<String>,
+    pub ts: Option<String>,
     pub ok: bool,
     pub error: Option<String>,
 }
@@ -70,6 +72,47 @@ pub struct SlackClient {
 pub enum Reaction {
     Comment,
     Approve,
+}
+
+trait SlackResponse {
+    fn ok(&self) -> bool;
+    fn error(&self) -> String;
+}
+
+impl SlackResponse for SlackCreateCommentResponse {
+    fn ok(&self) -> bool {
+        self.ok
+    }
+
+    fn error(&self) -> String {
+        self.error
+            .clone()
+            .unwrap_or_else(|| "Unkown Error".to_string())
+    }
+}
+
+impl SlackResponse for SlackMessageUpdateResponse {
+    fn ok(&self) -> bool {
+        self.ok
+    }
+
+    fn error(&self) -> String {
+        self.error
+            .clone()
+            .unwrap_or_else(|| "Unkown Error".to_string())
+    }
+}
+
+impl SlackResponse for SlackMessagePostResponse {
+    fn ok(&self) -> bool {
+        self.ok
+    }
+
+    fn error(&self) -> String {
+        self.error
+            .clone()
+            .unwrap_or_else(|| "Unkown Error".to_string())
+    }
 }
 
 impl fmt::Display for Reaction {
@@ -106,7 +149,7 @@ impl SlackClient {
         &self,
         pull_request: &github::PRResult,
         files: &str,
-    ) -> Result<SlackMessagePostResponse, &'static str> {
+    ) -> Result<SlackMessagePostResponse, String> {
         let message = serde_json::to_string(&SlackMessagePost {
             text: None,
             channel: self.channel.to_string(),
@@ -117,6 +160,7 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
+        println!("Message: {}", message);
         self.client
             .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -126,7 +170,8 @@ impl SlackClient {
             .error_for_status()
             .map_err(|_| "Slack post error")?
             .json()
-            .map_err(|_| "Json parse error")
+            .map_err(|e| format!("Json parse error: {}", e))
+            .and_then(handle_response)
     }
 
     pub fn update_message(
@@ -135,7 +180,7 @@ impl SlackClient {
         files: &str,
         ts: &str,
         channel: &str,
-    ) -> Result<SlackMessageUpdateResponse, &'static str> {
+    ) -> Result<SlackMessageUpdateResponse, String> {
         let message = serde_json::to_string(&SlackMessageUpdate {
             as_user: Some(true),
             attachments: Some(vec![attachment::Attachment::from_pull_request(
@@ -153,18 +198,16 @@ impl SlackClient {
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
             .send()
-            .map_err(|_| "Slack post error")?
+            .map_err(|_| "Slack post error".to_string())?
             .error_for_status()
-            .map_err(|_| "Slack post error")?
+            .map_err(|_| "Slack post error".to_string())?
             .json()
-            .map_err(|e| {
-                println!("{:?}", e);
-                "Json parse error"
-            })
+            .map_err(|e| format!("Json parse error: {}", e))
+            .and_then(handle_response)
     }
 
     pub fn immediate_response(&self, text: String) -> Result<String, serde_json::Error> {
-        serde_json::to_string(&SlackResponse {
+        serde_json::to_string(&SlackMessageResponse {
             text: Some(text),
             attachments: None,
             response_type: "ephemeral".to_string(),
@@ -177,7 +220,7 @@ impl SlackClient {
         files: &str,
         response_url: &str,
     ) -> Result<(), &'static str> {
-        let response = serde_json::to_string(&SlackResponse {
+        let response = serde_json::to_string(&SlackMessageResponse {
             text: None,
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
@@ -202,7 +245,7 @@ impl SlackClient {
         reaction: &Reaction,
         ts: &str,
         channel: &str,
-    ) -> Result<SlackCreateCommentResponse, &'static str> {
+    ) -> Result<SlackCreateCommentResponse, String> {
         let message = serde_json::to_string(&SlackCreateComment {
             timestamp: ts.to_string(),
             channel: channel.to_string(),
@@ -210,7 +253,6 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
-        println!("{:?}", message);
         self.client
             .post(&format!("{}/{}", self.url, "reactions.add"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -220,6 +262,15 @@ impl SlackClient {
             .error_for_status()
             .map_err(|_| "Slack post error")?
             .json()
-            .map_err(|_| "Json parse error")
+            .map_err(|e| format!("Json parse error: {}", e))
+            .and_then(handle_response)
+    }
+}
+
+fn handle_response<T: SlackResponse>(resp: T) -> Result<T, String> {
+    if resp.ok() {
+        Ok(resp)
+    } else {
+        Err(resp.error())
     }
 }

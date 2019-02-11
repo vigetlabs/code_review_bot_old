@@ -6,6 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     environment:
-      - SLACK_CHANNEL="#code-review"
+      - SLACK_CHANNEL=#code-review
     ports:
       - "80:80"
