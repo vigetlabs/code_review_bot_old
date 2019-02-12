@@ -21,13 +21,14 @@ impl AppConfig {
     channel: &str,
     language_lookup: Languages,
     db: Addr<db::DBExecutor>,
-  ) -> Result<Self, &'static str> {
+  ) -> Result<Self, String> {
     let github_url = "https://api.github.com".to_string();
     let slack_url = "https://slack.com/api/".to_string();
 
     Ok(AppConfig {
       github: GithubClient::new(github_url, &github_token)?,
-      slack: SlackClient::new(slack_url, &slack_token, channel.to_string())?,
+      slack: SlackClient::new(slack_url, &slack_token, channel.to_string())
+        .map_err(|e| e.to_string())?,
       language_lookup,
       db,
     })
