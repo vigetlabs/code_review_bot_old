@@ -55,7 +55,7 @@ pub fn reviews(
     .and_then(move |res| match res {
       Ok(prs) => {
         let open_prs: Vec<String> = if prs.is_empty() {
-          vec!["All PRs Reviewed! :party:".to_string()]
+          vec!["All PRs Reviewed! :partyparrot:".to_string()]
         } else {
           prs.iter().map(|pr| pr.display_text.to_string()).collect()
         };
