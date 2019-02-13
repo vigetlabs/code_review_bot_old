@@ -5,5 +5,6 @@ table! {
         state -> Varchar,
         slack_message_id -> Varchar,
         channel -> Varchar,
+        display_text -> Varchar,
     }
 }

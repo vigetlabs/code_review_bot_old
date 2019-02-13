@@ -38,6 +38,7 @@ pub fn pull_request(
             state: "open".to_string(),
             slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
             channel: result.channel.unwrap_or_else(|| "".to_string()),
+            display_text: format!("{}", json.pull_request),
           })
           .map_err(error::ErrorBadRequest)
       })

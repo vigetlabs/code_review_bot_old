@@ -117,12 +117,14 @@ struct FileResult {
 
 impl fmt::Display for PRResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let title = format!("{}: {}", self.base.repo.full_name, self.title);
         write!(
             f,
-            "(+{additions} -{deletions}) {url} by {user}",
+            "(+{additions} -{deletions}) <{url}|{title}> by {user}",
             additions = self.additions,
             deletions = self.deletions,
             url = self.html_url,
+            title = title,
             user = self.user.login
         )
     }

@@ -7,6 +7,7 @@ pub struct NewPullRequest {
   pub state: String,
   pub slack_message_id: String,
   pub channel: String,
+  pub display_text: String,
 }
 
 #[derive(Debug, Queryable)]
@@ -16,4 +17,5 @@ pub struct PullRequest {
   pub state: String,
   pub slack_message_id: String,
   pub channel: String,
+  pub display_text: String,
 }
