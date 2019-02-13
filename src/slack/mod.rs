@@ -240,6 +240,22 @@ impl SlackClient {
         Ok(())
     }
 
+    pub fn reviews_response(&self, text: &str, response_url: &str) -> Result<(), SlackError> {
+        let response = serde_json::to_string(&SlackMessageResponse {
+            text: Some(text.to_string()),
+            attachments: None,
+            response_type: "in_channel".to_string(),
+        })?;
+
+        self.client
+            .post(response_url)
+            .header(reqwest::header::CONTENT_TYPE, "application/json")
+            .body(response)
+            .send()?;
+
+        Ok(())
+    }
+
     pub fn add_reaction(
         &self,
         reaction: &Reaction,

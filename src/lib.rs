@@ -34,7 +34,11 @@ pub fn application(app_config: AppConfig) -> App<AppConfig> {
         .middleware(Logger::new(LOG_FORMAT))
         .resource("/review", |r| {
             r.method(http::Method::POST)
-                .with(routes::slack_webhook::route)
+                .with(routes::slack_webhook::review)
+        })
+        .resource("/reviews", |r| {
+            r.method(http::Method::POST)
+                .with(routes::slack_webhook::reviews)
         })
         .resource("/github_event", |r| {
             r.method(http::Method::POST)

@@ -16,6 +16,10 @@ pub struct UpdatePullReqeustState {
   pub state: String,
 }
 
+pub struct PullRequestsByState {
+  pub state: String,
+}
+
 impl Message for FindPullRequest {
   type Result = Result<PullRequest, Error>;
 }
@@ -26,6 +30,10 @@ impl Message for NewPullRequest {
 
 impl Message for UpdatePullReqeustState {
   type Result = Result<PullRequest, Error>;
+}
+
+impl Message for PullRequestsByState {
+  type Result = Result<Vec<PullRequest>, Error>;
 }
 
 impl Actor for DBExecutor {
@@ -73,6 +81,21 @@ impl Handler<UpdatePullReqeustState> for DBExecutor {
     diesel::update(pull_requests.filter(github_id.eq(&msg.github_id)))
       .set(state.eq(&msg.state))
       .get_result(conn)
+      .map_err(error::ErrorNotFound)
+  }
+}
+
+impl Handler<PullRequestsByState> for DBExecutor {
+  type Result = Result<Vec<PullRequest>, Error>;
+
+  fn handle(&mut self, msg: PullRequestsByState, _: &mut Self::Context) -> Self::Result {
+    use crate::schema::pull_requests::dsl::*;
+
+    let conn = &*self.0.get().map_err(error::ErrorInternalServerError)?;
+
+    pull_requests
+      .filter(state.eq(&msg.state))
+      .load::<PullRequest>(conn)
       .map_err(error::ErrorNotFound)
   }
 }
