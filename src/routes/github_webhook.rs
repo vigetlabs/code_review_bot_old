@@ -87,8 +87,10 @@ pub fn review(
 ) -> FutureResponse<HttpResponse> {
   if let ReviewAction::Submitted = json.action {
     let mut reaction = Reaction::Comment;
+    let mut approved = false;
     if let PRReviewState::Approved = json.review.state {
       reaction = Reaction::Approve;
+      approved = true;
     }
 
     return state
@@ -100,17 +102,24 @@ pub fn review(
         ),
       })
       .map_err(error::ErrorNotFound)
-      .and_then(move |res| match res {
-        Ok(db_pr) => {
-          println!("{:?}", db_pr);
-          let res = state
-            .slack
-            .add_reaction(&reaction, &db_pr.slack_message_id, &db_pr.channel)
-            .map_err(error::ErrorNotFound);
-          println!("{:?}", res);
-          res
-        }
-        Err(e) => Err(error::ErrorNotFound(e)),
+      .and_then(move |res| res.map_err(error::ErrorNotFound))
+      .and_then(move |db_pr| {
+        let message_id = db_pr.slack_message_id;
+        let channel = db_pr.channel;
+
+        state
+          .db
+          .send(UpdatePullReqeustState {
+            github_id: db_pr.github_id,
+            state: next_state(&db_pr.state, approved),
+          })
+          .map_err(error::ErrorNotFound)
+          .and_then(move |_| {
+            state
+              .slack
+              .add_reaction(&reaction, &message_id, &channel)
+              .map_err(error::ErrorNotFound)
+          })
       })
       .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
       .responder();
@@ -121,4 +130,12 @@ pub fn review(
 
 fn github_id(repo: &str, number: u32) -> String {
   format!("{}-{}", repo, number)
+}
+
+fn next_state(state: &str, approved: bool) -> String {
+  if state == "open" && approved {
+    "approved".to_string()
+  } else {
+    state.to_string()
+  }
 }
