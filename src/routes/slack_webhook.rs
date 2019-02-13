@@ -32,7 +32,15 @@ pub fn review(
     .response(&pr_response, &pr_files, &form.response_url)
     .map_err(error::ErrorNotFound)?;
 
-  prepare_response("".to_string())
+  let message = state.slack.immediate_response(
+    "Hi there! This command works fine, but your review doesn't get automatic \
+     updates, it doesn't show up in the open /reviews list, and you have to post it \
+     yourself. What a bummer! Good news is that you can easily add a webhook \
+     to your repo which will do all of these things. \
+     <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
+     |Find out more>".to_string()
+  )?;
+  prepare_response(message)
 }
 
 pub fn reviews(
