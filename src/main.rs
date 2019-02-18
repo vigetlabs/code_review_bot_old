@@ -20,14 +20,21 @@ struct Opt {
     /// Port
     #[structopt(short = "p", long = "port", default_value = "8088")]
     port: u32,
+
+    /// Log Level
+    #[structopt(short = "l", long = "log_level", default_value = "info")]
+    log_level: String,
 }
 
 fn main() {
     // Load Environment
     dotenv().ok();
 
+    // Get options
+    let opt = Opt::from_args();
+
     // Setup logger
-    std::env::set_var("RUST_LOG", "actix_web=info");
+    std::env::set_var("RUST_LOG", format!("actix_web={}", opt.log_level));
     env_logger::init();
 
     // Create actix system to run database actors
@@ -57,8 +64,6 @@ fn main() {
     )
     .expect("Can't create app config");
 
-    // Get options
-    let opt = Opt::from_args();
     if opt.dev {
         start_dev_server(opt.port, app_config)
     } else {

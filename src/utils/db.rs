@@ -3,7 +3,7 @@ use actix_web::{error, Error};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 
-use crate::models::{NewPullRequest, PullRequest};
+pub use crate::models::{NewPullRequest, PullRequest};
 
 pub struct DBExecutor(pub Pool<ConnectionManager<PgConnection>>);
 

@@ -1,15 +1,15 @@
 use crate::github;
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Field {
     title: String,
     value: String,
     short: Option<bool>,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Attachment {
-    fallback: String,
+    pub fallback: String,
     color: Option<String>,
     pretext: Option<String>,
     author_name: Option<String>,

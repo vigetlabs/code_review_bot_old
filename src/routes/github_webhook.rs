@@ -3,66 +3,91 @@ use crate::slack::Reaction;
 use crate::utils::app_config::AppConfig;
 use crate::utils::db::{FindPullRequest, UpdatePullReqeustState};
 use actix_web::AsyncResponder;
-use actix_web::{error, FutureResponse, HttpResponse, Json, State};
+use actix_web::{error, FromRequest, FutureResponse, HttpResponse, Json, State};
 use futures::future;
 use futures::future::Future;
 
 use crate::models::NewPullRequest;
 
-pub fn pull_request(
-  (json, state): (Json<PullRequestEvent>, State<AppConfig>),
-) -> FutureResponse<HttpResponse> {
-  if let PRAction::Opened = json.action {
-    let github = state.github.clone();
-    let slack = state.slack.clone();
-    let language_lookup = state.language_lookup.clone();
-    let pull_request = json.pull_request.clone();
-    let pull_request1 = json.pull_request.clone();
+fn handle_pull_request_opened(
+  state: State<AppConfig>,
+  json: PullRequestEvent,
+  header_exists: bool,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+  let happy_path = future::ok(0)
+    .and_then(move |_| {
+      state
+        .github
+        .get_files(&json.pull_request, &state.language_lookup)
+        .map(|files| (state, json, files))
+    })
+    .map_err(error::ErrorBadRequest)
+    .and_then(move |(state, json, files)| {
+      state
+        .slack
+        .post_message(&json.pull_request, &files)
+        .map(|result| (state, json, result))
+        .map_err(error::ErrorBadRequest)
+    })
+    .and_then(move |(state, json, result)| {
+      state
+        .db
+        .send(NewPullRequest {
+          github_id: github_id(
+            &json.pull_request.base.repo.full_name,
+            json.pull_request.number,
+          ),
+          state: "open".to_string(),
+          slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
+          channel: result.channel.unwrap_or_else(|| "".to_string()),
+          display_text: format!("{}", json.pull_request),
+        })
+        .map_err(error::ErrorBadRequest)
+    })
+    .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")));
 
-    return future::ok(0)
-      .and_then(move |_| github.get_files(&pull_request, &language_lookup))
-      .map_err(error::ErrorBadRequest)
-      .and_then(move |files| {
-        slack
-          .post_message(&pull_request1, &files)
-          .map_err(error::ErrorBadRequest)
-      })
-      .and_then(move |result| {
-        state
-          .db
-          .send(NewPullRequest {
-            github_id: github_id(
-              &json.pull_request.base.repo.full_name,
-              json.pull_request.number,
-            ),
-            state: "open".to_string(),
-            slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
-            channel: result.channel.unwrap_or_else(|| "".to_string()),
-            display_text: format!("{}", json.pull_request),
-          })
-          .map_err(error::ErrorBadRequest)
-      })
-      .map_err(error::ErrorBadRequest)
-      .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
-      .responder();
-  } else if let PRAction::Closed = json.action {
-    return state
-      .db
-      .send(UpdatePullReqeustState {
-        github_id: github_id(
-          &json.pull_request.base.repo.full_name,
-          json.pull_request.number,
-        ),
-        state: "closed".to_string(),
-      })
-      .map_err(error::ErrorNotFound)
-      .and_then(move |res| match res {
-        Ok(db_pr) => {
-          let files = state
+  if header_exists {
+    future::Either::A(
+      future::ok(0).and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body(""))),
+    )
+  } else {
+    future::Either::B(happy_path)
+  }
+}
+
+fn handle_pull_request_closed(
+  state: State<AppConfig>,
+  json: PullRequestEvent,
+  header_exists: bool,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+  let update_state = state
+    .db
+    .send(UpdatePullReqeustState {
+      github_id: github_id(
+        &json.pull_request.base.repo.full_name,
+        json.pull_request.number,
+      ),
+      state: "closed".to_string(),
+    })
+    .map_err(error::ErrorNotFound)
+    .and_then(|res| res.map_err(error::ErrorNotFound))
+    .map(|db_pr| (json, db_pr));
+
+  if header_exists {
+    future::Either::A(
+      update_state.and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body(""))),
+    )
+  } else {
+    future::Either::B(
+      update_state
+        .and_then(|(json, db_pr)| {
+          state
             .github
             .get_files(&json.pull_request, &state.language_lookup)
-            .map_err(error::ErrorBadRequest)?;
-
+            .map(|files| (state, json, db_pr, files))
+            .map_err(error::ErrorBadRequest)
+        })
+        .and_then(|(state, json, db_pr, files)| {
           state
             .slack
             .update_message(
@@ -72,14 +97,31 @@ pub fn pull_request(
               &db_pr.channel,
             )
             .map_err(error::ErrorNotFound)
-        }
-        Err(e) => Err(error::ErrorNotFound(e)),
-      })
-      .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
-      .responder();
+        })
+        .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body(""))),
+    )
   }
+}
 
-  future::ok(HttpResponse::Ok().content_type("application/json").body("")).responder()
+pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> FutureResponse<HttpResponse> {
+  let state = State::<AppConfig>::extract(&req);
+  let header_exists = req.headers().get("X-Hub-Signature").is_some();
+  Json::<PullRequestEvent>::extract(&req)
+    .map(|json| (state, json.0))
+    .and_then(move |(state, json)| match json.action {
+      PRAction::Opened => future::Either::A(future::Either::A(handle_pull_request_opened(
+        state,
+        json,
+        header_exists,
+      ))),
+      PRAction::Closed => future::Either::A(future::Either::B(handle_pull_request_closed(
+        state,
+        json,
+        header_exists,
+      ))),
+      _ => future::Either::B(future::err(error::ErrorNotFound("Unhanlded PR Action"))),
+    })
+    .responder()
 }
 
 pub fn review(
