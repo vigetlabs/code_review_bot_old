@@ -11,6 +11,8 @@ pub struct SlackMessageResponse {
     text: Option<String>,
     attachments: Option<Vec<attachment::Attachment>>,
     response_type: String,
+    username: Option<String>,
+    as_user: bool,
 }
 
 #[derive(Serialize, Debug)]
@@ -18,6 +20,9 @@ pub struct SlackMessagePost {
     text: Option<String>,
     channel: String,
     attachments: Option<Vec<attachment::Attachment>>,
+    username: Option<String>,
+    as_user: bool,
+    icon_url: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -63,12 +68,13 @@ pub struct SlackRequest {
     pub text: String,
     token: String,
     pub response_url: String,
+    pub channel_id: String,
 }
 
 #[derive(Clone)]
 pub struct SlackClient {
     url: String,
-    channel: String,
+    pub channel: String,
     client: reqwest::Client,
 }
 
@@ -152,14 +158,19 @@ impl SlackClient {
         &self,
         pull_request: &github::PRResult,
         files: &str,
+        channel: &str,
     ) -> Result<SlackMessagePostResponse, String> {
+        let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
         let message = serde_json::to_string(&SlackMessagePost {
             text: None,
-            channel: self.channel.to_string(),
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
             )]),
+            channel: channel.to_string(),
+            username: Some(format!("{} {}", pull_request.title, additions)),
+            as_user: false,
+            icon_url: Some(pull_request.user.avatar_url.to_string()),
         })
         .map_err(|_| "Json serialize error")?;
 
@@ -213,33 +224,9 @@ impl SlackClient {
             text: Some(text),
             attachments: None,
             response_type: "ephemeral".to_string(),
+            username: None,
+            as_user: true,
         })
-    }
-
-    pub fn response(
-        &self,
-        pull_request: &github::PRResult,
-        files: &str,
-        response_url: &str,
-    ) -> Result<(), &'static str> {
-        let response = serde_json::to_string(&SlackMessageResponse {
-            text: None,
-            attachments: Some(vec![attachment::Attachment::from_pull_request(
-                pull_request,
-                files,
-            )]),
-            response_type: "in_channel".to_string(),
-        })
-        .map_err(|_| "Json serialize error")?;
-
-        self.client
-            .post(response_url)
-            .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .body(response)
-            .send()
-            .map_err(|_| "Slack send error")?;
-
-        Ok(())
     }
 
     pub fn reviews_response(&self, text: &str, response_url: &str) -> Result<(), String> {
@@ -247,6 +234,8 @@ impl SlackClient {
             text: Some(text.to_string()),
             attachments: None,
             response_type: "in_channel".to_string(),
+            username: None,
+            as_user: true,
         })
         .map_err(|_| "Json serialize error")?;
 

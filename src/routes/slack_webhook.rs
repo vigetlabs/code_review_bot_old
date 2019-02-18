@@ -31,7 +31,7 @@ pub fn review(
 
   state
     .slack
-    .response(&pr_response, &pr_files, &form.response_url)
+    .post_message(&pr_response, &pr_files, &form.channel_id)
     .map_err(error::ErrorNotFound)?;
 
   let message = state.slack.immediate_response(

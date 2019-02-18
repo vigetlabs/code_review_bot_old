@@ -25,7 +25,7 @@ fn handle_pull_request_opened(
     .and_then(move |(state, json, files)| {
       state
         .slack
-        .post_message(&json.pull_request, &files)
+        .post_message(&json.pull_request, &files, &state.slack.channel)
         .map(|result| (state, json, result))
         .map_err(error::ErrorBadRequest)
     })

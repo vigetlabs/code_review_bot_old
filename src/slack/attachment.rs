@@ -29,22 +29,21 @@ pub struct Attachment {
 impl Attachment {
     pub fn from_pull_request(pull_request: &github::PRResult, files: &str) -> Attachment {
         let color = pull_request.color();
-        let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
-        let title = format!(
-            "{}: {}",
-            pull_request.base.repo.full_name, pull_request.title
+        let text = format!(
+            "<{}|{}> by {} {}",
+            pull_request.html_url, pull_request.base.repo.full_name, pull_request.user.login, files
         );
 
         Attachment {
             fallback: format!("{}", pull_request),
             color: Some(color),
             pretext: None,
-            author_name: Some(pull_request.user.login.to_string()),
-            author_link: Some(pull_request.user.html_url.to_string()),
-            author_icon: Some(pull_request.user.avatar_url.to_string()),
-            title: Some(title),
-            title_link: Some(pull_request.html_url.to_string()),
-            text: format!("{} {}", files, additions),
+            author_name: None,
+            author_link: None,
+            author_icon: None,
+            title: None,
+            title_link: None,
+            text,
             fields: None,
             image_url: None,
             thumb_url: None,
