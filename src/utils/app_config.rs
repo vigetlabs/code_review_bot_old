@@ -11,6 +11,7 @@ pub struct AppConfig {
   pub slack: SlackClient,
   pub language_lookup: Languages,
   pub db: Addr<db::DBExecutor>,
+  pub webhook_url: String,
 }
 
 impl AppConfig {
@@ -21,6 +22,7 @@ impl AppConfig {
     channel: &str,
     language_lookup: Languages,
     db: Addr<db::DBExecutor>,
+    webhook_url: String,
   ) -> Result<Self, &'static str> {
     let github_url = "https://api.github.com".to_string();
     let slack_url = "https://slack.com/api/".to_string();
@@ -30,6 +32,7 @@ impl AppConfig {
       slack: SlackClient::new(slack_url, &slack_token, channel.to_string())?,
       language_lookup,
       db,
+      webhook_url,
     })
   }
 }

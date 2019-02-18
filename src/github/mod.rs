@@ -256,7 +256,11 @@ impl GithubClient {
         Ok(file_extensions.join(" "))
     }
 
-    pub fn create_webhook(&self, pull_request: &PullRequest) -> Result<(), String> {
+    pub fn create_webhook(
+        &self,
+        pull_request: &PullRequest,
+        webhook_url: &str,
+    ) -> Result<(), String> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/hooks",
             url = self.url,
@@ -284,7 +288,7 @@ impl GithubClient {
         .ok_or_else(|| "Hook exists".to_string())
         .and_then(|_| {
             // TODO: Fix error handling here
-            let body = serde_json::to_string(&WebHook::new()).unwrap();
+            let body = serde_json::to_string(&WebHook::new(webhook_url)).unwrap();
             self.client
                 .post(&request_url)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -319,14 +323,14 @@ enum ContentType {
     Form,
 }
 impl WebHook {
-    fn new() -> Self {
+    fn new(webhook_url: &str) -> Self {
         Self {
             events: vec![
                 "pull_request".to_string(),
                 "pull_request_review".to_string(),
             ],
             config: WebHookConfig {
-                url: "http://f95ae61b.ngrok.io/github_event".to_string(),
+                url: webhook_url.to_string(),
                 content_type: ContentType::Json,
                 secret: Some("update-only".to_string()),
             },

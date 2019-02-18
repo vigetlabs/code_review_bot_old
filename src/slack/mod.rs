@@ -232,8 +232,7 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
-        let res = self
-            .client
+        self.client
             .post(response_url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(response)

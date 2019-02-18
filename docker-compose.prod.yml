@@ -7,5 +7,6 @@ services:
       dockerfile: Dockerfile.prod
     environment:
       - SLACK_CHANNEL=#code-review
+      - WEBHOOK_URL=http:://crbot.vigetx.com/github_event
     ports:
       - "80:80"
