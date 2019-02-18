@@ -13,6 +13,7 @@ pub struct SlackMessageResponse {
     response_type: String,
     username: Option<String>,
     as_user: bool,
+    channel: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -226,21 +227,23 @@ impl SlackClient {
             response_type: "ephemeral".to_string(),
             username: None,
             as_user: true,
+            channel: None,
         })
     }
 
-    pub fn reviews_response(&self, text: &str, response_url: &str) -> Result<(), String> {
+    pub fn reviews_response(&self, text: &str, channel_id: &str) -> Result<(), String> {
         let response = serde_json::to_string(&SlackMessageResponse {
             text: Some(text.to_string()),
             attachments: None,
             response_type: "in_channel".to_string(),
-            username: None,
-            as_user: true,
+            username: Some("Waiting for Review".to_string()),
+            as_user: false,
+            channel: Some(channel_id.to_string()),
         })
         .map_err(|_| "Json serialize error")?;
 
         self.client
-            .post(response_url)
+            .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(response)
             .send()
