@@ -140,6 +140,14 @@ impl PRResult {
             "#cb2431".to_string()
         }
     }
+
+    pub fn open(&self) -> bool {
+        if let PRState::Open = self.state {
+            true
+        } else {
+            false
+        }
+    }
 }
 
 #[derive(Debug)]

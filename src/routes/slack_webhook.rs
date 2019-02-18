@@ -64,7 +64,7 @@ pub fn reviews(
 
         state
           .slack
-          .reviews_response(&open_prs.join("\n"), &form.response_url)
+          .reviews_response(&open_prs.join("\n"), &form.channel_id)
           .map_err(error::ErrorNotFound)
       }
       Err(e) => Err(error::ErrorNotFound(e)),
@@ -174,6 +174,14 @@ fn handle_event(
         .nth(0)
         .ok_or_else(|| "No PR".to_string())
         .map(|(pr, res)| (pr, res, state))
+    })
+    .then(move |res| {
+      let (pr, res, state) = res?;
+      if res.open() {
+        Ok((pr, res, state))
+      } else {
+        Err("PR Already Closed".to_string())
+      }
     })
     .and_then(move |(pr, res, state)| {
       state
