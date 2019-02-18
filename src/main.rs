@@ -44,8 +44,9 @@ fn main() {
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
     let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
     let slack_channel = std::env::var("SLACK_CHANNEL").expect("Can't find var SLACK_CHANNEL");
-    let language_lookup = load_languages().expect("Can't load language lookup");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
+    let webhook_url = std::env::var("WEBHOOK_URL").expect("Can't find var WEBHOOK_URL");
+    let language_lookup = load_languages().expect("Can't load language lookup");
 
     // Setup database
     let manager = ConnectionManager::<PgConnection>::new(database_url);
@@ -61,6 +62,7 @@ fn main() {
         &slack_channel,
         language_lookup,
         addr,
+        webhook_url,
     )
     .expect("Can't create app config");
 
