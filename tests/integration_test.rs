@@ -47,27 +47,27 @@ fn search_mock() -> mockito::Mock {
         .create()
 }
 
-#[test]
-fn accept_webhook_with_repo_url() {
-    let _m = search_mock();
-    let form_data = FormData {
-        text: "https://github.com/facebook/react/pulls/123".to_string(),
-        token: "test_token".to_string(),
-    };
+// #[test]
+// fn accept_webhook_with_repo_url() {
+//     let _m = search_mock();
+//     let form_data = FormData {
+//         text: "https://github.com/facebook/react/pulls/123".to_string(),
+//         token: "test_token".to_string(),
+//     };
 
-    let mut server = test::TestServer::with_factory(|| {
-        code_review_bot::application(mockito::SERVER_URL, "token").unwrap()
-    });
-    let request = server
-        .client(http::Method::POST, "/review")
-        .content_type("application/x-www-form-urlencoded")
-        .form(form_data)
-        .unwrap();
-    let response = server.execute(request.send()).unwrap();
+//     let mut server = test::TestServer::with_factory(|| {
+//         code_review_bot::application(mockito::SERVER_URL, "token").unwrap()
+//     });
+//     let request = server
+//         .client(http::Method::POST, "/review")
+//         .content_type("application/x-www-form-urlencoded")
+//         .form(form_data)
+//         .unwrap();
+//     let response = server.execute(request.send()).unwrap();
 
-    assert!(response.status().is_success());
-    let bytes = server.execute(response.body()).unwrap();
-    let body = std::str::from_utf8(&bytes).unwrap();
+//     assert!(response.status().is_success());
+//     let bytes = server.execute(response.body()).unwrap();
+//     let body = std::str::from_utf8(&bytes).unwrap();
 
-    assert!(body.contains("(+42 -1) https:://github.com/facebook/react/pulls/123 by joeyjoejoejr"));
-}
+//     assert!(body.contains("(+42 -1) https:://github.com/facebook/react/pulls/123 by joeyjoejoejr"));
+// }

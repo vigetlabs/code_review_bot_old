@@ -2,9 +2,10 @@ use actix_web;
 
 #[macro_use]
 extern crate serde_derive;
-
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate lazy_static;
 
 mod models;
 mod schema;
@@ -35,6 +36,10 @@ pub fn application(app_config: AppConfig) -> App<AppConfig> {
         .resource("/review", |r| {
             r.method(http::Method::POST)
                 .with(routes::slack_webhook::review)
+        })
+        .resource("/slack_event", |r| {
+            r.method(http::Method::POST)
+                .with(routes::slack_webhook::message)
         })
         .resource("/reviews", |r| {
             r.method(http::Method::POST)

@@ -1,7 +1,10 @@
-mod attachment;
-use crate::github;
+pub mod attachment;
+mod helpers;
 
+use crate::github;
 use std::fmt;
+
+pub use helpers::extract_links;
 
 #[derive(Serialize, Debug)]
 pub struct SlackMessageResponse {
@@ -160,7 +163,6 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
-        println!("Message: {}", message);
         self.client
             .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
@@ -230,7 +232,8 @@ impl SlackClient {
         })
         .map_err(|_| "Json serialize error")?;
 
-        self.client
+        let res = self
+            .client
             .post(response_url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(response)

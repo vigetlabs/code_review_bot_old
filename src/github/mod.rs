@@ -255,6 +255,83 @@ impl GithubClient {
 
         Ok(file_extensions.join(" "))
     }
+
+    pub fn create_webhook(&self, pull_request: &PullRequest) -> Result<(), String> {
+        let request_url = format!(
+            "{url}/repos/{owner}/{repo}/hooks",
+            url = self.url,
+            owner = pull_request.owner,
+            repo = pull_request.name,
+        );
+
+        let hooks: Vec<WebHook> = self
+            .client
+            .get(&request_url)
+            .send()
+            .map_err(|e| format!("{}", e))?
+            .error_for_status()
+            .map_err(|e| format!("{}", e))?
+            .json()
+            .map_err(|e| format!("{}", e))?;
+
+        match hooks
+            .iter()
+            .find(|hook| hook.config.url.contains("github_event"))
+        {
+            Some(_) => None,
+            None => Some(()),
+        }
+        .ok_or_else(|| "Hook exists".to_string())
+        .and_then(|_| {
+            // TODO: Fix error handling here
+            let body = serde_json::to_string(&WebHook::new()).unwrap();
+            self.client
+                .post(&request_url)
+                .header(reqwest::header::CONTENT_TYPE, "application/json")
+                .body(body)
+                .send()
+                .map_err(|e| format!("{}", e))?
+                .error_for_status()
+                .map_err(|e| format!("{}", e))
+        })?;
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WebHook {
+    config: WebHookConfig,
+    events: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WebHookConfig {
+    url: String,
+    content_type: ContentType,
+    secret: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "snake_case")]
+enum ContentType {
+    Json,
+    Form,
+}
+impl WebHook {
+    fn new() -> Self {
+        Self {
+            events: vec![
+                "pull_request".to_string(),
+                "pull_request_review".to_string(),
+            ],
+            config: WebHookConfig {
+                url: "http://f95ae61b.ngrok.io/github_event".to_string(),
+                content_type: ContentType::Json,
+                secret: Some("update-only".to_string()),
+            },
+        }
+    }
 }
 
 #[cfg(test)]

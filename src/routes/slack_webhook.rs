@@ -1,9 +1,11 @@
-use crate::github::PullRequest;
-use crate::slack::SlackRequest;
-use crate::utils::db::PullRequestsByState;
-use crate::AppConfig;
-use actix_web::{error, AsyncResponder, Form, FutureResponse, HttpResponse, State};
+use actix_web::{error, AsyncResponder, Form, FutureResponse, HttpResponse, Json, State};
+use futures::future;
 use futures::future::Future;
+
+use crate::github::{PRResult, PullRequest};
+use crate::slack::{attachment, extract_links, SlackRequest};
+use crate::utils::db::{FindPullRequest, NewPullRequest, PullRequestsByState};
+use crate::AppConfig;
 
 pub fn review(
   (form, state): (Form<SlackRequest>, State<AppConfig>),
@@ -60,12 +62,10 @@ pub fn reviews(
           prs.iter().map(|pr| pr.display_text.to_string()).collect()
         };
 
-        let res = state
+        state
           .slack
           .reviews_response(&open_prs.join("\n"), &form.response_url)
-          .map_err(error::ErrorNotFound);
-        println!("{:?}", res);
-        res
+          .map_err(error::ErrorNotFound)
       }
       Err(e) => Err(error::ErrorNotFound(e)),
     })
@@ -79,4 +79,139 @@ fn prepare_response(body: String) -> actix_web::Result<HttpResponse> {
       .content_type("application/json")
       .body(body),
   )
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum SlackEventWrapper {
+  UrlVerification {
+    token: String,
+    challenge: String,
+  },
+  EventCallback {
+    token: String,
+    team_id: String,
+    api_app_id: String,
+    event: SlackEvent,
+    event_id: String,
+    event_time: u32,
+  },
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum SlackEvent {
+  Message {
+    channel: String,
+    user: Option<String>,
+    subtype: Option<String>,
+    attachments: Option<Vec<attachment::Attachment>>,
+    text: String,
+    ts: String,
+  },
+}
+
+#[derive(Serialize, Debug)]
+pub struct UrlVerification {
+  challenge: String,
+}
+
+pub fn message(
+  (json, state): (Json<SlackEventWrapper>, State<AppConfig>),
+) -> FutureResponse<HttpResponse> {
+  let Json(event_wrapper) = json;
+
+  match event_wrapper {
+    SlackEventWrapper::UrlVerification { challenge, .. } => {
+      future::Either::A(handle_url_verification(challenge))
+    }
+    SlackEventWrapper::EventCallback { event, .. } => future::Either::B(handle_event(event, state)),
+  }
+  .responder()
+}
+
+fn handle_url_verification(
+  challenge: String,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+  future::ok(0)
+    .and_then(|_| serde_json::to_string(&UrlVerification { challenge }))
+    .map_err(actix_web::error::ErrorBadRequest)
+    .and_then(prepare_response)
+}
+
+fn handle_event(
+  event: SlackEvent,
+  state: State<AppConfig>,
+) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+  let SlackEvent::Message {
+    mut text,
+    channel,
+    ts,
+    subtype,
+    attachments,
+    ..
+  } = event;
+  if let Some(atts) = attachments {
+    text = format!(
+      "{}{}",
+      text,
+      atts
+        .iter()
+        .map(|att| att.fallback.clone())
+        .collect::<Vec<String>>()
+        .join("")
+    );
+  }
+
+  let handle_slack_message = future::ok(0)
+    .and_then(move |_| {
+      extract_links(&text)
+        .iter()
+        .filter_map(|url| url.parse::<PullRequest>().ok())
+        .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
+        .nth(0)
+        .ok_or_else(|| "No PR".to_string())
+        .map(|(pr, res)| (pr, res, state))
+    })
+    .and_then(move |(pr, res, state)| {
+      state
+        .db
+        .send(FindPullRequest {
+          github_id: github_id(&res),
+        })
+        .map_err(|e| format!("{}", e))
+        .and_then(|db_res| match db_res {
+          Ok(_) => Err("PR Already Created".to_string()),
+          Err(_) => Ok((pr, res, state)),
+        })
+    })
+    .and_then(move |(pr, res, state)| {
+      state
+        .db
+        .send(NewPullRequest {
+          github_id: github_id(&res),
+          state: "open".to_string(),
+          slack_message_id: ts,
+          channel,
+          display_text: format!("{}", res),
+        })
+        .map(|_| (pr, state))
+        .map_err(|e| format!("{}", e))
+    })
+    .and_then(move |(pr, state)| state.github.create_webhook(&pr))
+    .then(|_| prepare_response("".to_string()));
+
+  if subtype.is_none() || subtype.unwrap_or_else(|| "".to_string()) == "bot_message" {
+    future::Either::A(handle_slack_message)
+  } else {
+    future::Either::B(
+      future::ok(0).and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body(""))),
+    )
+  }
+}
+
+fn github_id(pr: &PRResult) -> String {
+  format!("{}-{}", pr.base.repo.full_name, pr.number)
 }
