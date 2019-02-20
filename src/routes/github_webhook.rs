@@ -135,36 +135,44 @@ pub fn review(
       approved = true;
     }
 
-    return state
-      .db
-      .send(FindPullRequest {
-        github_id: github_id(
-          &json.pull_request.base.repo.full_name,
-          json.pull_request.number,
-        ),
-      })
-      .map_err(error::ErrorNotFound)
-      .and_then(move |res| res.map_err(error::ErrorNotFound))
-      .and_then(move |db_pr| {
-        let message_id = db_pr.slack_message_id;
-        let channel = db_pr.channel;
+    return if json.review.user.login != json.pull_request.user.login {
+      future::ok(())
+    } else {
+      future::err(error::ErrorNotFound("Reviewer same as opened pull request"))
+    }
+    .and_then(move |_| {
+      state
+        .db
+        .send(FindPullRequest {
+          github_id: github_id(
+            &json.pull_request.base.repo.full_name,
+            json.pull_request.number,
+          ),
+        })
+        .map_err(error::ErrorNotFound)
+        .and_then(|res| res.map_err(error::ErrorNotFound))
+        .map(|db_pr| (state, db_pr))
+    })
+    .and_then(move |(state, db_pr)| {
+      let message_id = db_pr.slack_message_id;
+      let channel = db_pr.channel;
 
-        state
-          .db
-          .send(UpdatePullReqeustState {
-            github_id: db_pr.github_id,
-            state: next_state(&db_pr.state, approved),
-          })
-          .map_err(error::ErrorNotFound)
-          .and_then(move |_| {
-            state
-              .slack
-              .add_reaction(&reaction, &message_id, &channel)
-              .map_err(error::ErrorNotFound)
-          })
-      })
-      .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
-      .responder();
+      state
+        .db
+        .send(UpdatePullReqeustState {
+          github_id: db_pr.github_id,
+          state: next_state(&db_pr.state, approved),
+        })
+        .map_err(error::ErrorNotFound)
+        .and_then(move |_| {
+          state
+            .slack
+            .add_reaction(&reaction, &message_id, &channel)
+            .map_err(error::ErrorNotFound)
+        })
+    })
+    .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
+    .responder();
   }
 
   future::ok(HttpResponse::Ok().content_type("application/json").body("")).responder()

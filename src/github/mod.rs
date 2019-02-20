@@ -46,6 +46,7 @@ pub enum ReviewAction {
 #[derive(Deserialize, Debug)]
 pub struct PRReview {
     pub state: PRReviewState,
+    pub user: User,
 }
 
 #[derive(Deserialize, Debug)]
