@@ -305,6 +305,14 @@ impl GithubClient {
                 .map_err(|e| format!("{}", e))?
                 .error_for_status()
                 .map_err(|e| format!("{}", e))
+        })
+        .map(|res| {
+            println!("Webhook Result: {:?}", res);
+            res
+        })
+        .map_err(|err| {
+            println!("Webhook Err: {:?}", err);
+            err
         })?;
 
         Ok(())

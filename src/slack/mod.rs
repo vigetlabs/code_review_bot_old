@@ -169,7 +169,7 @@ impl SlackClient {
                 files,
             )]),
             channel: channel.to_string(),
-            username: Some(format!("{} {}", pull_request.title, additions)),
+            username: Some(format!("{} {}", additions, pull_request.title)),
             as_user: false,
             icon_url: Some(pull_request.user.avatar_url.to_string()),
         })
@@ -196,13 +196,13 @@ impl SlackClient {
         channel: &str,
     ) -> Result<SlackMessageUpdateResponse, String> {
         let message = serde_json::to_string(&SlackMessageUpdate {
-            as_user: Some(true),
+            text: None,
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
             )]),
             channel: channel.to_string(),
-            text: None,
+            as_user: Some(false),
             ts: ts.to_string(),
         })
         .map_err(|_| "Json serialize error")?;
