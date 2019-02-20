@@ -193,6 +193,10 @@ fn handle_event(
         })
     })
     .and_then(move |(pr, res, state)| {
+      state.github.create_webhook(&pr, &state.webhook_url)
+        .map(|_| (pr, res, state))
+    })
+    .and_then(move |(pr, res, state)| {
       state
         .db
         .send(NewPullRequest {
@@ -205,7 +209,6 @@ fn handle_event(
         .map(|_| (pr, state))
         .map_err(|e| format!("{}", e))
     })
-    .and_then(move |(pr, state)| state.github.create_webhook(&pr, &state.webhook_url))
     .then(|_| prepare_response("".to_string()));
 
   if subtype.is_none() || subtype.unwrap_or_else(|| "".to_string()) == "bot_message" {

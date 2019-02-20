@@ -287,15 +287,10 @@ impl GithubClient {
             .json()
             .map_err(|e| format!("{}", e))?;
 
-        match hooks
+        if !hooks
             .iter()
-            .find(|hook| hook.config.url.contains("github_event"))
+            .any(|hook| hook.config.url.contains("github_event"))
         {
-            Some(_) => None,
-            None => Some(()),
-        }
-        .ok_or_else(|| "Hook exists".to_string())
-        .and_then(|_| {
             // TODO: Fix error handling here
             let body = serde_json::to_string(&WebHook::new(webhook_url)).unwrap();
             self.client
@@ -305,16 +300,8 @@ impl GithubClient {
                 .send()
                 .map_err(|e| format!("{}", e))?
                 .error_for_status()
-                .map_err(|e| format!("{}", e))
-        })
-        .map(|res| {
-            println!("Webhook Result: {:?}", res);
-            res
-        })
-        .map_err(|err| {
-            println!("Webhook Err: {:?}", err);
-            err
-        })?;
+                .map_err(|e| format!("{}", e))?;
+        }
 
         Ok(())
     }
