@@ -19,13 +19,15 @@ pub struct PullRequestEvent {
 pub enum PRAction {
     Assigned,
     Unassigned,
-    ReviewRequsted,
+    ReviewRequested,
     ReviewRequestRemoved,
     Labeled,
     Unlabled,
     Opened,
     Reopened,
     Closed,
+    Edited,
+    Synchronized
 }
 
 #[derive(Deserialize, Debug)]
@@ -65,6 +67,8 @@ pub struct ReviewPR {
     pub body: String,
     pub state: PRState,
     pub number: u32,
+    #[serde(default)]
+    pub draft: bool,
 
     pub user: User,
     pub base: Base,
@@ -99,6 +103,8 @@ pub struct PRResult {
     pub additions: u32,
     pub deletions: u32,
     pub number: u32,
+     #[serde(default)]
+    pub draft: bool,
 
     pub user: User,
     pub base: Base,
