@@ -1,7 +1,7 @@
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
 use crate::slack::Reaction;
 use crate::utils::app_config::AppConfig;
-use crate::utils::db::{FindPullRequest, UpdatePullReqeustState};
+use crate::utils::db::{FindPullRequest, UpdatePullRequestState};
 use actix_web::AsyncResponder;
 use actix_web::{error, FromRequest, FutureResponse, HttpResponse, Json, State};
 use futures::future;
@@ -62,7 +62,7 @@ fn handle_pull_request_closed(
 ) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
   let update_state = state
     .db
-    .send(UpdatePullReqeustState {
+    .send(UpdatePullRequestState {
       github_id: github_id(
         &json.pull_request.base.repo.full_name,
         json.pull_request.number,
@@ -159,7 +159,7 @@ pub fn review(
 
       state
         .db
-        .send(UpdatePullReqeustState {
+        .send(UpdatePullRequestState {
           github_id: db_pr.github_id,
           state: next_state(&db_pr.state, approved),
         })

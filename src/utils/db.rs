@@ -11,7 +11,7 @@ pub struct FindPullRequest {
   pub github_id: String,
 }
 
-pub struct UpdatePullReqeustState {
+pub struct UpdatePullRequestState {
   pub github_id: String,
   pub state: String,
 }
@@ -28,7 +28,7 @@ impl Message for NewPullRequest {
   type Result = Result<PullRequest, Error>;
 }
 
-impl Message for UpdatePullReqeustState {
+impl Message for UpdatePullRequestState {
   type Result = Result<PullRequest, Error>;
 }
 
@@ -70,10 +70,10 @@ impl Handler<FindPullRequest> for DBExecutor {
   }
 }
 
-impl Handler<UpdatePullReqeustState> for DBExecutor {
+impl Handler<UpdatePullRequestState> for DBExecutor {
   type Result = Result<PullRequest, Error>;
 
-  fn handle(&mut self, msg: UpdatePullReqeustState, _: &mut Self::Context) -> Self::Result {
+  fn handle(&mut self, msg: UpdatePullRequestState, _: &mut Self::Context) -> Self::Result {
     use crate::schema::pull_requests::dsl::*;
 
     let conn = &*self.0.get().map_err(error::ErrorInternalServerError)?;
