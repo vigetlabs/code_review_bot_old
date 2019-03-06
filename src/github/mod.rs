@@ -103,6 +103,7 @@ pub struct PRResult {
     pub additions: u32,
     pub deletions: u32,
     pub number: u32,
+     #[serde(default)]
     pub draft: bool,
 
     pub user: User,
