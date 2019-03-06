@@ -67,6 +67,7 @@ pub struct ReviewPR {
     pub body: String,
     pub state: PRState,
     pub number: u32,
+    #[serde(default)]
     pub draft: bool,
 
     pub user: User,
