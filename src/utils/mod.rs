@@ -21,7 +21,7 @@ struct Language {
 fn language_lookup(name: &str) -> LanguageIcon {
   match name {
     "CSS" => ":css:",
-    "Elixir" => ":elixir",
+    "Elixir" => ":elixir:",
     "HTML" => ":html:",
     "JavaScript" => ":js:",
     "Kotlin" => ":kotlin:",
