@@ -66,7 +66,7 @@ pub fn reviews(
             }
             Err(e) => Err(error::ErrorNotFound(e)),
         })
-        .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
+        .and_then(|_| prepare_response("".to_string()))
         .responder()
 }
 
@@ -119,29 +119,21 @@ pub fn message(
     let Json(event_wrapper) = json;
 
     match event_wrapper {
-        SlackEventWrapper::UrlVerification { challenge, .. } => {
-            future::Either::A(handle_url_verification(challenge))
-        }
-        SlackEventWrapper::EventCallback { event, .. } => {
-            future::Either::B(handle_event(event, state))
-        }
+        SlackEventWrapper::UrlVerification { challenge, .. } => handle_url_verification(challenge),
+        SlackEventWrapper::EventCallback { event, .. } => handle_event(event, state),
     }
     .responder()
 }
 
-fn handle_url_verification(
-    challenge: String,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+fn handle_url_verification(challenge: String) -> FutureResponse<HttpResponse> {
     future::ok(0)
         .and_then(|_| serde_json::to_string(&UrlVerification { challenge }))
         .map_err(actix_web::error::ErrorBadRequest)
         .and_then(prepare_response)
+        .responder()
 }
 
-fn handle_event(
-    event: SlackEvent,
-    state: State<AppConfig>,
-) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<HttpResponse> {
     let SlackEvent::Message {
         mut text,
         channel,
@@ -150,6 +142,11 @@ fn handle_event(
         attachments,
         ..
     } = event;
+
+    if subtype.is_some() && subtype.unwrap_or_else(|| "".to_string()) != "bot_message" {
+        return future::result(prepare_response("".to_string())).responder();
+    }
+
     if let Some(atts) = attachments {
         text = format!(
             "{}{}",
@@ -161,65 +158,56 @@ fn handle_event(
         );
     }
 
-    let handle_slack_message = future::ok(0)
-        .and_then(move |_| {
-            extract_links(&text)
-                .iter()
-                .filter_map(|url| url.parse::<PullRequest>().ok())
-                .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
-                .nth(0)
-                .ok_or_else(|| "No PR".to_string())
-                .map(|(pr, res)| (pr, res, state))
-        })
-        .then(move |res| {
-            let (pr, res, state) = res?;
-            if res.open() {
-                Ok((pr, res, state))
-            } else {
-                Err("PR Already Closed".to_string())
-            }
-        })
-        .and_then(move |(pr, res, state)| {
-            state
-                .db
-                .send(FindPullRequest {
-                    github_id: github_id(&res),
-                })
-                .map_err(|e| format!("{}", e))
-                .and_then(|db_res| match db_res {
-                    Ok(_) => Err("PR Already Created".to_string()),
-                    Err(_) => Ok((pr, res, state)),
-                })
-        })
-        .and_then(move |(pr, res, state)| {
-            state
-                .github
-                .create_webhook(&pr, &state.webhook_url)
-                .map(|_| (pr, res, state))
-        })
-        .and_then(move |(pr, res, state)| {
-            state
-                .db
-                .send(NewPullRequest {
-                    github_id: github_id(&res),
-                    state: "open".to_string(),
-                    slack_message_id: ts,
-                    channel,
-                    display_text: format!("{}", res),
-                })
-                .map(|_| (pr, state))
-                .map_err(|e| format!("{}", e))
-        })
-        .then(|_| prepare_response("".to_string()));
-
-    if subtype.is_none() || subtype.unwrap_or_else(|| "".to_string()) == "bot_message" {
-        future::Either::A(handle_slack_message)
-    } else {
-        future::Either::B(
-            future::ok(0)
-                .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body(""))),
-        )
-    }
+    future::result(
+        extract_links(&text)
+            .iter()
+            .filter_map(|url| url.parse::<PullRequest>().ok())
+            .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
+            .nth(0)
+            .ok_or_else(|| "No PR".to_string())
+            .map(|(pr, res)| (pr, res, state)),
+    )
+    .then(|res| {
+        let (pr, res, state) = res?;
+        if res.open() {
+            Ok((pr, res, state))
+        } else {
+            Err("PR Already Closed".to_string())
+        }
+    })
+    .and_then(|(pr, res, state)| {
+        state
+            .db
+            .send(FindPullRequest {
+                github_id: github_id(&res),
+            })
+            .map_err(|e| format!("{}", e))
+            .and_then(|db_res| match db_res {
+                Ok(_) => Err("PR Already Created".to_string()),
+                Err(_) => Ok((pr, res, state)),
+            })
+    })
+    .and_then(|(pr, res, state)| {
+        state
+            .github
+            .create_webhook(&pr, &state.webhook_url)
+            .map(|_| (pr, res, state))
+    })
+    .and_then(|(pr, res, state)| {
+        state
+            .db
+            .send(NewPullRequest {
+                github_id: github_id(&res),
+                state: "open".to_string(),
+                slack_message_id: ts,
+                channel,
+                display_text: format!("{}", res),
+            })
+            .map(|_| (pr, state))
+            .map_err(|e| format!("{}", e))
+    })
+    .then(|_| prepare_response("".to_string()))
+    .responder()
 }
 
 fn github_id(pr: &PRResult) -> String {
