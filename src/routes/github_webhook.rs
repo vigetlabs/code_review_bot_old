@@ -2,6 +2,7 @@ use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, Rev
 use crate::slack::Reaction;
 use crate::utils::app_config::AppConfig;
 use crate::utils::db::{FindPullRequest, UpdatePullRequestState};
+use crate::utils::prepare_response;
 use actix_web::AsyncResponder;
 use actix_web::{error, FromRequest, FutureResponse, HttpResponse, Json, State};
 use futures::future;
@@ -16,7 +17,7 @@ fn handle_pull_request_opened(
     is_auto_webhook: bool,
 ) -> FutureResponse<HttpResponse> {
     if is_auto_webhook {
-        return future::ok(HttpResponse::Ok().content_type("application/json").body("")).responder();
+        return future::result(prepare_response("")).responder();
     }
 
     if json.pull_request.draft {
@@ -52,7 +53,7 @@ fn handle_pull_request_opened(
             })
             .map_err(error::ErrorBadRequest)
     })
-    .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
+    .and_then(|_| prepare_response(""))
     .responder()
 }
 
@@ -75,9 +76,7 @@ fn handle_pull_request_closed(
         .map(|db_pr| (json, db_pr));
 
     if is_auto_webhook {
-        update_state
-            .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
-            .responder()
+        update_state.and_then(|_| prepare_response("")).responder()
     } else {
         update_state
             .and_then(|(json, db_pr)| {
@@ -98,7 +97,7 @@ fn handle_pull_request_closed(
                     )
                     .map_err(error::ErrorNotFound)
             })
-            .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
+            .and_then(|_| prepare_response(""))
             .responder()
     }
 }
@@ -125,7 +124,7 @@ pub fn review(
 ) -> FutureResponse<HttpResponse> {
     match json.action {
         ReviewAction::Submitted => handle_review_submitted(state, json.0),
-        _ => future::ok(HttpResponse::Ok().content_type("application/json").body("")).responder(),
+        _ => future::result(prepare_response("")).responder(),
     }
 }
 
@@ -178,7 +177,7 @@ fn handle_review_submitted(
                 .add_reaction(&reaction, &message_id, &channel)
                 .map_err(error::ErrorNotFound)
         })
-        .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
+        .and_then(|_| prepare_response(""))
         .responder()
 }
 

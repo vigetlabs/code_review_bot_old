@@ -6,6 +6,8 @@ pub mod db;
 use std::collections::HashMap;
 use std::fs;
 
+use actix_web::HttpResponse;
+
 type FileExtension = String;
 type LanguageIcon = String;
 
@@ -52,4 +54,10 @@ pub fn load_languages() -> Result<Languages, &'static str> {
     }
 
     Ok(result)
+}
+
+pub fn prepare_response(body: &str) -> actix_web::Result<HttpResponse> {
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .body(body.to_string()))
 }

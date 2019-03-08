@@ -5,6 +5,7 @@ use futures::future::Future;
 use crate::github::{PRResult, PullRequest};
 use crate::slack::{attachment, extract_links, SlackRequest};
 use crate::utils::db::{FindPullRequest, NewPullRequest, PullRequestsByState};
+use crate::utils::prepare_response;
 use crate::AppConfig;
 
 pub fn review(
@@ -14,7 +15,7 @@ pub fn review(
         let response = state.slack.immediate_response(
             "Specify pull request For example: /code_review_bot http://github.com/facebook/react/pulls/123".to_string(),
         )?;
-        return prepare_response(response);
+        return prepare_response(&response);
     }
 
     let url = form.text.to_lowercase().to_string();
@@ -39,7 +40,7 @@ pub fn review(
      <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
      |Find out more>".to_string()
   )?;
-    prepare_response(message)
+    prepare_response(&message)
 }
 
 pub fn reviews(
@@ -66,14 +67,8 @@ pub fn reviews(
             }
             Err(e) => Err(error::ErrorNotFound(e)),
         })
-        .and_then(|_| prepare_response("".to_string()))
+        .and_then(|_| prepare_response(""))
         .responder()
-}
-
-fn prepare_response(body: String) -> actix_web::Result<HttpResponse> {
-    Ok(HttpResponse::Ok()
-        .content_type("application/json")
-        .body(body))
 }
 
 #[derive(Deserialize, Debug)]
@@ -129,7 +124,7 @@ fn handle_url_verification(challenge: String) -> FutureResponse<HttpResponse> {
     future::ok(0)
         .and_then(|_| serde_json::to_string(&UrlVerification { challenge }))
         .map_err(actix_web::error::ErrorBadRequest)
-        .and_then(prepare_response)
+        .and_then(|res| prepare_response(&res))
         .responder()
 }
 
@@ -144,7 +139,7 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
     } = event;
 
     if subtype.is_some() && subtype.unwrap_or_else(|| "".to_string()) != "bot_message" {
-        return future::result(prepare_response("".to_string())).responder();
+        return future::result(prepare_response("")).responder();
     }
 
     if let Some(atts) = attachments {
@@ -206,7 +201,7 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
             .map(|_| (pr, state))
             .map_err(|e| format!("{}", e))
     })
-    .then(|_| prepare_response("".to_string()))
+    .then(|_| prepare_response(""))
     .responder()
 }
 
