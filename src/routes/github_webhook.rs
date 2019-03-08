@@ -13,9 +13,9 @@ use crate::models::NewPullRequest;
 fn handle_pull_request_opened(
     state: State<AppConfig>,
     json: PullRequestEvent,
-    header_exists: bool,
+    is_auto_webhook: bool,
 ) -> FutureResponse<HttpResponse> {
-    if header_exists {
+    if is_auto_webhook {
         return future::ok(HttpResponse::Ok().content_type("application/json").body("")).responder();
     }
 
@@ -59,7 +59,7 @@ fn handle_pull_request_opened(
 fn handle_pull_request_closed(
     state: State<AppConfig>,
     json: PullRequestEvent,
-    header_exists: bool,
+    is_auto_webhook: bool,
 ) -> FutureResponse<HttpResponse> {
     let update_state = state
         .db
@@ -74,7 +74,7 @@ fn handle_pull_request_closed(
         .and_then(|res| res.map_err(error::ErrorNotFound))
         .map(|db_pr| (json, db_pr));
 
-    if header_exists {
+    if is_auto_webhook {
         update_state
             .and_then(|_| Ok(HttpResponse::Ok().content_type("application/json").body("")))
             .responder()
@@ -105,12 +105,12 @@ fn handle_pull_request_closed(
 
 pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> FutureResponse<HttpResponse> {
     let state = State::<AppConfig>::extract(&req);
-    let header_exists = req.headers().get("X-Hub-Signature").is_some();
+    let is_auto_webhook = req.headers().get("X-Hub-Signature").is_some();
     Json::<PullRequestEvent>::extract(&req)
         .map(|json| (state, json.0))
         .and_then(move |(state, json)| match json.action {
-            PRAction::Opened => handle_pull_request_opened(state, json, header_exists),
-            PRAction::Closed => handle_pull_request_closed(state, json, header_exists),
+            PRAction::Opened => handle_pull_request_opened(state, json, is_auto_webhook),
+            PRAction::Closed => handle_pull_request_closed(state, json, is_auto_webhook),
             _ => future::err(error::ErrorNotFound(format!(
                 "Unhandled PR Action: {:?}",
                 json.action
