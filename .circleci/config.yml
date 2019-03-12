@@ -1,9 +1,39 @@
 version: 2
 jobs:
   build:
+    working_directory: ~/code_review_bot
     docker:
-      image: circleci/rust:1.32
+      - image: circleci/rust:1.32
+        environment:
+          GITHUB_TOKEN: this-is-a-fake-token
+          SLACK_TOKEN: this-is-a-fake-token
+          SLACK_CHANNEL: "#code-review-bot-test"
+          DATABASE_URL: postgres://root@localhost/code_review_bot
+          WEBHOOK_URL: http:://example.com/github_event
+      - image: circleci/postgres:11
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: code_review_bot
     steps:
       - checkout
-      - run: echo "hello world"
+
+      - run: echo $CACHE_VERSION > /tmp/cache-version
+      - run: mkdir ~/bin
+
+      - restore_cache:
+          key: crbot-bundle-{{ checksum "/tmp/cache-version" }}-{{ checksum "Cargo.lock" }}
+
+      - run: echo 'export PATH=/home/circleci/bin:$PATH' >> $BASH_ENV
+      - run: if ! type "diesel" &> /dev/null; then cargo install --root ~/ diesel_cli; fi;
+      - run: cargo build
+
+      - save_cache:
+          key: crbot-bundle-{{ checksum "/tmp/cache-version" }}-{{ checksum "Cargo.lock" }}
+          paths:
+            - target/
+            - ~/bin/
+
+      - run: diesel database setup
+
+      - run: cargo test
 
