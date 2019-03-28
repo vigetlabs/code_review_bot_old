@@ -34,7 +34,13 @@ fn main() {
     let opt = Opt::from_args();
 
     // Setup logger
-    std::env::set_var("RUST_LOG", format!("actix_web={}", opt.log_level));
+    std::env::set_var(
+        "RUST_LOG",
+        format!(
+            "code_review_bot={level},actix_web={level}",
+            level = opt.log_level
+        ),
+    );
     env_logger::init();
 
     // Create actix system to run database actors

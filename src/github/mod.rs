@@ -24,10 +24,11 @@ pub enum PRAction {
     Labeled,
     Unlabled,
     Opened,
+    ReadyForReview,
     Reopened,
     Closed,
     Edited,
-    Synchronized
+    Synchronized,
 }
 
 #[derive(Deserialize, Debug)]
@@ -103,7 +104,7 @@ pub struct PRResult {
     pub additions: u32,
     pub deletions: u32,
     pub number: u32,
-     #[serde(default)]
+    #[serde(default)]
     pub draft: bool,
 
     pub user: User,

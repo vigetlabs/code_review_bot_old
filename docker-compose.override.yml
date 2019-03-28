@@ -5,7 +5,7 @@ volumes:
 
 services:
   web:
-    command: systemfd --no-pid -s http::0.0.0.0:8088 -- cargo watch -x 'run -- -d'
+    command: systemfd --no-pid -s http::0.0.0.0:8088 -- cargo watch -x 'run -- -d -l debug'
     volumes:
       - .:/app
       - target:/app/target
