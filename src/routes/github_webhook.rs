@@ -108,7 +108,9 @@ pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> FutureResponse<Ht
     Json::<PullRequestEvent>::extract(&req)
         .map(|json| (state, json.0))
         .and_then(move |(state, json)| match json.action {
-            PRAction::Opened => handle_pull_request_opened(state, json, is_auto_webhook),
+            PRAction::Opened | PRAction::ReadyForReview => {
+                handle_pull_request_opened(state, json, is_auto_webhook)
+            }
             PRAction::Closed => handle_pull_request_closed(state, json, is_auto_webhook),
             _ => future::err(error::ErrorNotFound(format!(
                 "Unhandled PR Action: {:?}",

@@ -72,7 +72,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
     } else {
         server.bind(format!("0.0.0.0:{}", port))?
     }
-    .run();
+    .start();
 
     Ok("Done")
 }
