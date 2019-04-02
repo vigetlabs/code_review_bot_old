@@ -1,4 +1,5 @@
 use crate::db;
+use crate::error::Result;
 use crate::github::GithubClient;
 use crate::slack::SlackClient;
 use crate::utils::Languages;
@@ -23,7 +24,7 @@ impl AppConfig {
         language_lookup: Languages,
         db: Addr<db::DBExecutor>,
         webhook_url: String,
-    ) -> Result<Self, &'static str> {
+    ) -> Result<Self> {
         let github_url = "https://api.github.com".to_string();
         let slack_url = "https://slack.com/api/".to_string();
 

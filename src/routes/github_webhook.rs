@@ -1,27 +1,28 @@
-use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::slack::Reaction;
-use crate::utils::app_config::AppConfig;
-use crate::utils::db::{FindPullRequest, UpdatePullRequestState};
-use crate::utils::prepare_response;
 use actix_web::AsyncResponder;
-use actix_web::{error, FromRequest, FutureResponse, HttpResponse, Json, State};
+use actix_web::{FromRequest, Json, State};
 use futures::future;
 use futures::future::Future;
 
+use crate::error::Error;
+use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
 use crate::models;
 use crate::models::NewPullRequest;
+use crate::slack::Reaction;
+use crate::utils::app_config::AppConfig;
+use crate::utils::db::{FindPullRequest, UpdatePullRequestState};
+use crate::utils::{prepare_response, Response};
 
 fn handle_pull_request_opened(
     state: State<AppConfig>,
     json: PullRequestEvent,
     is_auto_webhook: bool,
-) -> FutureResponse<HttpResponse> {
+) -> Response {
     if is_auto_webhook {
-        return future::result(prepare_response("")).responder();
+        return future::err(Error::GuardError("Igonring for automatic webhook")).responder();
     }
 
     if json.pull_request.draft {
-        return future::err(error::ErrorBadRequest("Ignoring Draft PR")).responder();
+        return future::err(Error::GuardError("Ignoring Draft PR")).responder();
     }
 
     future::result(
@@ -29,14 +30,14 @@ fn handle_pull_request_opened(
             .github
             .get_files(&json.pull_request, &state.language_lookup)
             .map(|files| (state, json, files))
-            .map_err(error::ErrorBadRequest),
+            .map_err(|e| e.into()),
     )
     .and_then(|(state, json, files)| {
         state
             .slack
             .post_message(&json.pull_request, &files, &state.slack.channel)
             .map(|result| (state, json, result))
-            .map_err(error::ErrorBadRequest)
+            .map_err(|e| e.into())
     })
     .and_then(|(state, json, result)| {
         state
@@ -51,9 +52,9 @@ fn handle_pull_request_opened(
                 channel: result.channel.unwrap_or_else(|| "".to_string()),
                 display_text: format!("{}", json.pull_request),
             })
-            .map_err(error::ErrorBadRequest)
+            .map_err(|e| e.into())
     })
-    .and_then(|_| prepare_response(""))
+    .map(|_| prepare_response(""))
     .responder()
 }
 
@@ -61,7 +62,7 @@ fn handle_pull_request_closed(
     state: State<AppConfig>,
     json: PullRequestEvent,
     is_auto_webhook: bool,
-) -> FutureResponse<HttpResponse> {
+) -> Response {
     let update_state = state
         .db
         .send(UpdatePullRequestState {
@@ -71,12 +72,13 @@ fn handle_pull_request_closed(
             ),
             state: "closed".to_string(),
         })
-        .map_err(error::ErrorNotFound)
-        .and_then(|res| res.map_err(error::ErrorNotFound))
+        .map_err(|e| e.into())
+        .and_then(|res| res)
+        .map_err(|e| e.into())
         .map(|db_pr| (json, db_pr));
 
     if is_auto_webhook {
-        update_state.and_then(|_| prepare_response("")).responder()
+        update_state.map(|_| prepare_response("")).responder()
     } else {
         update_state
             .and_then(|(json, db_pr)| {
@@ -84,7 +86,7 @@ fn handle_pull_request_closed(
                     .github
                     .get_files(&json.pull_request, &state.language_lookup)
                     .map(|files| (state, json, db_pr, files))
-                    .map_err(error::ErrorBadRequest)
+                    .map_err(|e| e.into())
             })
             .and_then(|(state, json, db_pr, files)| {
                 state
@@ -95,24 +97,25 @@ fn handle_pull_request_closed(
                         &db_pr.slack_message_id,
                         &db_pr.channel,
                     )
-                    .map_err(error::ErrorNotFound)
+                    .map_err(|e| e.into())
             })
-            .and_then(|_| prepare_response(""))
+            .map(|_| prepare_response(""))
             .responder()
     }
 }
 
-pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> FutureResponse<HttpResponse> {
+pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> Response {
     let state = State::<AppConfig>::extract(&req);
     let is_auto_webhook = req.headers().get("X-Hub-Signature").is_some();
     Json::<PullRequestEvent>::extract(&req)
         .map(|json| (state, json.0))
+        .map_err(|e| e.into())
         .and_then(move |(state, json)| match json.action {
             PRAction::Opened | PRAction::ReadyForReview => {
                 handle_pull_request_opened(state, json, is_auto_webhook)
             }
             PRAction::Closed => handle_pull_request_closed(state, json, is_auto_webhook),
-            _ => future::err(error::ErrorNotFound(format!(
+            _ => future::err(Error::GithubError(format!(
                 "Unhandled PR Action: {:?}",
                 json.action
             )))
@@ -121,22 +124,16 @@ pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> FutureResponse<Ht
         .responder()
 }
 
-pub fn review(
-    (json, state): (Json<ReviewEvent>, State<AppConfig>),
-) -> FutureResponse<HttpResponse> {
+pub fn review((json, state): (Json<ReviewEvent>, State<AppConfig>)) -> Response {
     match json.action {
         ReviewAction::Submitted => handle_review_submitted(state, json.0),
-        _ => future::result(prepare_response("")).responder(),
+        _ => future::ok(prepare_response("")).responder(),
     }
 }
 
-fn handle_review_submitted(
-    state: State<AppConfig>,
-    json: ReviewEvent,
-) -> FutureResponse<HttpResponse> {
-    if json.review.user.login != json.pull_request.user.login {
-        return future::err(error::ErrorNotFound("Reviewer same as opened pull request"))
-            .responder();
+fn handle_review_submitted(state: State<AppConfig>, json: ReviewEvent) -> Response {
+    if json.review.user.login == json.pull_request.user.login {
+        return future::err(Error::GuardError("Reviewer same as opened pull request")).responder();
     }
     let mut reaction = Reaction::Comment;
     let mut approved = false;
@@ -153,8 +150,8 @@ fn handle_review_submitted(
                 json.pull_request.number,
             ),
         })
-        .map_err(error::ErrorNotFound)
-        .and_then(|res| res.map_err(error::ErrorNotFound))
+        .map_err(|e| e.into())
+        .and_then(|res| res)
         .and_then(move |db_pr| {
             let models::PullRequest {
                 github_id,
@@ -170,16 +167,13 @@ fn handle_review_submitted(
                     github_id,
                     state: next_state(&pr_state, approved),
                 })
-                .map_err(error::ErrorNotFound)
                 .map(|_| (state, slack_message_id, channel))
+                .map_err(|e| e.into())
         })
         .and_then(move |(state, message_id, channel)| {
-            state
-                .slack
-                .add_reaction(&reaction, &message_id, &channel)
-                .map_err(error::ErrorNotFound)
+            state.slack.add_reaction(&reaction, &message_id, &channel)
         })
-        .and_then(|_| prepare_response(""))
+        .map(|_| prepare_response(""))
         .responder()
 }
 
