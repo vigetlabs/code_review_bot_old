@@ -5,6 +5,7 @@ use std::fmt;
 use std::path::Path;
 use std::str::FromStr;
 
+use crate::error::{Result, UrlParseError};
 use crate::utils::Languages;
 
 #[derive(Deserialize, Debug)]
@@ -165,41 +166,28 @@ pub struct PullRequest {
     pub id: String,
 }
 
-#[derive(Debug)]
-pub enum ParseError {
-    MissingSegment,
-    Parse(url::ParseError),
-}
-
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "malformed repo url")
-    }
-}
-
-impl std::error::Error for ParseError {
-    fn description(&self) -> &str {
-        "malformed repo url"
-    }
-
-    fn cause(&self) -> Option<&dyn std::error::Error> {
-        None
-    }
-}
-
 impl FromStr for PullRequest {
-    type Err = ParseError;
+    type Err = UrlParseError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let repository_url = Url::parse(s).map_err(ParseError::Parse)?;
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let repository_url = Url::parse(s).map_err(UrlParseError::Parse)?;
         let mut path = repository_url
             .path_segments()
-            .ok_or(ParseError::MissingSegment)?;
+            .ok_or(UrlParseError::MissingSegment)?;
 
         Ok(Self {
-            owner: path.nth(0).ok_or(ParseError::MissingSegment)?.to_string(),
-            name: path.nth(0).ok_or(ParseError::MissingSegment)?.to_string(),
-            id: path.nth(1).ok_or(ParseError::MissingSegment)?.to_string(),
+            owner: path
+                .nth(0)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
+            name: path
+                .nth(0)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
+            id: path
+                .nth(1)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
         })
     }
 }
@@ -212,22 +200,20 @@ pub struct GithubClient {
 
 impl GithubClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(url: String, token: &str) -> Result<GithubClient, &'static str> {
+    pub fn new(url: String, token: &str) -> Result<GithubClient> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&format!("bearer {}", token))
-                .map_err(|_| "Invalid header value")?,
+            reqwest::header::HeaderValue::from_str(&format!("bearer {}", token)).unwrap(),
         );
         let client = reqwest::Client::builder()
             .default_headers(headers)
-            .build()
-            .map_err(|_| "Cannot build client")?;
+            .build()?;
 
         Ok(GithubClient { url, client })
     }
 
-    pub fn get_pr(&self, pull_request: &PullRequest) -> reqwest::Result<PRResult> {
+    pub fn get_pr(&self, pull_request: &PullRequest) -> Result<PRResult> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/pulls/{id}",
             url = self.url,
@@ -241,13 +227,10 @@ impl GithubClient {
             .send()?
             .error_for_status()?
             .json()
+            .map_err(|e| e.into())
     }
 
-    pub fn get_files(
-        &self,
-        pull_request: &PRResult,
-        lookup: &Languages,
-    ) -> reqwest::Result<String> {
+    pub fn get_files(&self, pull_request: &PRResult, lookup: &Languages) -> Result<String> {
         let request_url = format!("{}/files", pull_request.url);
 
         let res: Vec<FileResult> = self
@@ -272,11 +255,7 @@ impl GithubClient {
         Ok(file_extensions.join(" "))
     }
 
-    pub fn create_webhook(
-        &self,
-        pull_request: &PullRequest,
-        webhook_url: &str,
-    ) -> Result<(), String> {
+    pub fn create_webhook(&self, pull_request: &PullRequest, webhook_url: &str) -> Result<()> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/hooks",
             url = self.url,
@@ -287,27 +266,21 @@ impl GithubClient {
         let hooks: Vec<WebHook> = self
             .client
             .get(&request_url)
-            .send()
-            .map_err(|e| format!("{}", e))?
-            .error_for_status()
-            .map_err(|e| format!("{}", e))?
-            .json()
-            .map_err(|e| format!("{}", e))?;
+            .send()?
+            .error_for_status()?
+            .json()?;
 
         if !hooks
             .iter()
             .any(|hook| hook.config.url.contains("github_event"))
         {
-            // TODO: Fix error handling here
             let body = serde_json::to_string(&WebHook::new(webhook_url)).unwrap();
             self.client
                 .post(&request_url)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
                 .body(body)
-                .send()
-                .map_err(|e| format!("{}", e))?
-                .error_for_status()
-                .map_err(|e| format!("{}", e))?;
+                .send()?
+                .error_for_status()?;
         }
 
         Ok(())

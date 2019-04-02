@@ -3,15 +3,18 @@ extern crate serde_yaml;
 pub mod app_config;
 pub mod db;
 
+use actix_web::HttpResponse;
+use futures::future::Future;
 use std::collections::HashMap;
 use std::fs;
 
-use actix_web::HttpResponse;
+use crate::error::Error;
 
 type FileExtension = String;
 type LanguageIcon = String;
 
 pub type Languages = HashMap<FileExtension, LanguageIcon>;
+pub type Response = Box<Future<Item = HttpResponse, Error = Error>>;
 
 #[derive(Deserialize, Debug, Clone)]
 struct Language {
@@ -56,8 +59,8 @@ pub fn load_languages() -> Result<Languages, &'static str> {
     Ok(result)
 }
 
-pub fn prepare_response(body: &str) -> actix_web::Result<HttpResponse> {
-    Ok(HttpResponse::Ok()
+pub fn prepare_response(body: &str) -> HttpResponse {
+    HttpResponse::Ok()
         .content_type("application/json")
-        .body(body.to_string()))
+        .body(body.to_string())
 }

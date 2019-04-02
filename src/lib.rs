@@ -6,12 +6,13 @@ extern crate serde_derive;
 extern crate diesel;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate failure_derive;
 
 mod models;
 mod schema;
 
 mod github;
-use crate::github::ParseError;
 
 mod slack;
 
@@ -19,16 +20,15 @@ mod utils;
 pub use crate::utils::app_config::AppConfig;
 pub use crate::utils::{db, load_languages, Languages};
 
+mod error;
 mod routes;
 
 use actix_web::middleware::Logger;
-use actix_web::{http, pred, server, App, ResponseError};
+use actix_web::{http, pred, server, App};
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
     "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
-
-impl ResponseError for ParseError {}
 
 pub fn application(app_config: AppConfig) -> App<AppConfig> {
     App::with_state(app_config)
