@@ -11,7 +11,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Fail, Debug)]
 pub enum Error {
-    #[fail(display = "Enpoint skipped because of guard: {}", _0)]
+    #[fail(display = "Endpoint skipped because of guard: {}", _0)]
     GuardError(&'static str),
 
     #[fail(display = "Api request error")]

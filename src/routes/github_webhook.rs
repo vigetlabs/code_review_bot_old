@@ -18,7 +18,7 @@ fn handle_pull_request_opened(
     is_auto_webhook: bool,
 ) -> Response {
     if is_auto_webhook {
-        return future::err(Error::GuardError("Igonring for automatic webhook")).responder();
+        return future::err(Error::GuardError("Ignoring for automatic webhook")).responder();
     }
 
     if json.pull_request.draft {
@@ -29,15 +29,13 @@ fn handle_pull_request_opened(
         state
             .github
             .get_files(&json.pull_request, &state.language_lookup)
-            .map(|files| (state, json, files))
-            .map_err(|e| e.into()),
+            .map(|files| (state, json, files)),
     )
     .and_then(|(state, json, files)| {
         state
             .slack
             .post_message(&json.pull_request, &files, &state.slack.channel)
             .map(|result| (state, json, result))
-            .map_err(|e| e.into())
     })
     .and_then(|(state, json, result)| {
         state
@@ -74,7 +72,6 @@ fn handle_pull_request_closed(
         })
         .map_err(|e| e.into())
         .and_then(|res| res)
-        .map_err(|e| e.into())
         .map(|db_pr| (json, db_pr));
 
     if is_auto_webhook {
@@ -86,18 +83,14 @@ fn handle_pull_request_closed(
                     .github
                     .get_files(&json.pull_request, &state.language_lookup)
                     .map(|files| (state, json, db_pr, files))
-                    .map_err(|e| e.into())
             })
             .and_then(|(state, json, db_pr, files)| {
-                state
-                    .slack
-                    .update_message(
-                        &json.pull_request,
-                        &files,
-                        &db_pr.slack_message_id,
-                        &db_pr.channel,
-                    )
-                    .map_err(|e| e.into())
+                state.slack.update_message(
+                    &json.pull_request,
+                    &files,
+                    &db_pr.slack_message_id,
+                    &db_pr.channel,
+                )
             })
             .map(|_| prepare_response(""))
             .responder()
