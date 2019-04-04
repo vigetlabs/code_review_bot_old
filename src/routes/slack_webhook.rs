@@ -1,73 +1,62 @@
-use actix_web::{error, AsyncResponder, Form, FutureResponse, HttpResponse, Json, State};
+use actix_web::{AsyncResponder, Form, HttpResponse, Json, State};
 use futures::future;
 use futures::future::Future;
 
+use crate::error::{Error, Result};
 use crate::github::{PRResult, PullRequest};
 use crate::slack::{attachment, extract_links, SlackRequest};
 use crate::utils::db::{FindPullRequest, NewPullRequest, PullRequestsByState};
-use crate::utils::prepare_response;
+use crate::utils::{prepare_response, Response};
 use crate::AppConfig;
 
-pub fn review(
-    (form, state): (Form<SlackRequest>, State<AppConfig>),
-) -> actix_web::Result<HttpResponse> {
+pub fn review((form, state): (Form<SlackRequest>, State<AppConfig>)) -> Result<HttpResponse> {
     if form.text.trim().is_empty() {
         let response = state.slack.immediate_response(
             "Specify pull request For example: /code_review_bot http://github.com/facebook/react/pulls/123".to_string(),
         )?;
-        return prepare_response(&response);
+        return Ok(prepare_response(&response));
     }
 
     let url = form.text.to_lowercase().to_string();
     let pull_request: PullRequest = url.parse()?;
-    let pr_response = state
-        .github
-        .get_pr(&pull_request)
-        .map_err(error::ErrorNotFound)?;
+    let pr_response = state.github.get_pr(&pull_request)?;
 
     let pr_files: String = state
         .github
-        .get_files(&pr_response, &state.language_lookup)
-        .map_err(error::ErrorBadRequest)?;
+        .get_files(&pr_response, &state.language_lookup)?;
 
     state
         .slack
-        .post_message(&pr_response, &pr_files, &form.channel_id)
-        .map_err(error::ErrorNotFound)?;
+        .post_message(&pr_response, &pr_files, &form.channel_id)?;
 
     let message = state.slack.immediate_response(
-    "To have these automatically posted for you see: \
-     <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
-     |Find out more>".to_string()
-  )?;
-    prepare_response(&message)
+        "To have these automatically posted for you see: \
+        <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
+        |Find out more>".to_string()
+    )?;
+    Ok(prepare_response(&message))
 }
 
-pub fn reviews(
-    (form, state): (Form<SlackRequest>, State<AppConfig>),
-) -> FutureResponse<HttpResponse> {
+pub fn reviews((form, state): (Form<SlackRequest>, State<AppConfig>)) -> Response {
     state
         .db
         .send(PullRequestsByState {
             state: "open".to_string(),
         })
-        .map_err(error::ErrorBadRequest)
-        .and_then(move |res| match res {
-            Ok(prs) => {
-                let open_prs: Vec<String> = if prs.is_empty() {
-                    vec!["All PRs Reviewed! :partyparrot:".to_string()]
-                } else {
-                    prs.iter().map(|pr| pr.display_text.to_string()).collect()
-                };
+        .map_err(|e| e.into())
+        .and_then(|res| res)
+        .and_then(move |prs| {
+            let open_prs: Vec<String> = if prs.is_empty() {
+                vec!["All PRs Reviewed! :partyparrot:".to_string()]
+            } else {
+                prs.iter().map(|pr| pr.display_text.to_string()).collect()
+            };
 
-                state
-                    .slack
-                    .reviews_response(&open_prs.join("\n"), &form.channel_id)
-                    .map_err(error::ErrorNotFound)
-            }
-            Err(e) => Err(error::ErrorNotFound(e)),
+            state
+                .slack
+                .reviews_response(&open_prs.join("\n"), &form.channel_id)
         })
-        .and_then(|_| prepare_response(""))
+        .map(|_| prepare_response(""))
         .responder()
 }
 
@@ -108,9 +97,7 @@ pub struct UrlVerification {
     challenge: String,
 }
 
-pub fn message(
-    (json, state): (Json<SlackEventWrapper>, State<AppConfig>),
-) -> FutureResponse<HttpResponse> {
+pub fn message((json, state): (Json<SlackEventWrapper>, State<AppConfig>)) -> Response {
     let Json(event_wrapper) = json;
 
     match event_wrapper {
@@ -120,15 +107,14 @@ pub fn message(
     .responder()
 }
 
-fn handle_url_verification(challenge: String) -> FutureResponse<HttpResponse> {
-    future::ok(0)
-        .and_then(|_| serde_json::to_string(&UrlVerification { challenge }))
-        .map_err(actix_web::error::ErrorBadRequest)
-        .and_then(|res| prepare_response(&res))
+fn handle_url_verification(challenge: String) -> Response {
+    future::result(serde_json::to_string(&UrlVerification { challenge }))
+        .map_err(|e| e.into())
+        .map(|res| prepare_response(&res))
         .responder()
 }
 
-fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<HttpResponse> {
+fn handle_event(event: SlackEvent, state: State<AppConfig>) -> Response {
     let SlackEvent::Message {
         mut text,
         channel,
@@ -139,7 +125,7 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
     } = event;
 
     if subtype.is_some() && subtype.unwrap_or_else(|| "".to_string()) != "bot_message" {
-        return future::result(prepare_response("")).responder();
+        return future::ok(prepare_response("")).responder();
     }
 
     if let Some(atts) = attachments {
@@ -159,7 +145,7 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
             .filter_map(|url| url.parse::<PullRequest>().ok())
             .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
             .nth(0)
-            .ok_or_else(|| "No PR".to_string())
+            .ok_or_else(|| Error::GuardError("No PR"))
             .map(|(pr, res)| (pr, res, state)),
     )
     .then(|res| {
@@ -167,7 +153,7 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
         if res.open() {
             Ok((pr, res, state))
         } else {
-            Err("PR Already Closed".to_string())
+            Err(Error::GuardError("PR Already Closed"))
         }
     })
     .and_then(|(pr, res, state)| {
@@ -176,9 +162,9 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
             .send(FindPullRequest {
                 github_id: github_id(&res),
             })
-            .map_err(|e| format!("{}", e))
+            .map_err(|e| e.into())
             .and_then(|db_res| match db_res {
-                Ok(_) => Err("PR Already Created".to_string()),
+                Ok(_) => Err(Error::GuardError("PR Already Created")),
                 Err(_) => Ok((pr, res, state)),
             })
     })
@@ -199,9 +185,9 @@ fn handle_event(event: SlackEvent, state: State<AppConfig>) -> FutureResponse<Ht
                 display_text: format!("{}", res),
             })
             .map(|_| (pr, state))
-            .map_err(|e| format!("{}", e))
+            .map_err(|e| e.into())
     })
-    .then(|_| prepare_response(""))
+    .map(|_| prepare_response(""))
     .responder()
 }
 
