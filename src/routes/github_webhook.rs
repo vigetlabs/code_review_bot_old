@@ -10,7 +10,7 @@ use crate::models::NewPullRequest;
 use crate::slack::Reaction;
 use crate::utils::app_config::AppConfig;
 use crate::utils::db::{FindPullRequest, UpdatePullRequestState};
-use crate::utils::{prepare_response, Response};
+use crate::utils::{prepare_response, RequestAction, Response};
 
 fn handle_pull_request_opened(
     state: State<AppConfig>,
@@ -29,15 +29,25 @@ fn handle_pull_request_opened(
         state
             .github
             .get_files(&json.pull_request, &state.language_lookup)
-            .map(|files| (state, json, files)),
+            .map(|files| RequestAction::new(state, json, files)),
     )
-    .and_then(|(state, json, files)| {
+    .and_then(|pr_open| {
+        let RequestAction {
+            state,
+            json,
+            value: files,
+        } = &pr_open;
         state
             .slack
             .post_message(&json.pull_request, &files, &state.slack.channel)
-            .map(|result| (state, json, result))
+            .map(|result| pr_open.with_value(result))
     })
-    .and_then(|(state, json, result)| {
+    .and_then(|pr_open| {
+        let RequestAction {
+            state,
+            json,
+            value: result,
+        } = pr_open;
         state
             .db
             .send(NewPullRequest {
@@ -72,29 +82,37 @@ fn handle_pull_request_closed(
         })
         .map_err(|e| e.into())
         .and_then(|res| res)
-        .map(|db_pr| (json, db_pr));
+        .map(|db_pr| RequestAction::new(state, json, db_pr));
 
     if is_auto_webhook {
-        update_state.map(|_| prepare_response("")).responder()
-    } else {
-        update_state
-            .and_then(|(json, db_pr)| {
-                state
-                    .github
-                    .get_files(&json.pull_request, &state.language_lookup)
-                    .map(|files| (state, json, db_pr, files))
-            })
-            .and_then(|(state, json, db_pr, files)| {
-                state.slack.update_message(
-                    &json.pull_request,
-                    &files,
-                    &db_pr.slack_message_id,
-                    &db_pr.channel,
-                )
-            })
-            .map(|_| prepare_response(""))
-            .responder()
+        return update_state.map(|_| prepare_response("")).responder();
     }
+
+    update_state
+        .and_then(|pr_open| {
+            let RequestAction { state, json, .. } = &pr_open;
+
+            state
+                .github
+                .get_files(&json.pull_request, &state.language_lookup)
+                .map(|files| pr_open.add_value(files))
+        })
+        .and_then(|pr_open| {
+            let RequestAction {
+                state,
+                json,
+                value: (db_pr, files),
+            } = pr_open;
+
+            state.slack.update_message(
+                &json.pull_request,
+                &files,
+                &db_pr.slack_message_id,
+                &db_pr.channel,
+            )
+        })
+        .map(|_| prepare_response(""))
+        .responder()
 }
 
 pub fn pull_request(req: actix_web::HttpRequest<AppConfig>) -> Response {
@@ -149,22 +167,32 @@ fn handle_review_submitted(state: State<AppConfig>, json: ReviewEvent) -> Respon
             let models::PullRequest {
                 github_id,
                 state: pr_state,
-                slack_message_id,
-                channel,
                 ..
-            } = db_pr;
+            } = &db_pr;
 
             state
                 .db
                 .send(UpdatePullRequestState {
-                    github_id,
+                    github_id: github_id.to_string(),
                     state: next_state(&pr_state, approved),
                 })
-                .map(|_| (state, slack_message_id, channel))
+                .map(|_| RequestAction::new(state, json, db_pr))
                 .map_err(|e| e.into())
         })
-        .and_then(move |(state, message_id, channel)| {
-            state.slack.add_reaction(&reaction, &message_id, &channel)
+        .and_then(move |req_action| {
+            let RequestAction {
+                state,
+                value:
+                    models::PullRequest {
+                        slack_message_id,
+                        channel,
+                        ..
+                    },
+                ..
+            } = req_action;
+            state
+                .slack
+                .add_reaction(&reaction, &slack_message_id, &channel)
         })
         .map(|_| prepare_response(""))
         .responder()
