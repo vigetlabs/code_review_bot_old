@@ -79,6 +79,8 @@ pub struct SlackRequest {
 pub struct SlackClient {
     url: String,
     pub channel: String,
+    pub client_id: String,
+    pub client_secret: String,
     client: reqwest::Client,
 }
 
@@ -139,7 +141,13 @@ impl fmt::Display for Reaction {
 
 impl SlackClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(url: String, token: &str, channel: String) -> Result<SlackClient> {
+    pub fn new(
+        url: String,
+        token: &str,
+        channel: String,
+        client_id: String,
+        client_secret: String,
+    ) -> Result<SlackClient> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::AUTHORIZATION,
@@ -153,6 +161,8 @@ impl SlackClient {
             url,
             client,
             channel,
+            client_id,
+            client_secret,
         })
     }
 

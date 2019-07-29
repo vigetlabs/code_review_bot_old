@@ -23,6 +23,7 @@ pub use crate::utils::{db, load_languages, Languages};
 mod error;
 mod routes;
 
+use actix_files as fs;
 use actix_web::middleware::Logger;
 use actix_web::{guard, web, App, HttpServer};
 use listenfd::ListenFd;
@@ -31,7 +32,9 @@ const LOG_FORMAT: &str =
     "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
-    cfg.route("/review", web::post().to(routes::slack_webhook::review))
+    cfg
+        .route("/", web::get().to(routes::web::root))
+        .route("/review", web::post().to(routes::slack_webhook::review))
         .route(
             "/slack_event",
             web::post().to(routes::slack_webhook::message),
@@ -58,6 +61,7 @@ pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, st
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::new(LOG_FORMAT))
+            .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .configure(configure_app)
     })

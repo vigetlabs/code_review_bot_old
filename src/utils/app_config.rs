@@ -19,6 +19,8 @@ impl AppConfig {
         github_token: &str,
         slack_token: &str,
         channel: &str,
+        client_id: &str,
+        cient_secret: &str,
         language_lookup: Languages,
         db: db::DBExecutor,
         webhook_url: String,
@@ -28,7 +30,13 @@ impl AppConfig {
 
         Ok(AppConfig {
             github: GithubClient::new(github_url, &github_token)?,
-            slack: SlackClient::new(slack_url, &slack_token, channel.to_string())?,
+            slack: SlackClient::new(
+                slack_url,
+                &slack_token,
+                channel.to_string(),
+                client_id.to_string(),
+                cient_secret.to_string(),
+            )?,
             language_lookup,
             db,
             webhook_url,
