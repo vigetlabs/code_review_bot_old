@@ -3,7 +3,8 @@ extern crate serde_yaml;
 pub mod app_config;
 pub mod db;
 
-use actix_web::{HttpResponse, State};
+use actix_web::web::Data;
+use actix_web::HttpResponse;
 use futures::future::Future;
 use std::collections::HashMap;
 use std::fs;
@@ -67,13 +68,13 @@ pub fn prepare_response(body: &str) -> HttpResponse {
 }
 
 pub struct RequestAction<T, U> {
-    pub state: State<AppConfig>,
+    pub state: Data<AppConfig>,
     pub json: T,
     pub value: U,
 }
 
 impl<T, U> RequestAction<T, U> {
-    pub fn new(state: State<AppConfig>, json: T, value: U) -> Self {
+    pub fn new(state: Data<AppConfig>, json: T, value: U) -> Self {
         RequestAction { state, json, value }
     }
 

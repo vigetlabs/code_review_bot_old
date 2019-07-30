@@ -1,4 +1,3 @@
-use actix::MailboxError;
 use actix_web;
 use actix_web::{http, HttpResponse, ResponseError};
 use r2d2;
@@ -30,7 +29,7 @@ pub enum Error {
     GithubError(String),
 
     #[fail(display = "Something went wrong")]
-    ServerError(actix_web::Error),
+    ServerError(String),
 
     #[fail(display = "{}", _0)]
     UrlParseError(UrlParseError),
@@ -55,12 +54,6 @@ impl ResponseError for Error {
 impl From<reqwest::Error> for Error {
     fn from(err: reqwest::Error) -> Self {
         Error::ApiError(err)
-    }
-}
-
-impl From<MailboxError> for Error {
-    fn from(err: MailboxError) -> Self {
-        Error::DatabaseError(DatabaseError::MailboxError(err))
     }
 }
 
@@ -93,7 +86,7 @@ impl From<serde_json::Error> for Error {
 
 impl From<actix_web::Error> for Error {
     fn from(err: actix_web::Error) -> Self {
-        Error::ServerError(err)
+        Error::ServerError(format!("{}", err))
     }
 }
 
@@ -111,11 +104,23 @@ pub enum DatabaseError {
     #[fail(display = "There was a problem")]
     Error(diesel::result::Error),
 
-    #[fail(display = "There was a problem")]
-    MailboxError(MailboxError),
-
     #[fail(display = "Record not found")]
     NotFound,
+}
+
+impl From<diesel::result::Error> for DatabaseError {
+    fn from(err: diesel::result::Error) -> Self {
+        match err {
+            diesel::result::Error::NotFound => DatabaseError::NotFound,
+            error => DatabaseError::Error(error),
+        }
+    }
+}
+
+impl From<r2d2::Error> for DatabaseError {
+    fn from(err: r2d2::Error) -> Self {
+        DatabaseError::ConnectionPool(err)
+    }
 }
 
 #[derive(Fail, Debug)]

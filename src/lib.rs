@@ -24,55 +24,67 @@ mod error;
 mod routes;
 
 use actix_web::middleware::Logger;
-use actix_web::{http, pred, server, App};
+use actix_web::{guard, web, App, HttpServer};
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
     "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
 
-pub fn application(app_config: AppConfig) -> App<AppConfig> {
-    App::with_state(app_config)
-        .middleware(Logger::new(LOG_FORMAT))
-        .resource("/review", |r| {
-            r.method(http::Method::POST)
-                .with(routes::slack_webhook::review)
-        })
-        .resource("/slack_event", |r| {
-            r.method(http::Method::POST)
-                .with(routes::slack_webhook::message)
-        })
-        .resource("/reviews", |r| {
-            r.method(http::Method::POST)
-                .with(routes::slack_webhook::reviews)
-        })
-        .resource("/github_event", |r| {
-            r.method(http::Method::POST)
-                .filter(pred::Header("X-GitHub-Event", "pull_request"))
-                .with(routes::github_webhook::pull_request);
-            r.method(http::Method::POST)
-                .filter(pred::Header("X-GitHub-Event", "pull_request_review"))
-                .with(routes::github_webhook::review);
-        })
+pub fn configure_app(cfg: &mut web::ServiceConfig) {
+    cfg.route("/review", web::post().to(routes::slack_webhook::review))
+        .route(
+            "/slack_event",
+            web::post().to_async(routes::slack_webhook::message),
+        )
+        .route(
+            "/reviews",
+            web::post().to_async(routes::slack_webhook::reviews),
+        )
+        .service(
+            web::scope("/github_event")
+                .route(
+                    "/",
+                    web::route()
+                        .guard(guard::Header("X-GitHub-Event", "pull_request"))
+                        .to_async(routes::github_webhook::pull_request),
+                )
+                .route(
+                    "/",
+                    web::route()
+                        .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
+                        .to_async(routes::github_webhook::review),
+                ),
+        );
 }
 
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
-    server::new(move || application(app_config.clone()))
-        .bind(format!("0.0.0.0:{}", port))?
-        .run();
+    HttpServer::new(move || {
+        App::new()
+            .wrap(Logger::new(LOG_FORMAT))
+            .data(app_config.clone())
+            .configure(configure_app)
+    })
+    .bind(format!("0.0.0.0:{}", port))?
+    .run()?;
 
     Ok("Done")
 }
 
 pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
     let mut listenfd = ListenFd::from_env();
-    let server = server::new(move || application(app_config.clone()));
+    let server = HttpServer::new(move || {
+        App::new()
+            .wrap(Logger::new(LOG_FORMAT))
+            .data(app_config.clone())
+            .configure(configure_app)
+    });
 
     if let Some(l) = listenfd.take_tcp_listener(0)? {
-        server.listen(l)
+        server.listen(l)?
     } else {
         server.bind(format!("0.0.0.0:{}", port))?
     }
-    .start();
+    .run()?;
 
     Ok("Done")
 }

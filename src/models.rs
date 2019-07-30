@@ -10,7 +10,7 @@ pub struct NewPullRequest {
     pub display_text: String,
 }
 
-#[derive(Debug, Queryable)]
+#[derive(Clone, Debug, Queryable)]
 pub struct PullRequest {
     pub id: i32,
     pub github_id: String,

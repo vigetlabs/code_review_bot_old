@@ -1,101 +1,87 @@
-use actix::prelude::{Actor, Handler, Message, SyncContext};
+use actix_web::web;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
+use futures::Future;
 
-use crate::error::Result;
+use crate::error::DatabaseError;
 pub use crate::models::{NewPullRequest, PullRequest};
 
+#[derive(Clone)]
 pub struct DBExecutor(pub Pool<ConnectionManager<PgConnection>>);
 
-pub struct FindPullRequest {
-    pub github_id: String,
+pub type Connection = r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>;
+
+pub enum Queries {
+    FindPullRequest { github_id: String },
+    UpdatePullRequestState { github_id: String, state: String },
+    PullRequestsByState { state: String },
+    CreatePullRequest(NewPullRequest),
 }
 
-pub struct UpdatePullRequestState {
-    pub github_id: String,
-    pub state: String,
+pub fn execute(
+    executor: &DBExecutor,
+    query: Queries,
+) -> impl Future<Item = Vec<PullRequest>, Error = actix_web::Error> {
+    let pool = executor.0.clone();
+    web::block(move || match query {
+        Queries::FindPullRequest { github_id } => find_pull_request(pool.get()?, github_id),
+        Queries::UpdatePullRequestState { github_id, state } => {
+            update_pull_request_state(pool.get()?, github_id, state)
+        }
+        Queries::PullRequestsByState { state } => pull_requests_by_state(pool.get()?, state),
+        Queries::CreatePullRequest(pull_request) => create_pull_request(pool.get()?, pull_request),
+    })
+    .from_err()
 }
 
-pub struct PullRequestsByState {
-    pub state: String,
+fn create_pull_request(
+    conn: Connection,
+    pr: NewPullRequest,
+) -> std::result::Result<Vec<PullRequest>, DatabaseError> {
+    use crate::schema::pull_requests::dsl::*;
+
+    diesel::insert_into(pull_requests)
+        .values(pr)
+        .get_result(&conn)
+        .map(|pr| vec![pr])
+        .map_err(|e| e.into())
 }
 
-impl Message for FindPullRequest {
-    type Result = Result<PullRequest>;
+fn find_pull_request(
+    conn: Connection,
+    gh_id: String,
+) -> std::result::Result<Vec<PullRequest>, DatabaseError> {
+    use crate::schema::pull_requests::dsl::*;
+
+    pull_requests
+        .filter(github_id.eq(gh_id))
+        .first(&conn)
+        .map(|pr| vec![pr])
+        .map_err(|e| e.into())
 }
 
-impl Message for NewPullRequest {
-    type Result = Result<PullRequest>;
+fn update_pull_request_state(
+    conn: Connection,
+    gh_id: String,
+    new_state: String,
+) -> std::result::Result<Vec<PullRequest>, DatabaseError> {
+    use crate::schema::pull_requests::dsl::*;
+
+    diesel::update(pull_requests.filter(github_id.eq(gh_id)))
+        .set(state.eq(new_state))
+        .get_result(&conn)
+        .map(|pr| vec![pr])
+        .map_err(|e| e.into())
 }
 
-impl Message for UpdatePullRequestState {
-    type Result = Result<PullRequest>;
-}
+fn pull_requests_by_state(
+    conn: Connection,
+    query_state: String,
+) -> std::result::Result<Vec<PullRequest>, DatabaseError> {
+    use crate::schema::pull_requests::dsl::*;
 
-impl Message for PullRequestsByState {
-    type Result = Result<Vec<PullRequest>>;
-}
-
-impl Actor for DBExecutor {
-    type Context = SyncContext<Self>;
-}
-
-impl Handler<NewPullRequest> for DBExecutor {
-    type Result = Result<PullRequest>;
-
-    fn handle(&mut self, msg: NewPullRequest, _: &mut Self::Context) -> Self::Result {
-        use crate::schema::pull_requests::dsl::*;
-
-        let conn = &*self.0.get()?;
-
-        diesel::insert_into(pull_requests)
-            .values(msg)
-            .get_result::<PullRequest>(conn)
-            .map_err(|e| e.into())
-    }
-}
-
-impl Handler<FindPullRequest> for DBExecutor {
-    type Result = Result<PullRequest>;
-
-    fn handle(&mut self, msg: FindPullRequest, _: &mut Self::Context) -> Self::Result {
-        use crate::schema::pull_requests::dsl::*;
-
-        let conn = &*self.0.get()?;
-
-        pull_requests
-            .filter(github_id.eq(&msg.github_id))
-            .first(conn)
-            .map_err(|e| e.into())
-    }
-}
-
-impl Handler<UpdatePullRequestState> for DBExecutor {
-    type Result = Result<PullRequest>;
-
-    fn handle(&mut self, msg: UpdatePullRequestState, _: &mut Self::Context) -> Self::Result {
-        use crate::schema::pull_requests::dsl::*;
-
-        let conn = &*self.0.get()?;
-
-        diesel::update(pull_requests.filter(github_id.eq(&msg.github_id)))
-            .set(state.eq(&msg.state))
-            .get_result(conn)
-            .map_err(|e| e.into())
-    }
-}
-
-impl Handler<PullRequestsByState> for DBExecutor {
-    type Result = Result<Vec<PullRequest>>;
-
-    fn handle(&mut self, msg: PullRequestsByState, _: &mut Self::Context) -> Self::Result {
-        use crate::schema::pull_requests::dsl::*;
-
-        let conn = &*self.0.get()?;
-
-        pull_requests
-            .filter(state.eq(&msg.state))
-            .load::<PullRequest>(conn)
-            .map_err(|e| e.into())
-    }
+    pull_requests
+        .filter(state.eq(query_state))
+        .load::<PullRequest>(&conn)
+        .map_err(|e| e.into())
 }
