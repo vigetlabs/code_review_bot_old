@@ -1,9 +1,7 @@
-use actix_web::web;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
-use futures::Future;
 
-use crate::error::DatabaseError;
+use crate::error::{DatabaseError, Result};
 pub use crate::models::{NewPullRequest, PullRequest};
 
 #[derive(Clone)]
@@ -21,17 +19,16 @@ pub enum Queries {
 pub fn execute(
     executor: &DBExecutor,
     query: Queries,
-) -> impl Future<Item = Vec<PullRequest>, Error = actix_web::Error> {
+) -> Result<Vec<PullRequest>> {
     let pool = executor.0.clone();
-    web::block(move || match query {
+    match query {
         Queries::FindPullRequest { github_id } => find_pull_request(pool.get()?, github_id),
         Queries::UpdatePullRequestState { github_id, state } => {
             update_pull_request_state(pool.get()?, github_id, state)
         }
         Queries::PullRequestsByState { state } => pull_requests_by_state(pool.get()?, state),
         Queries::CreatePullRequest(pull_request) => create_pull_request(pool.get()?, pull_request),
-    })
-    .from_err()
+    }.map_err(|e| e.into())
 }
 
 fn create_pull_request(

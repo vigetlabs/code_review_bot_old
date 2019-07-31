@@ -3,20 +3,14 @@ extern crate serde_yaml;
 pub mod app_config;
 pub mod db;
 
-use actix_web::web::Data;
 use actix_web::HttpResponse;
-use futures::future::Future;
 use std::collections::HashMap;
 use std::fs;
-
-use crate::error::Error;
-use app_config::AppConfig;
 
 type FileExtension = String;
 type LanguageIcon = String;
 
 pub type Languages = HashMap<FileExtension, LanguageIcon>;
-pub type Response = Box<Future<Item = HttpResponse, Error = Error>>;
 
 #[derive(Deserialize, Debug, Clone)]
 struct Language {
@@ -65,34 +59,4 @@ pub fn prepare_response(body: &str) -> HttpResponse {
     HttpResponse::Ok()
         .content_type("application/json")
         .body(body.to_string())
-}
-
-pub struct RequestAction<T, U> {
-    pub state: Data<AppConfig>,
-    pub json: T,
-    pub value: U,
-}
-
-impl<T, U> RequestAction<T, U> {
-    pub fn new(state: Data<AppConfig>, json: T, value: U) -> Self {
-        RequestAction { state, json, value }
-    }
-
-    pub fn with_value<V>(self, value: V) -> RequestAction<T, V> {
-        let Self { state, json, .. } = self;
-        RequestAction { state, json, value }
-    }
-
-    pub fn add_value<V>(self, value: V) -> RequestAction<T, (U, V)> {
-        let Self {
-            state,
-            json,
-            value: prev_value,
-        } = self;
-        RequestAction {
-            state,
-            json,
-            value: (prev_value, value),
-        }
-    }
 }

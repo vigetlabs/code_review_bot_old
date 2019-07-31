@@ -19,7 +19,7 @@ futures = "0.1.25"
 failure = "0.1"
 failure_derive = "0.1"
 
-reqwest = "0.9"
+reqwest = "=0.9.5"
 mockito = "0.14.0"
 url = "1.7"
 

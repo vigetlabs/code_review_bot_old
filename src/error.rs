@@ -13,7 +13,7 @@ pub enum Error {
     #[fail(display = "Endpoint skipped because of guard: {}", _0)]
     GuardError(&'static str),
 
-    #[fail(display = "Api request error")]
+    #[fail(display = "Api request error: {}", _0)]
     ApiError(reqwest::Error),
 
     #[fail(display = "Json error: {}", _0)]
