@@ -37,20 +37,20 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             web::post().to(routes::slack_webhook::message),
         )
         .route("/reviews", web::post().to(routes::slack_webhook::reviews))
-        .service(
-            web::scope("/github_event")
-                .route(
-                    "/",
-                    web::route()
-                        .guard(guard::Header("X-GitHub-Event", "pull_request"))
-                        .to(routes::github_webhook::pull_request),
-                )
-                .route(
-                    "/",
-                    web::route()
-                        .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
-                        .to(routes::github_webhook::review),
-                ),
+        .route(
+            "/github_event",
+            web::post()
+                .guard(guard::Header("X-GitHub-Event", "pull_request"))
+                .guard(guard::fn_guard(|req| {
+                    !req.headers().contains_key("X-Hub-Signature")
+                }))
+                .to(routes::github_webhook::pull_request),
+        )
+        .route(
+            "/github_event",
+            web::post()
+                .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
+                .to(routes::github_webhook::review),
         );
 }
 
