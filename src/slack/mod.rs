@@ -297,6 +297,7 @@ impl SlackClient {
             .send()?
             .error_for_status()?
             .json::<HashMap<String, String>>()?;
+
         json.get("access_token")
             .ok_or_else(|| Error::ServerError("No access token sent".to_string()))
             .map(|tok| tok.to_string())

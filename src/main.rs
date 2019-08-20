@@ -51,6 +51,7 @@ fn main() {
         std::env::var("SLACK_CLIENT_SECRET").expect("Can't find var SLACK_CLIENT_SECRET");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
     let webhook_url = std::env::var("WEBHOOK_URL").expect("Can't find var WEBHOOK_URL");
+    let app_secret = std::env::var("APP_SECRET").expect("Can't find var APP_SECRET");
     let language_lookup = load_languages().expect("Can't load language lookup");
 
     // Setup database
@@ -68,6 +69,7 @@ fn main() {
         language_lookup,
         db,
         webhook_url,
+        app_secret,
     )
     .expect("Can't create app config");
 

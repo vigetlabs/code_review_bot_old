@@ -24,6 +24,7 @@ mod error;
 mod routes;
 
 use actix_files as fs;
+use actix_session::CookieSession;
 use actix_web::middleware::Logger;
 use actix_web::{guard, web, App, HttpServer};
 use listenfd::ListenFd;
@@ -75,6 +76,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
             .data(app_config.clone())
             .configure(configure_app)

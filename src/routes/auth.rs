@@ -1,4 +1,5 @@
 use crate::AppConfig;
+use actix_session::Session;
 use actix_web::{
     http,
     web::{Data, Query},
@@ -10,8 +11,13 @@ pub struct SlackAuthQuery {
     code: String,
 }
 
-pub fn slack(state: Data<AppConfig>, query: Query<SlackAuthQuery>) -> HttpResponse {
+pub fn slack(
+    state: Data<AppConfig>,
+    query: Query<SlackAuthQuery>,
+    session: Session,
+) -> HttpResponse {
     let access_token = state.slack.get_token(&query.code);
+
     redirect_to("/")
 }
 

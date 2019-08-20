@@ -11,6 +11,7 @@ pub struct AppConfig {
     pub language_lookup: Languages,
     pub db: db::DBExecutor,
     pub webhook_url: String,
+    pub app_secret: String,
 }
 
 impl AppConfig {
@@ -25,6 +26,7 @@ impl AppConfig {
         language_lookup: Languages,
         db: db::DBExecutor,
         webhook_url: String,
+        app_secret: String,
     ) -> Result<Self> {
         let github_url = "https://api.github.com".to_string();
         let slack_url = "https://slack.com/api/".to_string();
@@ -41,6 +43,7 @@ impl AppConfig {
             language_lookup,
             db,
             webhook_url,
+            app_secret
         })
     }
 }
