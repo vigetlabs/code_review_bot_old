@@ -1,14 +1,17 @@
 use crate::AppConfig;
-use actix_web::{http, HttpResponse, Query, State};
+use actix_web::{
+    http,
+    web::{Data, Query},
+    HttpResponse,
+};
 
 #[derive(Deserialize)]
 pub struct SlackAuthQuery {
     code: String,
-    state: Option<String>,
 }
 
-pub fn slack(state: State<AppConfig>, query: Query<SlackAuthQuery>) -> HttpResponse {
-    // state.slack.get_token(query.code);
+pub fn slack(state: Data<AppConfig>, query: Query<SlackAuthQuery>) -> HttpResponse {
+    let access_token = state.slack.get_token(&query.code);
     redirect_to("/")
 }
 

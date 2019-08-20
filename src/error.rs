@@ -34,6 +34,9 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     UrlParseError(UrlParseError),
 
+    #[fail(display = "Something went wrong")]
+    TemplateError(String),
+
     #[fail(display = "Record not found")]
     NotFoundError,
 }
@@ -93,6 +96,12 @@ impl From<actix_web::Error> for Error {
 impl From<UrlParseError> for Error {
     fn from(err: UrlParseError) -> Self {
         Error::UrlParseError(err)
+    }
+}
+
+impl From<askama::Error> for Error {
+    fn from(err: askama::Error) -> Self {
+        Error::TemplateError(format!("{}", err))
     }
 }
 

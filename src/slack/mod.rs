@@ -1,7 +1,9 @@
 pub mod attachment;
 mod helpers;
 
+use base64::encode;
 use reqwest;
+use std::collections::HashMap;
 use std::fmt;
 
 use crate::error::{Error, Result};
@@ -277,6 +279,27 @@ impl SlackClient {
             .json()
             .map_err(|e| e.into())
             .and_then(handle_response)
+    }
+
+    pub fn get_token(&self, code: &str) -> Result<String> {
+        let auth_code = encode(&format!("{}:{}", self.client_id, self.client_secret));
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("Basic {}", auth_code)).unwrap(),
+        );
+
+        let client = reqwest::Client::new();
+        let json = client
+            .post(&format!("{}/{}", self.url, "oauth.access"))
+            .form(&[("code", code)])
+            .headers(headers)
+            .send()?
+            .error_for_status()?
+            .json::<HashMap<String, String>>()?;
+        json.get("access_token")
+            .ok_or_else(|| Error::ServerError("No access token sent".to_string()))
+            .map(|tok| tok.to_string())
     }
 }
 

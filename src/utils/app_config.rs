@@ -14,7 +14,8 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-    #[allow(clippy::new_ret_no_self)]
+    // TODO: Builder pattern
+    #[allow(clippy::new_ret_no_self, clippy::too_many_arguments)]
     pub fn new(
         github_token: &str,
         slack_token: &str,

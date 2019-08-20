@@ -32,8 +32,8 @@ const LOG_FORMAT: &str =
     "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
-    cfg
-        .route("/", web::get().to(routes::web::root))
+    cfg.route("/", web::get().to(routes::web::root))
+        .route("/auth/slack", web::get().to(routes::auth::slack))
         .route("/review", web::post().to(routes::slack_webhook::review))
         .route(
             "/slack_event",
