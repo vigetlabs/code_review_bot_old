@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-use crate::db::Connection;
+use crate::db::DBExecutor;
 use crate::error::Result;
 use crate::schema::{pull_requests, users};
 
@@ -24,6 +24,48 @@ pub struct PullRequest {
     pub display_text: String,
 }
 
+impl PullRequest {
+    pub fn create(pr: &NewPullRequest, db: &DBExecutor) -> Result<PullRequest> {
+        use crate::schema::pull_requests::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::insert_into(pull_requests)
+            .values(pr)
+            .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn find(gh_id: &str, db: &DBExecutor) -> Result<PullRequest> {
+        use crate::schema::pull_requests::dsl::*;
+        let conn = db.0.get()?;
+
+        pull_requests
+            .filter(github_id.eq(gh_id))
+            .first(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn by_state(query_state: &str, db: &DBExecutor) -> Result<Vec<PullRequest>> {
+        use crate::schema::pull_requests::dsl::*;
+        let conn = db.0.get()?;
+
+        pull_requests
+            .filter(state.eq(query_state))
+            .load::<PullRequest>(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn update(&self, new_state: &str, db: &DBExecutor) -> Result<PullRequest> {
+        use crate::schema::pull_requests::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::update(pull_requests.find(self.id))
+            .set(state.eq(new_state))
+            .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+}
+
 #[derive(Debug, Insertable)]
 #[table_name = "users"]
 pub struct NewUser {
@@ -41,8 +83,10 @@ pub struct User {
 }
 
 impl User {
-    pub fn create_or_udpate(new_user: &NewUser, conn: Connection) -> Result<User> {
+    pub fn create_or_udpate(new_user: &NewUser, db: &DBExecutor) -> Result<User> {
         use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+
         let user_res: Result<User> = users
             .filter(slack_user_id.eq(&new_user.slack_user_id))
             .first(&conn)
@@ -59,8 +103,9 @@ impl User {
         .map_err(|e| e.into())
     }
 
-    pub fn find(find_id: i32, conn: Connection) -> Result<Option<User>> {
+    pub fn find(find_id: i32, db: &DBExecutor) -> Result<Option<User>> {
         use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
 
         match users.find(find_id).first(&conn) {
             Ok(user) => Ok(Some(user)),

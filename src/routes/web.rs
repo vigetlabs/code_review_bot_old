@@ -25,8 +25,7 @@ pub fn root(state: Data<AppConfig>, session: Session) -> Result<HttpResponse> {
 
 fn get_current_user(state: &Data<AppConfig>, session: &Session) -> Result<Option<User>> {
     if let Some(id) = session.get("id")? {
-        let conn = state.db.0.get()?;
-        User::find(id, conn)
+        User::find(id, &state.db)
     } else {
         Ok(None)
     }
