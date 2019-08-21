@@ -61,6 +61,7 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
             .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())

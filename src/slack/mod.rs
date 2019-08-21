@@ -3,7 +3,6 @@ mod helpers;
 
 use base64::encode;
 use reqwest;
-use std::collections::HashMap;
 use std::fmt;
 
 use crate::error::{Error, Result};
@@ -281,7 +280,7 @@ impl SlackClient {
             .and_then(handle_response)
     }
 
-    pub fn get_token(&self, code: &str) -> Result<String> {
+    pub fn get_token(&self, code: &str) -> Result<SlackAuthResponse> {
         let auth_code = encode(&format!("{}:{}", self.client_id, self.client_secret));
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
@@ -290,17 +289,42 @@ impl SlackClient {
         );
 
         let client = reqwest::Client::new();
-        let json = client
+        client
             .post(&format!("{}/{}", self.url, "oauth.access"))
             .form(&[("code", code)])
             .headers(headers)
             .send()?
             .error_for_status()?
-            .json::<HashMap<String, String>>()?;
+            .json()
+            .map_err(|e| e.into())
+            .and_then(handle_response)
+    }
+}
 
-        json.get("access_token")
-            .ok_or_else(|| Error::ServerError("No access token sent".to_string()))
-            .map(|tok| tok.to_string())
+#[derive(Clone, Debug, Deserialize)]
+pub struct SlackAuthResponse {
+    pub ok: bool,
+    pub scope: Option<String>,
+    pub error: Option<String>,
+    pub access_token: Option<String>,
+    pub user: Option<SlackUserData>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SlackUserData {
+    pub name: String,
+    pub id: String,
+}
+
+impl SlackResponse for SlackAuthResponse {
+    fn ok(&self) -> bool {
+        self.ok
+    }
+
+    fn error(&self) -> String {
+        self.error
+            .clone()
+            .unwrap_or_else(|| "Unkown Error".to_string())
     }
 }
 

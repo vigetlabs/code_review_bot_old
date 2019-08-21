@@ -15,10 +15,23 @@ pub fn slack(
     state: Data<AppConfig>,
     query: Query<SlackAuthQuery>,
     session: Session,
-) -> HttpResponse {
-    let access_token = state.slack.get_token(&query.code);
+) -> Result<HttpResponse> {
+    let response = state.slack.get_token(&query.code)?;
+    let access_token = response.access_token.unwrap();
+    let user_data = response.user.unwrap();
+    let conn = state.db.0.clone().get()?;
+    let user = User::create_or_udpate(
+        &NewUser {
+            username: user_data.name,
+            slack_user_id: user_data.id,
+            slack_access_token: access_token,
+        },
+        conn,
+    )?;
+    println!("{:?}", user);
+    session.set("id", user.id)?;
 
-    redirect_to("/")
+    Ok(redirect_to("/"))
 }
 
 fn redirect_to(location: &str) -> HttpResponse {
