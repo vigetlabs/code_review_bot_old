@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::models::{NewPullRequest, PullRequest};
+use crate::models::{GithubUser, NewPullRequest, PullRequest, Review};
 use crate::slack::Reaction;
 use crate::utils::{app_config::AppConfig, prepare_response};
 
@@ -24,6 +24,7 @@ fn handle_pull_request_opened(
         .slack
         .post_message(&json.pull_request, &files, &state.slack.channel)?;
 
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db)?;
     PullRequest::create(
         &NewPullRequest {
             github_id: github_id(
@@ -34,6 +35,7 @@ fn handle_pull_request_opened(
             slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
             channel: result.channel.unwrap_or_else(|| "".to_string()),
             display_text: format!("{}", json.pull_request),
+            github_user_id: requester.github_id,
         },
         &state.db,
     )?;
@@ -95,6 +97,7 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         approved = true;
     }
 
+    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db)?;
     let mut db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,
@@ -103,6 +106,7 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         &state.db,
     )?;
     db_pr = db_pr.update(&next_state(&db_pr.state, approved), &state.db)?;
+    Review::create_or_update(&reviewer, &db_pr, &state.db)?;
 
     state
         .slack

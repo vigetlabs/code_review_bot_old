@@ -73,6 +73,7 @@ pub struct ReviewPR {
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct User {
+    pub id: i32,
     pub login: String,
     pub avatar_url: String,
     pub html_url: String,

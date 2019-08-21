@@ -7,9 +7,9 @@ use crate::error::{Error, Result};
 use crate::github::{PRResult, PullRequest};
 use crate::slack::{attachment, extract_links, SlackRequest};
 use crate::utils::{
-    db::{NewPullRequest, PullRequest as PullRequestModel},
     prepare_response,
 };
+use crate::models::{NewPullRequest, PullRequest as PullRequestModel, GithubUser};
 use crate::AppConfig;
 
 pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
@@ -150,6 +150,8 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
     }
 
     state.github.create_webhook(&pr, &state.webhook_url)?;
+
+    let requester = GithubUser::find_or_create(&res.user, &state.db)?;
     PullRequestModel::create(
         &NewPullRequest {
             github_id: github_id(&res),
@@ -157,6 +159,7 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
             slack_message_id: ts.to_string(),
             channel: channel.to_string(),
             display_text: format!("{}", res),
+            github_user_id: requester.id,
         },
         &state.db,
     )?;

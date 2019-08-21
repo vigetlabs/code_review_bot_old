@@ -10,6 +10,8 @@ $$ LANGUAGE plpgsql;
 ALTER TABLE pull_requests ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT NOW();
 ALTER TABLE pull_requests ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT NOW();
 
+UPDATE pull_requests SET created_at = NOW() - INTERVAL '1 month', updated_at = NOW() - INTERVAL '1 month';
+
 CREATE TRIGGER set_timestamp
 BEFORE UPDATE ON pull_requests
 FOR EACH ROW
