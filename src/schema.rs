@@ -6,6 +6,8 @@ table! {
         slack_message_id -> Varchar,
         channel -> Varchar,
         display_text -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -15,6 +17,8 @@ table! {
         username -> Varchar,
         slack_user_id -> Varchar,
         slack_access_token -> Nullable<Varchar>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 

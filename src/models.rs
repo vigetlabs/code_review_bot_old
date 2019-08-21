@@ -1,4 +1,5 @@
 use diesel::prelude::*;
+use chrono::NaiveDateTime;
 
 use crate::db::DBExecutor;
 use crate::error::Result;
@@ -22,6 +23,8 @@ pub struct PullRequest {
     pub slack_message_id: String,
     pub channel: String,
     pub display_text: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl PullRequest {
@@ -80,6 +83,8 @@ pub struct User {
     pub username: String,
     pub slack_user_id: String,
     pub slack_access_token: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl User {

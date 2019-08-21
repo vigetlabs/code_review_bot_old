@@ -31,6 +31,7 @@ structopt = "0.2"
 listenfd = "0.3"
 dotenv = "0.13"
 
-diesel = { version = "1.4", features = ["postgres", "r2d2"] }
+diesel = { version = "1.4", features = ["postgres", "r2d2", "chrono"] }
 r2d2 = "0.8"
+chrono = "0.4"
 
