@@ -1,4 +1,8 @@
-use crate::schema::pull_requests;
+use diesel::prelude::*;
+
+use crate::db::Connection;
+use crate::error::Result;
+use crate::schema::{pull_requests, users};
 
 #[derive(Debug, Insertable)]
 #[table_name = "pull_requests"]

@@ -2,11 +2,10 @@ use env_logger;
 use structopt;
 
 use code_review_bot::{db, load_languages, start_dev_server, start_server, AppConfig};
+use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
 use structopt::StructOpt;
-
-use diesel::prelude::*;
 
 /// A slack bot server
 #[derive(StructOpt, Debug)]

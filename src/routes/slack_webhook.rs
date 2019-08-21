@@ -1,11 +1,15 @@
-use actix_web::web::{Data, Form, Json};
-use actix_web::HttpResponse;
+use actix_web::{
+    web::{Data, Form, Json},
+    HttpResponse,
+};
 
 use crate::error::{Error, Result};
 use crate::github::{PRResult, PullRequest};
 use crate::slack::{attachment, extract_links, SlackRequest};
-use crate::utils::db::{self, NewPullRequest};
-use crate::utils::prepare_response;
+use crate::utils::{
+    db::{self, NewPullRequest},
+    prepare_response,
+};
 use crate::AppConfig;
 
 pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {

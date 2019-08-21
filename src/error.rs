@@ -1,5 +1,4 @@
-use actix_web;
-use actix_web::{http, HttpResponse, ResponseError};
+use actix_web::{self, http, HttpResponse, ResponseError};
 use r2d2;
 use reqwest;
 use serde_json;

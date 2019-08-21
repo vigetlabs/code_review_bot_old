@@ -1,5 +1,3 @@
-use actix_web;
-
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -9,24 +7,19 @@ extern crate lazy_static;
 #[macro_use]
 extern crate failure_derive;
 
-mod models;
-mod schema;
-
-mod github;
-
-mod slack;
-
-mod utils;
-pub use crate::utils::app_config::AppConfig;
-pub use crate::utils::{db, load_languages, Languages};
-
 mod error;
+mod github;
+mod models;
 mod routes;
+mod schema;
+mod slack;
+mod utils;
+
+pub use crate::utils::{app_config::AppConfig, db, load_languages, Languages};
 
 use actix_files as fs;
 use actix_session::CookieSession;
-use actix_web::middleware::Logger;
-use actix_web::{guard, web, App, HttpServer};
+use actix_web::{self, guard, middleware::Logger, web, App, HttpServer};
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =

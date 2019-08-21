@@ -1,10 +1,13 @@
-use crate::AppConfig;
 use actix_session::Session;
 use actix_web::{
     http,
     web::{Data, Query},
     HttpResponse,
 };
+
+use crate::error::Result;
+use crate::models::{NewUser, User};
+use crate::AppConfig;
 
 #[derive(Deserialize)]
 pub struct SlackAuthQuery {

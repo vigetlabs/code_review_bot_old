@@ -1,13 +1,13 @@
-use actix_web::web::{Data, Json};
-use actix_web::HttpResponse;
+use actix_web::{
+    web::{Data, Json},
+    HttpResponse,
+};
 
 use crate::error::{DatabaseError, Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
 use crate::models::NewPullRequest;
 use crate::slack::Reaction;
-use crate::utils::app_config::AppConfig;
-use crate::utils::db;
-use crate::utils::prepare_response;
+use crate::utils::{app_config::AppConfig, db, prepare_response};
 
 fn handle_pull_request_opened(
     state: Data<AppConfig>,
