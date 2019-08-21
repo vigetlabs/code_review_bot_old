@@ -1,13 +1,13 @@
-use actix_web::web::{Data, Json};
-use actix_web::HttpResponse;
+use actix_web::{
+    web::{Data, Json},
+    HttpResponse,
+};
 
-use crate::error::{DatabaseError, Error, Result};
+use crate::error::{Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::models::NewPullRequest;
+use crate::models::{GithubUser, NewPullRequest, PullRequest, Review};
 use crate::slack::Reaction;
-use crate::utils::app_config::AppConfig;
-use crate::utils::db;
-use crate::utils::prepare_response;
+use crate::utils::{app_config::AppConfig, prepare_response};
 
 fn handle_pull_request_opened(
     state: Data<AppConfig>,
@@ -23,9 +23,10 @@ fn handle_pull_request_opened(
     let result = state
         .slack
         .post_message(&json.pull_request, &files, &state.slack.channel)?;
-    db::execute(
-        &state.db,
-        db::Queries::CreatePullRequest(NewPullRequest {
+
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db)?;
+    PullRequest::create(
+        &NewPullRequest {
             github_id: github_id(
                 &json.pull_request.base.repo.full_name,
                 json.pull_request.number,
@@ -34,7 +35,9 @@ fn handle_pull_request_opened(
             slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
             channel: result.channel.unwrap_or_else(|| "".to_string()),
             display_text: format!("{}", json.pull_request),
-        }),
+            github_user_id: requester.github_id,
+        },
+        &state.db,
     )?;
 
     Ok(prepare_response(""))
@@ -44,18 +47,14 @@ fn handle_pull_request_closed(
     state: Data<AppConfig>,
     json: PullRequestEvent,
 ) -> Result<HttpResponse> {
-    let db_prs = db::execute(
+    let db_pr = PullRequest::find(
+        &github_id(
+            &json.pull_request.base.repo.full_name,
+            json.pull_request.number,
+        ),
         &state.db,
-        db::Queries::UpdatePullRequestState {
-            github_id: github_id(
-                &json.pull_request.base.repo.full_name,
-                json.pull_request.number,
-            ),
-            state: "closed".to_string(),
-        },
-    )?;
-
-    let db_pr = db_prs.get(0).ok_or(DatabaseError::NotFound)?;
+    )?
+    .update("closed", &state.db)?;
 
     let files = state
         .github
@@ -98,24 +97,16 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         approved = true;
     }
 
-    let db_prs = db::execute(
+    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db)?;
+    let mut db_pr = PullRequest::find(
+        &github_id(
+            &json.pull_request.base.repo.full_name,
+            json.pull_request.number,
+        ),
         &state.db,
-        db::Queries::FindPullRequest {
-            github_id: github_id(
-                &json.pull_request.base.repo.full_name,
-                json.pull_request.number,
-            ),
-        },
     )?;
-    let db_pr = db_prs.get(0).ok_or(DatabaseError::NotFound)?;
-
-    db::execute(
-        &state.db,
-        db::Queries::UpdatePullRequestState {
-            github_id: db_pr.github_id.to_string(),
-            state: next_state(&db_pr.state, approved),
-        },
-    )?;
+    db_pr = db_pr.update(&next_state(&db_pr.state, approved), &state.db)?;
+    Review::create_or_update(&reviewer, &db_pr, &state.db)?;
 
     state
         .slack

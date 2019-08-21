@@ -2,11 +2,10 @@ use env_logger;
 use structopt;
 
 use code_review_bot::{db, load_languages, start_dev_server, start_server, AppConfig};
+use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
 use structopt::StructOpt;
-
-use diesel::prelude::*;
 
 /// A slack bot server
 #[derive(StructOpt, Debug)]
@@ -46,8 +45,12 @@ fn main() {
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
     let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
     let slack_channel = std::env::var("SLACK_CHANNEL").expect("Can't find var SLACK_CHANNEL");
+    let slack_client_id = std::env::var("SLACK_CLIENT_ID").expect("Can't find var SLACK_CLIENT_ID");
+    let slack_client_secret =
+        std::env::var("SLACK_CLIENT_SECRET").expect("Can't find var SLACK_CLIENT_SECRET");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
     let webhook_url = std::env::var("WEBHOOK_URL").expect("Can't find var WEBHOOK_URL");
+    let app_secret = std::env::var("APP_SECRET").expect("Can't find var APP_SECRET");
     let language_lookup = load_languages().expect("Can't load language lookup");
 
     // Setup database
@@ -60,9 +63,12 @@ fn main() {
         &github_token,
         &slack_token,
         &slack_channel,
+        &slack_client_id,
+        &slack_client_secret,
         language_lookup,
         db,
         webhook_url,
+        app_secret,
     )
     .expect("Can't create app config");
 

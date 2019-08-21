@@ -1,11 +1,15 @@
-use actix_web::web::{Data, Form, Json};
-use actix_web::HttpResponse;
+use actix_web::{
+    web::{Data, Form, Json},
+    HttpResponse,
+};
 
 use crate::error::{Error, Result};
 use crate::github::{PRResult, PullRequest};
 use crate::slack::{attachment, extract_links, SlackRequest};
-use crate::utils::db::{self, NewPullRequest};
-use crate::utils::prepare_response;
+use crate::utils::{
+    prepare_response,
+};
+use crate::models::{NewPullRequest, PullRequest as PullRequestModel, GithubUser};
 use crate::AppConfig;
 
 pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
@@ -35,12 +39,7 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
 }
 
 pub fn reviews(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
-    let prs = db::execute(
-        &state.db,
-        db::Queries::PullRequestsByState {
-            state: "open".to_string(),
-        },
-    )?;
+    let prs = PullRequestModel::by_state("open", &state.db)?;
 
     let open_prs: Vec<String> = if prs.is_empty() {
         vec!["All PRs Reviewed! :partyparrot:".to_string()]
@@ -144,27 +143,25 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
         return Err(Error::GuardError("PR Already Closed"));
     }
 
-    let db_res = db::execute(
-        &state.db,
-        db::Queries::FindPullRequest {
-            github_id: github_id(&res),
-        },
-    )?;
+    let db_pr = PullRequestModel::find(&github_id(&res), &state.db);
 
-    if db_res.get(0).is_some() {
+    if db_pr.is_ok() {
         return Err(Error::GuardError("PR Already Closed"));
     }
 
     state.github.create_webhook(&pr, &state.webhook_url)?;
-    db::execute(
-        &state.db,
-        db::Queries::CreatePullRequest(NewPullRequest {
+
+    let requester = GithubUser::find_or_create(&res.user, &state.db)?;
+    PullRequestModel::create(
+        &NewPullRequest {
             github_id: github_id(&res),
             state: "open".to_string(),
             slack_message_id: ts.to_string(),
             channel: channel.to_string(),
             display_text: format!("{}", res),
-        }),
+            github_user_id: requester.id,
+        },
+        &state.db,
     )?;
 
     Ok(prepare_response(""))

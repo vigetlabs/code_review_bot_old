@@ -1,5 +1,3 @@
-use actix_web;
-
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -9,29 +7,28 @@ extern crate lazy_static;
 #[macro_use]
 extern crate failure_derive;
 
-mod models;
-mod schema;
-
-mod github;
-
-mod slack;
-
-mod utils;
-pub use crate::utils::app_config::AppConfig;
-pub use crate::utils::{db, load_languages, Languages};
-
 mod error;
+mod github;
+mod models;
 mod routes;
+mod schema;
+mod slack;
+mod utils;
 
-use actix_web::middleware::Logger;
-use actix_web::{guard, web, App, HttpServer};
+pub use crate::utils::{app_config::AppConfig, db, load_languages, Languages};
+
+use actix_files as fs;
+use actix_session::CookieSession;
+use actix_web::{self, guard, middleware::Logger, web, App, HttpServer};
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
     "%a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T \"%{X-GitHub-Event}i\"";
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
-    cfg.route("/review", web::post().to(routes::slack_webhook::review))
+    cfg.route("/", web::get().to(routes::web::root))
+        .route("/auth/slack", web::get().to(routes::auth::slack))
+        .route("/review", web::post().to(routes::slack_webhook::review))
         .route(
             "/slack_event",
             web::post().to(routes::slack_webhook::message),
@@ -57,7 +54,9 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
+            .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .configure(configure_app)
     })
@@ -71,6 +70,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
         App::new()
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
             .data(app_config.clone())
             .configure(configure_app)

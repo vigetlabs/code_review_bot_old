@@ -1,6 +1,7 @@
 pub mod attachment;
 mod helpers;
 
+use base64::encode;
 use reqwest;
 use std::fmt;
 
@@ -79,6 +80,8 @@ pub struct SlackRequest {
 pub struct SlackClient {
     url: String,
     pub channel: String,
+    pub client_id: String,
+    pub client_secret: String,
     client: reqwest::Client,
 }
 
@@ -139,7 +142,13 @@ impl fmt::Display for Reaction {
 
 impl SlackClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(url: String, token: &str, channel: String) -> Result<SlackClient> {
+    pub fn new(
+        url: String,
+        token: &str,
+        channel: String,
+        client_id: String,
+        client_secret: String,
+    ) -> Result<SlackClient> {
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::AUTHORIZATION,
@@ -153,6 +162,8 @@ impl SlackClient {
             url,
             client,
             channel,
+            client_id,
+            client_secret,
         })
     }
 
@@ -267,6 +278,53 @@ impl SlackClient {
             .json()
             .map_err(|e| e.into())
             .and_then(handle_response)
+    }
+
+    pub fn get_token(&self, code: &str) -> Result<SlackAuthResponse> {
+        let auth_code = encode(&format!("{}:{}", self.client_id, self.client_secret));
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("Basic {}", auth_code)).unwrap(),
+        );
+
+        let client = reqwest::Client::new();
+        client
+            .post(&format!("{}/{}", self.url, "oauth.access"))
+            .form(&[("code", code)])
+            .headers(headers)
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+            .and_then(handle_response)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SlackAuthResponse {
+    pub ok: bool,
+    pub scope: Option<String>,
+    pub error: Option<String>,
+    pub access_token: Option<String>,
+    pub user: Option<SlackUserData>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct SlackUserData {
+    pub name: String,
+    pub id: String,
+}
+
+impl SlackResponse for SlackAuthResponse {
+    fn ok(&self) -> bool {
+        self.ok
+    }
+
+    fn error(&self) -> String {
+        self.error
+            .clone()
+            .unwrap_or_else(|| "Unkown Error".to_string())
     }
 }
 

@@ -1,12 +1,7 @@
-use url;
-
-use self::url::Url;
-use std::fmt;
-use std::path::Path;
-use std::str::FromStr;
-
 use crate::error::{Result, UrlParseError};
 use crate::utils::Languages;
+use std::{fmt, path::Path, str::FromStr};
+use url::{self, Url};
 
 #[derive(Deserialize, Debug)]
 pub struct PullRequestEvent {
@@ -78,6 +73,7 @@ pub struct ReviewPR {
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct User {
+    pub id: i32,
     pub login: String,
     pub avatar_url: String,
     pub html_url: String,
