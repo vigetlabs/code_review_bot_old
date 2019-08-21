@@ -5,6 +5,8 @@ table! {
         avatar_url -> Varchar,
         github_id -> Int4,
         user_id -> Nullable<Int4>,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -28,6 +30,8 @@ table! {
         pull_request_id -> Int4,
         github_user_id -> Int4,
         state -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 

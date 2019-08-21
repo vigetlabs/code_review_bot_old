@@ -83,6 +83,8 @@ pub struct GithubUser {
     pub avatar_url: String,
     pub github_id: i32,
     pub user_id: Option<i32>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl GithubUser {
@@ -121,6 +123,8 @@ pub struct Review {
     pub github_user_id: i32,
     pub pull_request_id: i32,
     pub state: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
 }
 
 impl Review {

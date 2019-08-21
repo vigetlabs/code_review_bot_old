@@ -4,8 +4,15 @@ CREATE TABLE github_users(
   login VARCHAR NOT NULL,
   avatar_url VARCHAR NOT NULL,
   github_id INTEGER NOT NULL,
-  user_id INTEGER
+  user_id INTEGER,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON github_users
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 CREATE UNIQUE INDEX inx_github_id ON github_users(github_id);
 
@@ -13,8 +20,15 @@ CREATE TABLE reviews(
     id SERIAL PRIMARY KEY,
     pull_request_id INTEGER NOT NULL,
     github_user_id INTEGER NOT NULL,
-    state VARCHAR NOT NULL
+    state VARCHAR NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE TRIGGER set_timestamp
+BEFORE UPDATE ON reviews
+FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_timestamp();
 
 CREATE UNIQUE INDEX inx_reviews ON reviews(pull_request_id, github_user_id);
 
