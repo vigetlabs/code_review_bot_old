@@ -106,7 +106,7 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         &state.db,
     )?;
     db_pr = db_pr.update(&next_state(&db_pr.state, approved), &state.db)?;
-    Review::create_or_update(&reviewer, &db_pr, &state.db)?;
+    Review::create_or_update(&reviewer, &db_pr, &json.review.state.to_string(), &state.db)?;
 
     state
         .slack

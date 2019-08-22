@@ -131,6 +131,7 @@ impl Review {
     pub fn create_or_update(
         reviewer: &GithubUser,
         pull_request: &PullRequest,
+        review_state: &str,
         db: &DBExecutor,
     ) -> Result<Review> {
         use crate::schema::reviews::dsl::*;
@@ -144,13 +145,13 @@ impl Review {
 
         match review {
             Ok(review) => diesel::update(reviews.find(review.id))
-                .set(state.eq(&pull_request.state))
+                .set(state.eq(review_state))
                 .get_result(&conn),
             Err(_) => diesel::insert_into(reviews)
                 .values(vec![(
                     github_user_id.eq(reviewer.id),
                     pull_request_id.eq(pull_request.id),
-                    state.eq(&pull_request.state),
+                    state.eq(review_state),
                 )])
                 .get_result(&conn),
         }

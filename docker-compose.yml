@@ -9,6 +9,9 @@ services:
       - GITHUB_TOKEN
       - SLACK_TOKEN
       - SLACK_CHANNEL
+      - SLACK_CLIENT_ID
+      - SLACK_CLIENT_SECRET
+      - APP_SECRET
     depends_on:
       - db
 

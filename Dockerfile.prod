@@ -8,8 +8,10 @@ RUN cargo build --release
 RUN cargo install diesel_cli
 
 COPY src src
+COPY templates templates
 RUN cargo install --path .
 COPY resources resources
 COPY migrations migrations
+COPY public public
 
 CMD ["code_review_bot", "-p", "80"]

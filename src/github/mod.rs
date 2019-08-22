@@ -48,12 +48,18 @@ pub struct PRReview {
     pub user: User,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum PRReviewState {
     ChangesRequested,
     Approved,
     Commented,
+}
+
+impl fmt::Display for PRReviewState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).map_err(|_| fmt::Error)?)
+    }
 }
 
 #[derive(Deserialize, Debug)]
