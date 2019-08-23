@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/code_review_bot
     docker:
-      - image: circleci/rust:1.32
+      - image: circleci/rust
         environment:
           GITHUB_TOKEN: this-is-a-fake-token
           SLACK_TOKEN: this-is-a-fake-token
