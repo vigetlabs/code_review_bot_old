@@ -58,7 +58,13 @@ pub enum PRReviewState {
 
 impl fmt::Display for PRReviewState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::to_string(self).map_err(|_| fmt::Error)?)
+        write!(
+            f,
+            "{}",
+            serde_json::to_string(self)
+                .map_err(|_| fmt::Error)?
+                .replace("\"", "")
+        )
     }
 }
 

@@ -5,11 +5,9 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRResult, PullRequest};
+use crate::models::{GithubUser, NewPullRequest, PullRequest as PullRequestModel};
 use crate::slack::{attachment, extract_links, SlackRequest};
-use crate::utils::{
-    prepare_response,
-};
-use crate::models::{NewPullRequest, PullRequest as PullRequestModel, GithubUser};
+use crate::utils::prepare_response;
 use crate::AppConfig;
 
 pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
