@@ -25,12 +25,15 @@ fn language_lookup(name: &str) -> LanguageIcon {
         "Elixir" => ":elixir:",
         "HTML" => ":html:",
         "JavaScript" => ":js:",
+        "JSON" => ":json:",
         "Kotlin" => ":kotlin:",
+        "PHP" => ":php:",
         "Ruby" => ":ruby:",
         "Rust" => ":rust:",
         "SQL" => ":sql:",
         "Swift" => ":swift:",
         "TypeScript" => ":ts:",
+        "YAML" => ":yaml:",
         _ => "",
     }
     .to_string()
