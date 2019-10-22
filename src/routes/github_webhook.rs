@@ -24,7 +24,7 @@ fn handle_pull_request_opened(
         .slack
         .post_message(&json.pull_request, &files, &state.slack.channel)?;
 
-    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db)?;
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db, None)?;
     PullRequest::create(
         &NewPullRequest {
             github_id: github_id(
@@ -97,7 +97,7 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         approved = true;
     }
 
-    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db)?;
+    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db, None)?;
     let mut db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,

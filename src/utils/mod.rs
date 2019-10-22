@@ -2,6 +2,7 @@ extern crate serde_yaml;
 
 pub mod app_config;
 pub mod db;
+pub mod helpers;
 
 use actix_web::HttpResponse;
 use std::collections::HashMap;

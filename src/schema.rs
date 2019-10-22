@@ -43,6 +43,7 @@ table! {
         slack_access_token -> Nullable<Varchar>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        github_access_token -> Nullable<Varchar>,
     }
 }
 
