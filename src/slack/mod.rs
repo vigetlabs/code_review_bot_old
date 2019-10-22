@@ -7,6 +7,7 @@ use std::fmt;
 
 use crate::error::{Error, Result};
 use crate::github;
+use crate::models;
 
 pub use helpers::extract_links;
 
@@ -172,22 +173,37 @@ impl SlackClient {
         pull_request: &github::PRResult,
         files: &str,
         channel: &str,
+        user: Option<models::User>,
     ) -> Result<SlackMessagePostResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
+        let title = format!("{} {}", additions, pull_request.title);
+        let as_user = user.is_some();
+
         let message = serde_json::to_string(&SlackMessagePost {
             text: None,
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
+                &title,
             )]),
             channel: channel.to_string(),
-            username: Some(format!("{} {}", additions, pull_request.title)),
-            as_user: false,
+            username: None,
             icon_url: Some(pull_request.user.avatar_url.to_string()),
+            as_user,
         })?;
 
-        self.client
-            .post(&format!("{}/{}", self.url, "chat.postMessage"))
+        let mut request = self
+            .client
+            .post(&format!("{}/{}", self.url, "chat.postMessage"));
+
+        if let Some(user) = user {
+            request = request.header(
+                reqwest::header::AUTHORIZATION,
+                &format!("Bearer {}", user.slack_access_token),
+            );
+        }
+
+        request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
             .send()?
@@ -203,20 +219,33 @@ impl SlackClient {
         files: &str,
         ts: &str,
         channel: &str,
+        user: Option<models::User>,
     ) -> Result<SlackMessageUpdateResponse> {
+        let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
+        let title = format!("{} {}", additions, pull_request.title);
+        let as_user = user.is_some();
+
         let message = serde_json::to_string(&SlackMessageUpdate {
             text: None,
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
+                &title,
             )]),
             channel: channel.to_string(),
-            as_user: Some(false),
+            as_user: Some(as_user),
             ts: ts.to_string(),
         })?;
 
-        self.client
-            .post(&format!("{}/{}", self.url, "chat.update"))
+        let mut request = self.client.post(&format!("{}/{}", self.url, "chat.update"));
+        if let Some(user) = user {
+            request = request.header(
+                reqwest::header::AUTHORIZATION,
+                &format!("Bearer {}", user.slack_access_token),
+            );
+        }
+
+        request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
             .send()?
@@ -262,6 +291,7 @@ impl SlackClient {
         reaction: &Reaction,
         ts: &str,
         channel: &str,
+        user: Option<models::User>,
     ) -> Result<SlackCreateCommentResponse> {
         let message = serde_json::to_string(&SlackCreateComment {
             timestamp: ts.to_string(),
@@ -269,8 +299,18 @@ impl SlackClient {
             name: format!("{}", reaction),
         })?;
 
-        self.client
-            .post(&format!("{}/{}", self.url, "reactions.add"))
+        let mut request = self
+            .client
+            .post(&format!("{}/{}", self.url, "reactions.add"));
+
+        if let Some(user) = user {
+            request = request.header(
+                reqwest::header::AUTHORIZATION,
+                &format!("Bearer {}", user.slack_access_token),
+            );
+        }
+
+        request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
             .send()?

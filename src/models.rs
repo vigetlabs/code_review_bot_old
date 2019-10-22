@@ -72,6 +72,17 @@ impl PullRequest {
             .get_result(&conn)
             .map_err(|e| e.into())
     }
+
+    pub fn user(&self, db: &DBExecutor) -> Result<Option<User>> {
+        use crate::schema::github_users::dsl::*;
+        let conn = db.0.get()?;
+
+        let gh_user = github_users
+            .filter(github_id.eq(self.github_user_id))
+            .first::<GithubUser>(&conn)?;
+
+        gh_user.user(db)
+    }
 }
 
 #[derive(Clone, Debug, Queryable, Identifiable, Associations)]
@@ -127,6 +138,20 @@ impl GithubUser {
                     .map_err(|e| e.into()),
             },
         }
+    }
+
+    pub fn user(&self, db: &DBExecutor) -> Result<Option<User>> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+
+        if let Some(u_id) = self.user_id {
+            return users
+                .find(u_id)
+                .get_result::<User>(&conn)
+                .map(Some)
+                .map_err(|e| e.into());
+        }
+        Ok(None)
     }
 }
 
@@ -187,7 +212,7 @@ pub struct User {
     pub id: i32,
     pub username: String,
     pub slack_user_id: String,
-    pub slack_access_token: Option<String>,
+    pub slack_access_token: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub github_access_token: Option<String>,
@@ -224,7 +249,6 @@ impl User {
             Err(err) => Err(err.into()),
         }
     }
-
     pub fn connect_to_github_user(
         &self,
         access_token: &str,
