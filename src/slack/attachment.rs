@@ -27,7 +27,11 @@ pub struct Attachment {
 }
 
 impl Attachment {
-    pub fn from_pull_request(pull_request: &github::PRResult, files: &str) -> Attachment {
+    pub fn from_pull_request(
+        pull_request: &github::PRResult,
+        files: &str,
+        title: Option<String>,
+    ) -> Attachment {
         let color = pull_request.color();
         let text = format!(
             "<{}|{}> by {} {}",
@@ -41,7 +45,7 @@ impl Attachment {
             author_name: None,
             author_link: None,
             author_icon: None,
-            title: None,
+            title,
             title_link: None,
             text,
             fields: None,

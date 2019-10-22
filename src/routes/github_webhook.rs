@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::models::{GithubUser, NewPullRequest, PullRequest, Review};
+use crate::models::{GithubUser, NewPullRequest, PullRequest, Review, User};
 use crate::slack::Reaction;
 use crate::utils::{app_config::AppConfig, prepare_response};
 
@@ -17,14 +17,20 @@ fn handle_pull_request_opened(
         return Err(Error::GuardError("Ignoring Draft PR"));
     }
 
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db, None)?;
+    let user = requester
+        .user_id
+        .and_then(|id| User::find(id, &state.db).ok())
+        .and_then(|inner| inner);
+
     let files = state
         .github
         .get_files(&json.pull_request, &state.language_lookup)?;
-    let result = state
-        .slack
-        .post_message(&json.pull_request, &files, &state.slack.channel)?;
+    let result =
+        state
+            .slack
+            .post_message(&json.pull_request, &files, &state.slack.channel, user)?;
 
-    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db, None)?;
     PullRequest::create(
         &NewPullRequest {
             github_id: github_id(

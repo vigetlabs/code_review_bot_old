@@ -7,6 +7,7 @@ use std::fmt;
 
 use crate::error::{Error, Result};
 use crate::github;
+use crate::models;
 
 pub use helpers::extract_links;
 
@@ -172,22 +173,37 @@ impl SlackClient {
         pull_request: &github::PRResult,
         files: &str,
         channel: &str,
+        user: Option<models::User>,
     ) -> Result<SlackMessagePostResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
+        let title = format!("{} {}", additions, pull_request.title);
+        let as_user = user.is_some();
+
         let message = serde_json::to_string(&SlackMessagePost {
             text: None,
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
+                Some(title),
             )]),
             channel: channel.to_string(),
-            username: Some(format!("{} {}", additions, pull_request.title)),
-            as_user: false,
+            username: None,
             icon_url: Some(pull_request.user.avatar_url.to_string()),
+            as_user,
         })?;
 
-        self.client
-            .post(&format!("{}/{}", self.url, "chat.postMessage"))
+        let mut request = self
+            .client
+            .post(&format!("{}/{}", self.url, "chat.postMessage"));
+
+        if let Some(user) = user {
+            request = request.header(
+                reqwest::header::AUTHORIZATION,
+                &format!("bearer {}", user.slack_access_token),
+            );
+        }
+
+        request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
             .send()?
@@ -209,6 +225,7 @@ impl SlackClient {
             attachments: Some(vec![attachment::Attachment::from_pull_request(
                 pull_request,
                 files,
+                None,
             )]),
             channel: channel.to_string(),
             as_user: Some(false),

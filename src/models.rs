@@ -187,7 +187,7 @@ pub struct User {
     pub id: i32,
     pub username: String,
     pub slack_user_id: String,
-    pub slack_access_token: Option<String>,
+    pub slack_access_token: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub github_access_token: Option<String>,
@@ -224,7 +224,6 @@ impl User {
             Err(err) => Err(err.into()),
         }
     }
-
     pub fn connect_to_github_user(
         &self,
         access_token: &str,
