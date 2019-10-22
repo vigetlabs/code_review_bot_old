@@ -1,12 +1,13 @@
 use crate::db;
 use crate::error::Result;
-use crate::github::GithubClient;
+use crate::github::{GithubClient, GithubOauthClient};
 use crate::slack::SlackClient;
 use crate::utils::Languages;
 
 #[derive(Clone)]
 pub struct AppConfig {
     pub github: GithubClient,
+    pub github_oauth: GithubOauthClient,
     pub slack: SlackClient,
     pub language_lookup: Languages,
     pub db: db::DBExecutor,
@@ -19,6 +20,8 @@ impl AppConfig {
     #[allow(clippy::new_ret_no_self, clippy::too_many_arguments)]
     pub fn new(
         github_token: &str,
+        github_client_id: &str,
+        github_client_secret: &str,
         slack_token: &str,
         channel: &str,
         client_id: &str,
@@ -33,6 +36,7 @@ impl AppConfig {
 
         Ok(AppConfig {
             github: GithubClient::new(github_url, &github_token)?,
+            github_oauth: GithubOauthClient::new(&github_client_id, &github_client_secret),
             slack: SlackClient::new(
                 slack_url,
                 &slack_token,
@@ -43,7 +47,7 @@ impl AppConfig {
             language_lookup,
             db,
             webhook_url,
-            app_secret
+            app_secret,
         })
     }
 }

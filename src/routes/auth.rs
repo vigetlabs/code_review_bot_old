@@ -7,16 +7,17 @@ use actix_web::{
 
 use crate::error::Result;
 use crate::models::{NewUser, User};
+use crate::utils::helpers;
 use crate::AppConfig;
 
 #[derive(Deserialize)]
-pub struct SlackAuthQuery {
+pub struct AuthRedirect {
     code: String,
 }
 
 pub fn slack(
     state: Data<AppConfig>,
-    query: Query<SlackAuthQuery>,
+    query: Query<AuthRedirect>,
     session: Session,
 ) -> Result<HttpResponse> {
     let response = state.slack.get_token(&query.code)?;
@@ -31,6 +32,20 @@ pub fn slack(
         &state.db,
     )?;
     session.set("id", user.id)?;
+
+    Ok(redirect_to("/"))
+}
+
+pub fn github(
+    state: Data<AppConfig>,
+    query: Query<AuthRedirect>,
+    session: Session,
+) -> Result<HttpResponse> {
+    let response = state.github_oauth.get_token(&query.code)?;
+    let github_user = state.github.get_user(&response.access_token)?;
+    let user =
+        helpers::get_current_user(&state, &session)?.ok_or(crate::error::Error::NotFoundError)?;
+    user.connect_to_github_user(&response.access_token, &github_user, &state.db)?;
 
     Ok(redirect_to("/"))
 }
