@@ -1,7 +1,9 @@
-use crate::error::{Result, UrlParseError};
-use crate::utils::Languages;
 use std::{fmt, path::Path, str::FromStr};
 use url::{self, Url};
+
+use crate::error::{Result, UrlParseError};
+use crate::utils::paginated_resource::{PaginatedResource, PaginationParams};
+use crate::utils::Languages;
 
 #[derive(Deserialize, Debug)]
 pub struct PullRequestEvent {
@@ -309,11 +311,16 @@ impl GithubClient {
             .map_err(|e| e.into())
     }
 
-    pub fn get_repos(&self, access_token: &str) -> Result<Vec<Repo>> {
+    pub fn get_repos(
+        &self,
+        access_token: &str,
+        params: &PaginationParams,
+    ) -> Result<PaginatedResource<Repo>> {
         let request_url = format!(
-            "{url}/user/repos?sort={sort}",
+            "{url}/user/repos?sort={sort}&page={page}",
             url = self.url,
             sort = "updated",
+            page = params.page.as_ref().unwrap_or(&"1".to_owned()),
         );
 
         self.client
@@ -323,9 +330,19 @@ impl GithubClient {
                 format!("token {}", access_token),
             )
             .send()?
-            .error_for_status()?
-            .json()
+            .error_for_status()
             .map_err(|e| e.into())
+            .and_then(|mut res| {
+                let resources: Vec<Repo> = res.json()?;
+                let link_header = res.headers().get(reqwest::header::LINK);
+
+                if let Some(link_str) = link_header {
+                    let link = hyperx::header::Link::from_str(link_str.to_str()?)?;
+                    PaginatedResource::new(resources, link.values())
+                } else {
+                    PaginatedResource::new(resources, &[])
+                }
+            })
     }
 }
 

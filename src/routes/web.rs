@@ -1,11 +1,15 @@
 use actix_session::Session;
-use actix_web::{web::Data, HttpResponse};
+use actix_web::{
+    web::{Data, Query},
+    HttpResponse,
+};
 use askama::Template;
 
 use crate::error::Result;
 use crate::github;
 use crate::models::User;
 use crate::utils::helpers::get_current_user;
+use crate::utils::paginated_resource;
 use crate::AppConfig;
 
 #[derive(Template)]
@@ -20,9 +24,14 @@ struct LoginTemplate<'a> {
 #[template(path = "home/index.html")]
 struct IndexTemplate<'a> {
     repos: &'a Vec<github::Repo>,
+    pagination: &'a paginated_resource::PaginatedResource<github::Repo>,
 }
 
-pub fn root(state: Data<AppConfig>, session: Session) -> Result<HttpResponse> {
+pub fn root(
+    state: Data<AppConfig>,
+    session: Session,
+    params: Query<paginated_resource::PaginationParams>,
+) -> Result<HttpResponse> {
     let current_user = get_current_user(&state, &session)?;
     let is_gh_authed = current_user
         .clone()
@@ -31,9 +40,12 @@ pub fn root(state: Data<AppConfig>, session: Session) -> Result<HttpResponse> {
 
     let r = if is_gh_authed {
         let user = current_user.unwrap();
-        let github_repos = state.github.get_repos(&user.github_access_token.unwrap())?;
+        let github_repos = state
+            .github
+            .get_repos(&user.github_access_token.unwrap(), &*params)?;
         IndexTemplate {
-            repos: &github_repos,
+            repos: &github_repos.resources,
+            pagination: &github_repos,
         }
         .render()?
     } else {

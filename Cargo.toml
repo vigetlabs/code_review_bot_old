@@ -26,6 +26,7 @@ askama = "0.8"
 reqwest = "=0.9.5"
 mockito = "0.14.0"
 url = "1.7"
+hyperx = "0.15.2"
 
 structopt = "0.2"
 listenfd = "0.3"

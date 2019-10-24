@@ -104,6 +104,18 @@ impl From<askama::Error> for Error {
     }
 }
 
+impl From<http::header::ToStrError> for Error {
+    fn from(err: http::header::ToStrError) -> Self {
+        Error::ServerError(format!("{}", err))
+    }
+}
+
+impl From<hyperx::Error> for Error {
+    fn from(err: hyperx::Error) -> Self {
+        Error::ServerError(format!("{}", err))
+    }
+}
+
 #[derive(Fail, Debug)]
 pub enum DatabaseError {
     #[fail(display = "Connection pool error")]
