@@ -308,6 +308,25 @@ impl GithubClient {
             .json()
             .map_err(|e| e.into())
     }
+
+    pub fn get_repos(&self, access_token: &str) -> Result<Vec<Repo>> {
+        let request_url = format!(
+            "{url}/user/repos?sort={sort}",
+            url = self.url,
+            sort = "updated",
+        );
+
+        self.client
+            .get(&request_url)
+            .header(
+                reqwest::header::AUTHORIZATION,
+                format!("token {}", access_token),
+            )
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
