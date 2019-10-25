@@ -2,6 +2,7 @@ use std::{fmt, path::Path, str::FromStr};
 use url::{self, Url};
 
 use crate::error::{Result, UrlParseError};
+use crate::models;
 use crate::utils::paginated_resource::{PaginatedResource, PaginationParams};
 use crate::utils::Languages;
 
@@ -316,6 +317,24 @@ impl GithubClient {
                 },
                 Ok,
             )
+    }
+
+    pub fn delete_webhook(&self, hook: &models::Webhook, token: Option<String>) -> Result<()> {
+        let request_url = format!(
+            "{url}/repos/{owner}/{repo}/hooks/{hook_id}",
+            url = self.url,
+            owner = hook.owner,
+            repo = hook.name,
+            hook_id = hook.hook_id,
+        );
+
+        self.client
+            .delete(&request_url)
+            .maybe_add_token(token)
+            .send()?
+            .error_for_status()?;
+
+        Ok(())
     }
 
     pub fn get_user(&self, access_token: &str) -> Result<User> {

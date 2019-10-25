@@ -1,7 +1,7 @@
 use actix_session::Session;
 use actix_web::{
     http,
-    web::{Data, Form, Query},
+    web::{Data, Form, Path, Query},
     HttpResponse,
 };
 use askama::Template;
@@ -105,6 +105,23 @@ pub fn create_webhook(
         },
         &state.db,
     )?;
+
+    Ok(HttpResponse::Found()
+        .header(http::header::LOCATION, "/")
+        .finish())
+}
+
+pub fn delete_webhook(
+    state: Data<AppConfig>,
+    session: Session,
+    path: Path<(i32,)>,
+) -> Result<HttpResponse> {
+    let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
+    let webhook = Webhook::find(path.0, &state.db)?;
+    state
+        .github
+        .delete_webhook(&webhook, current_user.github_access_token)?;
+    webhook.delete(&state.db)?;
 
     Ok(HttpResponse::Found()
         .header(http::header::LOCATION, "/")

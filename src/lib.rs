@@ -52,7 +52,8 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             "/slack_event",
             web::post().to(routes::slack_webhook::message),
         )
-        .route("/webhook", web::post().to(routes::web::create_webhook));
+        .route("/webhook", web::post().to(routes::web::create_webhook))
+        .route("/webhook/{id}", web::post().to(routes::web::delete_webhook));
 }
 
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {

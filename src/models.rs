@@ -249,6 +249,7 @@ impl User {
             Err(err) => Err(err.into()),
         }
     }
+
     pub fn connect_to_github_user(
         &self,
         access_token: &str,
@@ -308,6 +309,21 @@ impl Webhook {
         ))
         .load(&conn)
         .map_err(|e| e.into())
+    }
+
+    pub fn find(find_id: i32, db: &DBExecutor) -> Result<Webhook> {
+        use crate::schema::webhooks::dsl::*;
+        let conn = db.0.get()?;
+
+        webhooks.find(find_id).first(&conn).map_err(|e| e.into())
+    }
+
+    pub fn delete(&self, db: &DBExecutor) -> Result<()> {
+        use crate::schema::webhooks::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::delete(webhooks.filter(id.eq(self.id))).execute(&conn)?;
+        Ok(())
     }
 }
 
