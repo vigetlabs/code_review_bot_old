@@ -38,6 +38,9 @@ pub enum Error {
 
     #[fail(display = "Record not found")]
     NotFoundError,
+
+    #[fail(display = "You are not authorized")]
+    NotAuthedError,
 }
 
 impl ResponseError for Error {
@@ -48,6 +51,7 @@ impl ResponseError for Error {
                 prepare_response(&format!(r#"{{ "error": "{}" }}"#, e))
             }
             Error::NotFoundError => prepare_response(r#"{ "error": "Record not found" }"#),
+            Error::NotAuthedError => HttpResponse::new(http::StatusCode::UNAUTHORIZED),
             _ => HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }

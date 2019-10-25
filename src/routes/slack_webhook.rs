@@ -147,7 +147,7 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
         return Err(Error::GuardError("PR Already Closed"));
     }
 
-    state.github.create_webhook(&pr, &state.webhook_url)?;
+    state.github.create_webhook(&pr, &state.webhook_url, None)?;
 
     let requester = GithubUser::find_or_create(&res.user, &state.db, None)?;
     PullRequestModel::create(

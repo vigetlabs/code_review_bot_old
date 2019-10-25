@@ -31,12 +31,6 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(routes::web::root))
         .route("/auth/slack", web::get().to(routes::auth::slack))
         .route("/auth/github", web::get().to(routes::auth::github))
-        .route("/review", web::post().to(routes::slack_webhook::review))
-        .route(
-            "/slack_event",
-            web::post().to(routes::slack_webhook::message),
-        )
-        .route("/reviews", web::post().to(routes::slack_webhook::reviews))
         .route(
             "/github_event",
             web::post()
@@ -51,7 +45,14 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             web::post()
                 .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
                 .to(routes::github_webhook::review),
-        );
+        )
+        .route("/review", web::post().to(routes::slack_webhook::review))
+        .route("/reviews", web::post().to(routes::slack_webhook::reviews))
+        .route(
+            "/slack_event",
+            web::post().to(routes::slack_webhook::message),
+        )
+        .route("/webhook", web::post().to(routes::web::create_webhook));
 }
 
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {

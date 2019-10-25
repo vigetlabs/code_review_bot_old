@@ -95,7 +95,18 @@ pub struct User {
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Repo {
+    pub id: i32,
+    pub owner: User,
+    pub name: String,
     pub full_name: String,
+    pub permissions: RepoPermissions,
+}
+
+#[derive(Clone, Deserialize, Debug)]
+pub struct RepoPermissions {
+    pub admin: bool,
+    pub push: bool,
+    pub pull: bool,
 }
 
 #[derive(Clone, Deserialize, Debug)]
@@ -265,7 +276,12 @@ impl GithubClient {
         Ok(file_extensions.join(" "))
     }
 
-    pub fn create_webhook(&self, pull_request: &PullRequest, webhook_url: &str) -> Result<()> {
+    pub fn create_webhook(
+        &self,
+        pull_request: &PullRequest,
+        webhook_url: &str,
+        token: Option<String>,
+    ) -> Result<Webhook> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/hooks",
             url = self.url,
@@ -273,27 +289,33 @@ impl GithubClient {
             repo = pull_request.name,
         );
 
-        let hooks: Vec<WebHook> = self
+        let hooks: Vec<Webhook> = self
             .client
             .get(&request_url)
+            .maybe_add_token(token.clone())
             .send()?
             .error_for_status()?
             .json()?;
 
-        if !hooks
+        hooks
             .iter()
-            .any(|hook| hook.config.url.contains("github_event"))
-        {
-            let body = serde_json::to_string(&WebHook::new(webhook_url)).unwrap();
-            self.client
-                .post(&request_url)
-                .header(reqwest::header::CONTENT_TYPE, "application/json")
-                .body(body)
-                .send()?
-                .error_for_status()?;
-        }
-
-        Ok(())
+            .find(|hook| hook.config.url.contains("github_event"))
+            .cloned()
+            .map_or_else(
+                || {
+                    let body = serde_json::to_string(&NewWebhook::new(webhook_url)).unwrap();
+                    self.client
+                        .post(&request_url)
+                        .header(reqwest::header::CONTENT_TYPE, "application/json")
+                        .maybe_add_token(token)
+                        .body(body)
+                        .send()?
+                        .error_for_status()?
+                        .json()
+                        .map_err(|e| e.into())
+                },
+                Ok,
+            )
     }
 
     pub fn get_user(&self, access_token: &str) -> Result<User> {
@@ -346,34 +368,55 @@ impl GithubClient {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct WebHook {
-    config: WebHookConfig,
+trait AddUserToken {
+    fn maybe_add_token(self, token: Option<String>) -> Self;
+}
+
+impl AddUserToken for reqwest::RequestBuilder {
+    fn maybe_add_token(self, token: Option<String>) -> Self {
+        if let Some(token) = token {
+            self.header(reqwest::header::AUTHORIZATION, format!("token {}", token))
+        } else {
+            self
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+struct NewWebhook {
+    config: WebhookConfig,
     events: Vec<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct WebHookConfig {
+#[derive(Clone, Debug, Deserialize)]
+pub struct Webhook {
+    pub id: i32,
+    pub config: WebhookConfig,
+    pub events: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct WebhookConfig {
     url: String,
     content_type: ContentType,
     secret: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-enum ContentType {
+pub enum ContentType {
     Json,
     Form,
 }
 
-impl WebHook {
+impl NewWebhook {
     fn new(webhook_url: &str) -> Self {
         Self {
             events: vec![
                 "pull_request".to_string(),
                 "pull_request_review".to_string(),
             ],
-            config: WebHookConfig {
+            config: WebhookConfig {
                 url: webhook_url.to_string(),
                 content_type: ContentType::Json,
                 secret: Some("update-only".to_string()),
