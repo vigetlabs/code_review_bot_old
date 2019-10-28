@@ -39,7 +39,7 @@ pub fn root(
         .and_then(|u| if u.is_gh_authed() { Some(u) } else { None })
         .is_some();
 
-    let r = if is_gh_authed {
+    let rendered_template = if is_gh_authed {
         let user = current_user.unwrap();
         let github_repos = state
             .github
@@ -73,7 +73,7 @@ pub fn root(
         .render()?
     };
 
-    build_response(r)
+    build_response(rendered_template)
 }
 
 #[derive(Deserialize)]
@@ -89,7 +89,7 @@ pub fn create_webhook(
 ) -> Result<HttpResponse> {
     let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
     let webhook = state.github.create_webhook(
-        &github::PullRequest {
+        &github::ReviewRequest {
             owner: form.owner.clone(),
             name: form.name.clone(),
             id: "".to_owned(),

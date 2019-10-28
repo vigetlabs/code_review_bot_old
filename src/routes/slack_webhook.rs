@@ -4,7 +4,7 @@ use actix_web::{
 };
 
 use crate::error::{Error, Result};
-use crate::github::{PRResult, PullRequest};
+use crate::github::{PRResult, ReviewRequest};
 use crate::models::{GithubUser, NewPullRequest, PullRequest as PullRequestModel};
 use crate::slack::{attachment, extract_links, SlackRequest};
 use crate::utils::prepare_response;
@@ -130,7 +130,7 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
 
     let result = extract_links(&text)
         .iter()
-        .filter_map(|url| url.parse::<PullRequest>().ok())
+        .filter_map(|url| url.parse::<ReviewRequest>().ok())
         .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
         .nth(0)
         .ok_or_else(|| Error::GuardError("No PR"))?;
