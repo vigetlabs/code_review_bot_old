@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::models::{GithubUser, NewPullRequest, PullRequest, Review};
+use crate::models::{GithubUser, NewPullRequest, PullRequest, Review, User};
 use crate::slack::Reaction;
 use crate::utils::{app_config::AppConfig, prepare_response};
 
@@ -17,14 +17,20 @@ fn handle_pull_request_opened(
         return Err(Error::GuardError("Ignoring Draft PR"));
     }
 
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db, None)?;
+    let user = requester
+        .user_id
+        .and_then(|id| User::find(id, &state.db).ok())
+        .and_then(|inner| inner);
+
     let files = state
         .github
         .get_files(&json.pull_request, &state.language_lookup)?;
-    let result = state
-        .slack
-        .post_message(&json.pull_request, &files, &state.slack.channel)?;
+    let result =
+        state
+            .slack
+            .post_message(&json.pull_request, &files, &state.slack.channel, user)?;
 
-    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db)?;
     PullRequest::create(
         &NewPullRequest {
             github_id: github_id(
@@ -55,15 +61,18 @@ fn handle_pull_request_closed(
         &state.db,
     )?
     .update("closed", &state.db)?;
+    let user = db_pr.user(&state.db)?;
 
     let files = state
         .github
         .get_files(&json.pull_request, &state.language_lookup)?;
+
     state.slack.update_message(
         &json.pull_request,
         &files,
         &db_pr.slack_message_id,
         &db_pr.channel,
+        user,
     )?;
     Ok(prepare_response(""))
 }
@@ -97,7 +106,8 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
         approved = true;
     }
 
-    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db)?;
+    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db, None)?;
+    let reviewer_user = reviewer.user(&state.db)?;
     let mut db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,
@@ -108,9 +118,12 @@ fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<
     db_pr = db_pr.update(&next_state(&db_pr.state, approved), &state.db)?;
     Review::create_or_update(&reviewer, &db_pr, &json.review.state.to_string(), &state.db)?;
 
-    state
-        .slack
-        .add_reaction(&reaction, &db_pr.slack_message_id, &db_pr.channel)?;
+    state.slack.add_reaction(
+        &reaction,
+        &db_pr.slack_message_id,
+        &db_pr.channel,
+        reviewer_user,
+    )?;
 
     Ok(prepare_response(""))
 }

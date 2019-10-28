@@ -1,3 +1,5 @@
+#![warn(clippy::all)]
+
 #[macro_use]
 extern crate serde_derive;
 #[macro_use]
@@ -28,6 +30,7 @@ const LOG_FORMAT: &str =
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(routes::web::root))
         .route("/auth/slack", web::get().to(routes::auth::slack))
+        .route("/auth/github", web::get().to(routes::auth::github))
         .route("/review", web::post().to(routes::slack_webhook::review))
         .route(
             "/slack_event",

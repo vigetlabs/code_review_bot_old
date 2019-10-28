@@ -40,9 +40,10 @@ table! {
         id -> Int4,
         username -> Varchar,
         slack_user_id -> Varchar,
-        slack_access_token -> Nullable<Varchar>,
+        slack_access_token -> Varchar,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        github_access_token -> Nullable<Varchar>,
     }
 }
 

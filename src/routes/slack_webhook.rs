@@ -26,7 +26,7 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
 
     state
         .slack
-        .post_message(&pr_response, &pr_files, &form.channel_id)?;
+        .post_message(&pr_response, &pr_files, &form.channel_id, None)?;
     let message = state.slack.immediate_response(
         "To have these automatically posted for you see: \
         <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
@@ -149,7 +149,7 @@ fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpRespons
 
     state.github.create_webhook(&pr, &state.webhook_url)?;
 
-    let requester = GithubUser::find_or_create(&res.user, &state.db)?;
+    let requester = GithubUser::find_or_create(&res.user, &state.db, None)?;
     PullRequestModel::create(
         &NewPullRequest {
             github_id: github_id(&res),

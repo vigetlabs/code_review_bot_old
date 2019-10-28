@@ -43,6 +43,10 @@ fn main() {
 
     // Load variables and language lookup
     let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
+    let github_client_id =
+        std::env::var("GITHUB_CLIENT_ID").expect("Can't find var GITHUB_CLIENT_ID");
+    let github_client_secret =
+        std::env::var("GITHUB_CLIENT_SECRET").expect("Can't find var GITHUB_CLIENT_SECRET");
     let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
     let slack_channel = std::env::var("SLACK_CHANNEL").expect("Can't find var SLACK_CHANNEL");
     let slack_client_id = std::env::var("SLACK_CLIENT_ID").expect("Can't find var SLACK_CLIENT_ID");
@@ -61,6 +65,8 @@ fn main() {
     // Create AppConfig
     let app_config = AppConfig::new(
         &github_token,
+        &github_client_id,
+        &github_client_secret,
         &slack_token,
         &slack_channel,
         &slack_client_id,

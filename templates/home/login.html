@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Code Review Bot</h1>
+
+{% match current_user %}
+{% when Some with (user) %}
+<h2>Hello {{user.username}}!</h2>
+
+{% if !user.is_gh_authed() %}
+<a href="https://github.com/login/oauth/authorize?scope=repo+admin:repo_hook&client_id={{gh_client_id}}">
+    Connect to Github
+</a>
+{% endif %}
+
+{% when None %}
+<a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id={{client_id}}">
+    <img alt="Sign in with Slack" height="40" width="172"
+        src="https://platform.slack-edge.com/img/sign_in_with_slack.png"
+        srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" />
+</a>
+{% endmatch %}
+{% endblock %}

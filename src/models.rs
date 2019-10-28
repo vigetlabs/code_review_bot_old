@@ -72,6 +72,17 @@ impl PullRequest {
             .get_result(&conn)
             .map_err(|e| e.into())
     }
+
+    pub fn user(&self, db: &DBExecutor) -> Result<Option<User>> {
+        use crate::schema::github_users::dsl::*;
+        let conn = db.0.get()?;
+
+        let gh_user = github_users
+            .filter(github_id.eq(self.github_user_id))
+            .first::<GithubUser>(&conn)?;
+
+        gh_user.user(db)
+    }
 }
 
 #[derive(Clone, Debug, Queryable, Identifiable, Associations)]
@@ -88,7 +99,11 @@ pub struct GithubUser {
 }
 
 impl GithubUser {
-    pub fn find_or_create(user: &github::User, db: &DBExecutor) -> Result<GithubUser> {
+    pub fn find_or_create(
+        user: &github::User,
+        db: &DBExecutor,
+        u_id: Option<i32>,
+    ) -> Result<GithubUser> {
         use crate::schema::github_users::dsl::*;
         let conn = db.0.get()?;
         let res = github_users
@@ -103,15 +118,40 @@ impl GithubUser {
 
         match gh_user {
             Some(user) => Ok(user),
-            None => diesel::insert_into(github_users)
-                .values(vec![(
-                    login.eq(&user.login),
-                    avatar_url.eq(&user.avatar_url),
-                    github_id.eq(user.id),
-                )])
-                .get_result(&conn)
-                .map_err(|e| e.into()),
+            None => match u_id {
+                Some(u_id) => diesel::insert_into(github_users)
+                    .values(vec![(
+                        login.eq(&user.login),
+                        avatar_url.eq(&user.avatar_url),
+                        github_id.eq(user.id),
+                        user_id.eq(u_id),
+                    )])
+                    .get_result(&conn)
+                    .map_err(|e| e.into()),
+                None => diesel::insert_into(github_users)
+                    .values(vec![(
+                        login.eq(&user.login),
+                        avatar_url.eq(&user.avatar_url),
+                        github_id.eq(user.id),
+                    )])
+                    .get_result(&conn)
+                    .map_err(|e| e.into()),
+            },
         }
+    }
+
+    pub fn user(&self, db: &DBExecutor) -> Result<Option<User>> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+
+        if let Some(u_id) = self.user_id {
+            return users
+                .find(u_id)
+                .get_result::<User>(&conn)
+                .map(Some)
+                .map_err(|e| e.into());
+        }
+        Ok(None)
     }
 }
 
@@ -172,9 +212,10 @@ pub struct User {
     pub id: i32,
     pub username: String,
     pub slack_user_id: String,
-    pub slack_access_token: Option<String>,
+    pub slack_access_token: String,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
+    pub github_access_token: Option<String>,
 }
 
 impl User {
@@ -207,5 +248,23 @@ impl User {
             Err(diesel::result::Error::NotFound) => Ok(None),
             Err(err) => Err(err.into()),
         }
+    }
+    pub fn connect_to_github_user(
+        &self,
+        access_token: &str,
+        github_user: &github::User,
+        db: &DBExecutor,
+    ) -> Result<User> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+        GithubUser::find_or_create(github_user, db, Some(self.id))?;
+        diesel::update(users.find(self.id))
+            .set(github_access_token.eq(access_token))
+            .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn is_gh_authed(&self) -> bool {
+        self.github_access_token.is_some()
     }
 }
