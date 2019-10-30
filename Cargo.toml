@@ -15,6 +15,7 @@ base64 = "0.10"
 
 actix-session = "0.2"
 actix-files = "0.1"
+actix-web-flash = { version = "0.3", git = "https://github.com/hatzel/actix-web-flash" }
 actix-web = "1.0"
 log = "0.4.0"
 env_logger = "0.6.0"

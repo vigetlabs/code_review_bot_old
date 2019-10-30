@@ -22,6 +22,7 @@ pub use crate::utils::{app_config::AppConfig, db, load_languages, Languages};
 use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::{self, guard, middleware::Logger, web, App, HttpServer};
+use actix_web_flash::FlashMiddleware;
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
@@ -59,8 +60,9 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
-            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
+            .wrap(FlashMiddleware::default())
             .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .configure(configure_app)
@@ -77,6 +79,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
         App::new()
             .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
+            .wrap(FlashMiddleware::default())
             .data(app_config.clone())
             .configure(configure_app)
     });
