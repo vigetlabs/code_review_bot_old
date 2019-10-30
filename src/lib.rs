@@ -51,6 +51,7 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                         .to(routes::github_webhook::review),
                 ),
         )
+        .service(web::scope("/icons").route("", web::get().to(routes::web::show_icons)))
         .route("/review", web::post().to(routes::slack_webhook::review))
         .route("/reviews", web::post().to(routes::slack_webhook::reviews))
         .route(
