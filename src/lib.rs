@@ -17,7 +17,7 @@ mod schema;
 mod slack;
 mod utils;
 
-pub use crate::utils::{app_config::AppConfig, db, load_languages, Languages};
+pub use crate::utils::{app_config::AppConfig, db};
 
 use actix_files as fs;
 use actix_session::CookieSession;
