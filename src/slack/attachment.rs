@@ -29,13 +29,16 @@ pub struct Attachment {
 impl Attachment {
     pub fn from_pull_request(
         pull_request: &github::PRResult,
-        files: &str,
+        files: Vec<String>,
         title: &str,
     ) -> Attachment {
         let color = pull_request.color();
         let text = format!(
             "<{}|{}> by {} {}",
-            pull_request.html_url, pull_request.base.repo.full_name, pull_request.user.login, files
+            pull_request.html_url,
+            pull_request.base.repo.full_name,
+            pull_request.user.login,
+            files.join(" ")
         );
 
         Attachment {

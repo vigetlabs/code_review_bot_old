@@ -171,7 +171,7 @@ impl SlackClient {
     pub fn post_message(
         &self,
         pull_request: &github::PRResult,
-        files: &str,
+        files: Vec<String>,
         channel: &str,
         user: Option<models::User>,
     ) -> Result<SlackMessagePostResponse> {
@@ -216,7 +216,7 @@ impl SlackClient {
     pub fn update_message(
         &self,
         pull_request: &github::PRResult,
-        files: &str,
+        files: Vec<String>,
         ts: &str,
         channel: &str,
         user: Option<models::User>,

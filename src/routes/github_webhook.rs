@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
-use crate::models::{GithubUser, NewPullRequest, PullRequest, Review, User};
+use crate::models::{GithubUser, IconMapping, NewPullRequest, PullRequest, Review, User};
 use crate::slack::Reaction;
 use crate::utils::{app_config::AppConfig, prepare_response};
 
@@ -23,13 +23,25 @@ fn handle_pull_request_opened(
         .and_then(|id| User::find(id, &state.db).ok())
         .and_then(|inner| inner);
 
-    let files = state
+    let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&json.pull_request, &state.language_lookup)?;
+        .get_files(&json.pull_request)
+        .map(|files| {
+            files
+                .into_iter()
+                .map(|file| (file.filename.clone(), file.extension()))
+        })?
+        .unzip();
+    let extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    let mappings: Vec<String> = IconMapping::from(filenames, extensions, &state.db)?
+        .into_iter()
+        .map(|filename| format!("{}/public/icons/{}", state.app_url, filename))
+        .collect();
+
     let result =
         state
             .slack
-            .post_message(&json.pull_request, &files, &state.slack.channel, user)?;
+            .post_message(&json.pull_request, mappings, &state.slack.channel, user)?;
 
     PullRequest::create(
         &NewPullRequest {
@@ -63,13 +75,24 @@ fn handle_pull_request_closed(
     .update("closed", &state.db)?;
     let user = db_pr.user(&state.db)?;
 
-    let files = state
+    let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&json.pull_request, &state.language_lookup)?;
+        .get_files(&json.pull_request)
+        .map(|files| {
+            files
+                .into_iter()
+                .map(|file| (file.filename.clone(), file.extension()))
+        })?
+        .unzip();
+    let extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    let mappings: Vec<String> = IconMapping::from(filenames, extensions, &state.db)?
+        .into_iter()
+        .map(|filename| format!("{}/public/icons/{}", state.app_url, filename))
+        .collect();
 
     state.slack.update_message(
         &json.pull_request,
-        &files,
+        mappings,
         &db_pr.slack_message_id,
         &db_pr.channel,
         user,

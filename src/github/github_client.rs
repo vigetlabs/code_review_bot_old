@@ -4,7 +4,6 @@ use std::str::FromStr;
 use crate::error::Result;
 use crate::models;
 use crate::utils::paginated_resource::{PaginatedResource, PaginationParams};
-use crate::utils::Languages;
 
 use super::{
     add_user_token::AddUserToken, FileResult, NewWebhook, PRResult, Repo, ReviewRequest, User,
@@ -44,22 +43,10 @@ impl GithubClient {
         self.get_json(&request_url, None)
     }
 
-    pub fn get_files(&self, pull_request: &PRResult, lookup: &Languages) -> Result<String> {
+    pub fn get_files(&self, pull_request: &PRResult) -> Result<Vec<FileResult>> {
         let request_url = format!("{}/files", pull_request.url);
 
-        let res: Vec<FileResult> = self.get_json(&request_url, None)?;
-
-        let mut file_extensions: Vec<String> = res
-            .iter()
-            .filter_map(|file_res| file_res.extension())
-            .filter_map(|ext| lookup.get(&ext))
-            .map(|icon| icon.to_string())
-            .collect();
-
-        file_extensions.sort();
-        file_extensions.dedup();
-
-        Ok(file_extensions.join(" "))
+        self.get_json(&request_url, None)
     }
 
     pub fn create_webhook(

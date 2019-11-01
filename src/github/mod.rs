@@ -145,8 +145,8 @@ pub enum PRState {
 }
 
 #[derive(Deserialize)]
-struct FileResult {
-    filename: String,
+pub struct FileResult {
+    pub filename: String,
 }
 
 impl FileResult {

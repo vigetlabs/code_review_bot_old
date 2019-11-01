@@ -348,3 +348,34 @@ impl ToQuery for github::Repo {
         format!("('{}','{}')", self.owner.login, self.name)
     }
 }
+
+#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable)]
+#[table_name = "icon_mappings"]
+pub struct IconMapping {
+    pub id: i32,
+    pub file_type: String,
+    pub image_file: String,
+}
+
+impl IconMapping {
+    pub fn from(
+        filenames: Vec<String>,
+        extensions: Vec<String>,
+        db: &DBExecutor,
+    ) -> Result<Vec<String>> {
+        use crate::schema::file_extensions::dsl::*;
+        use crate::schema::file_names::dsl::*;
+        use crate::schema::icon_mappings::dsl::*;
+        let conn = db.0.get()?;
+
+        icon_mappings
+            .inner_join(file_names)
+            .inner_join(file_extensions)
+            .select(image_file)
+            .distinct_on(image_file)
+            .or_filter(name.eq_any(filenames))
+            .filter(extension.eq_any(extensions))
+            .load(&conn)
+            .map_err(|e| e.into())
+    }
+}
