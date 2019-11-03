@@ -26,18 +26,22 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
         .map(|files| {
             files
                 .into_iter()
-                .map(|file| (file.filename.clone(), file.extension()))
+                .map(|file| (file.filename(), file.extension()))
         })?
         .unzip();
-    let extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
-    let mappings: Vec<String> = IconMapping::from(filenames, extensions, &state.db)?
-        .into_iter()
-        .map(|filename| format!("{}/public/icons/{}", state.app_url, filename))
-        .collect();
+    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
+    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    extensions.dedup();
 
-    state
-        .slack
-        .post_message(&pr_response, mappings, &form.channel_id, None)?;
+    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+
+    state.slack.post_message(
+        &pr_response,
+        mappings,
+        &form.channel_id,
+        &state.app_url,
+        None,
+    )?;
     let message = state.slack.immediate_response(
         "To have these automatically posted for you see: \
         <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\

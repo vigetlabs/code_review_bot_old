@@ -29,19 +29,22 @@ fn handle_pull_request_opened(
         .map(|files| {
             files
                 .into_iter()
-                .map(|file| (file.filename.clone(), file.extension()))
+                .map(|file| (file.filename(), file.extension()))
         })?
         .unzip();
-    let extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
-    let mappings: Vec<String> = IconMapping::from(filenames, extensions, &state.db)?
-        .into_iter()
-        .map(|filename| format!("{}/public/icons/{}", state.app_url, filename))
-        .collect();
+    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
+    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    extensions.dedup();
 
-    let result =
-        state
-            .slack
-            .post_message(&json.pull_request, mappings, &state.slack.channel, user)?;
+    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+
+    let result = state.slack.post_message(
+        &json.pull_request,
+        mappings,
+        &state.slack.channel,
+        &state.app_url,
+        user,
+    )?;
 
     PullRequest::create(
         &NewPullRequest {
@@ -81,20 +84,21 @@ fn handle_pull_request_closed(
         .map(|files| {
             files
                 .into_iter()
-                .map(|file| (file.filename.clone(), file.extension()))
+                .map(|file| (file.filename(), file.extension()))
         })?
         .unzip();
-    let extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
-    let mappings: Vec<String> = IconMapping::from(filenames, extensions, &state.db)?
-        .into_iter()
-        .map(|filename| format!("{}/public/icons/{}", state.app_url, filename))
-        .collect();
+    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
+    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    extensions.dedup();
+
+    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
 
     state.slack.update_message(
         &json.pull_request,
         mappings,
         &db_pr.slack_message_id,
         &db_pr.channel,
+        &state.app_url,
         user,
     )?;
     Ok(prepare_response(""))

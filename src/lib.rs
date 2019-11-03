@@ -88,6 +88,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
             .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
             .wrap(FlashMiddleware::default())
+            .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .configure(configure_app)
     });

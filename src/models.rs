@@ -362,20 +362,24 @@ impl IconMapping {
         filenames: Vec<String>,
         extensions: Vec<String>,
         db: &DBExecutor,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<IconMapping>> {
         use crate::schema::file_extensions::dsl::*;
         use crate::schema::file_names::dsl::*;
-        use crate::schema::icon_mappings::dsl::*;
+        use crate::schema::icon_mappings::dsl::{id, *};
         let conn = db.0.get()?;
 
         icon_mappings
-            .inner_join(file_names)
-            .inner_join(file_extensions)
-            .select(image_file)
+            .left_join(file_names)
+            .left_join(file_extensions)
+            .select((id, file_type, image_file))
             .distinct_on(image_file)
-            .or_filter(name.eq_any(filenames))
-            .filter(extension.eq_any(extensions))
+            .filter(name.eq_any(filenames))
+            .or_filter(extension.eq_any(extensions))
             .load(&conn)
             .map_err(|e| e.into())
+    }
+
+    pub fn image_path(&self) -> String {
+        format!("/public/icons/{}", self.image_file)
     }
 }

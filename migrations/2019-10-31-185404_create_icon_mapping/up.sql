@@ -22,7 +22,7 @@ CREATE UNIQUE INDEX file_type_idx ON icon_mappings(file_type);
 
 -- argdown
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('argdown', 'argdown.svg')
+  VALUES ('argdown', 'argdown.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -47,7 +47,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- bat
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('bat', 'windows.svg')
+  VALUES ('bat', 'windows.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -62,7 +62,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- c
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('c', 'c.svg')
+  VALUES ('c', 'c.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -77,7 +77,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- clojure
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clojure', 'clojure.svg')
+  VALUES ('clojure', 'clojure.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -112,7 +112,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- coffeescript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('coffeescript', 'coffee.svg')
+  VALUES ('coffeescript', 'coffee.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -132,7 +132,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- cpp
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('cpp', 'cpp.svg')
+  VALUES ('cpp', 'cpp.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -202,7 +202,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- csharp
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('csharp', 'c-sharp.svg')
+  VALUES ('csharp', 'c-sharp.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -217,7 +217,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- css
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('css', 'css.svg')
+  VALUES ('css', 'css.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -227,7 +227,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- dockerfile
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('dockerfile', 'docker.svg')
+  VALUES ('dockerfile', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -242,7 +242,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- elixir
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('elixir', 'elixir.svg')
+  VALUES ('elixir', 'elixir.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -252,7 +252,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- elm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('elm', 'elm.svg')
+  VALUES ('elm', 'elm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -262,7 +262,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- erb
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('erb', 'html_erb.svg')
+  VALUES ('erb', 'html_erb.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -277,7 +277,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- fsharp
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('fsharp', 'f-sharp.svg')
+  VALUES ('fsharp', 'f-sharp.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -302,7 +302,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- go
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('go', 'go2.svg')
+  VALUES ('go', 'go2.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -312,7 +312,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- gradle
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('gradle', 'gradle.svg')
+  VALUES ('gradle', 'gradle.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -322,7 +322,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- groovy
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('groovy', 'grails.svg')
+  VALUES ('groovy', 'grails.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -342,7 +342,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- haml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haml', 'haml.svg')
+  VALUES ('haml', 'haml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -352,7 +352,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- handlebars
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('handlebars', 'mustache.svg')
+  VALUES ('handlebars', 'mustache.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -372,7 +372,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haskell
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haskell', 'haskell.svg')
+  VALUES ('haskell', 'haskell.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -382,7 +382,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haxe
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haxe', 'haxe.svg')
+  VALUES ('haxe', 'haxe.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -392,7 +392,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- html
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('html', 'html.svg')
+  VALUES ('html', 'html.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -447,7 +447,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- jade
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('jade', 'jade.svg')
+  VALUES ('jade', 'jade.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -457,7 +457,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- java
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('java', 'java.svg')
+  VALUES ('java', 'java.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -472,7 +472,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -502,7 +502,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- javascriptreact
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascriptreact', 'react.svg')
+  VALUES ('javascriptreact', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -512,7 +512,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- jinja
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('jinja', 'jinja.svg')
+  VALUES ('jinja', 'jinja.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -522,7 +522,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- json
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('json', 'json.svg')
+  VALUES ('json', 'json.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -577,7 +577,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- kotlin
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('kotlin', 'kotlin.svg')
+  VALUES ('kotlin', 'kotlin.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -587,7 +587,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- less
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('less', 'less.svg')
+  VALUES ('less', 'less.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -597,7 +597,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- lua
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('lua', 'lua.svg')
+  VALUES ('lua', 'lua.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -607,7 +607,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- makefile
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('makefile', 'makefile.svg')
+  VALUES ('makefile', 'makefile.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -632,7 +632,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- markdown
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('markdown', 'markdown.svg')
+  VALUES ('markdown', 'markdown.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -682,7 +682,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- mustache
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('mustache', 'mustache.svg')
+  VALUES ('mustache', 'mustache.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -707,7 +707,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- nunjucks
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('nunjucks', 'nunjucks.svg')
+  VALUES ('nunjucks', 'nunjucks.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -747,7 +747,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- objective-c
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('objective-c', 'c.svg')
+  VALUES ('objective-c', 'c.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -757,7 +757,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- objective-cpp
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('objective-cpp', 'cpp.svg')
+  VALUES ('objective-cpp', 'cpp.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -767,7 +767,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ocaml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ocaml', 'ocaml.svg')
+  VALUES ('ocaml', 'ocaml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -782,7 +782,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- perl
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('perl', 'perl.svg')
+  VALUES ('perl', 'perl.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -812,7 +812,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- php
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('php', 'php.svg')
+  VALUES ('php', 'php.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -837,7 +837,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- powershell
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('powershell', 'powershell.svg')
+  VALUES ('powershell', 'powershell.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -867,7 +867,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- properties
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('properties', 'java.svg')
+  VALUES ('properties', 'java.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -907,7 +907,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- python
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('python', 'python.svg')
+  VALUES ('python', 'python.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -957,7 +957,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- r
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('r', 'R.svg')
+  VALUES ('r', 'R.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -982,7 +982,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- razor
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('razor', 'html.svg')
+  VALUES ('razor', 'html.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -992,7 +992,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ruby
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ruby', 'ruby.svg')
+  VALUES ('ruby', 'ruby.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1062,7 +1062,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- rust
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('rust', 'rust.svg')
+  VALUES ('rust', 'rust.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1072,7 +1072,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- sass
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sass', 'sass.svg')
+  VALUES ('sass', 'sass.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1082,7 +1082,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- scss
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('scss', 'sass.svg')
+  VALUES ('scss', 'sass.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1092,7 +1092,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- shellscript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('shellscript', 'shell.svg')
+  VALUES ('shellscript', 'shell.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1197,7 +1197,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- sql
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sql', 'db.svg')
+  VALUES ('sql', 'db.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1212,7 +1212,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylus
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylus', 'stylus.svg')
+  VALUES ('stylus', 'stylus.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1222,7 +1222,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- swift
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('swift', 'swift.svg')
+  VALUES ('swift', 'swift.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1232,7 +1232,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- terraform
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('terraform', 'terraform.svg')
+  VALUES ('terraform', 'terraform.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1252,7 +1252,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- todo
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('todo', 'todo.svg')
+  VALUES ('todo', 'todo.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -1262,7 +1262,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- typescript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('typescript', 'typescript.svg')
+  VALUES ('typescript', 'typescript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1272,7 +1272,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- typescriptreact
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('typescriptreact', 'react.svg')
+  VALUES ('typescriptreact', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1282,7 +1282,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- vala
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('vala', 'vala.svg')
+  VALUES ('vala', 'vala.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1292,7 +1292,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- vue
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('vue', 'vue.svg')
+  VALUES ('vue', 'vue.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1302,7 +1302,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- xml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('xml', 'xml.svg')
+  VALUES ('xml', 'xml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1592,7 +1592,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- yaml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('yaml', 'yml.svg')
+  VALUES ('yaml', 'yml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1617,7 +1617,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- bsl
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('bsl', 'bsl.svg')
+  VALUES ('bsl', 'bsl.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1627,7 +1627,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- mdo
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('mdo', 'mdo.svg')
+  VALUES ('mdo', 'mdo.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1637,7 +1637,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- asm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('asm', 'asm.svg')
+  VALUES ('asm', 'asm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1647,7 +1647,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- asm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('asm', 'asm.svg')
+  VALUES ('asm', 'asm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1657,7 +1657,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- c
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('c', 'c.svg')
+  VALUES ('c', 'c.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1667,7 +1667,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- html
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('html', 'html.svg')
+  VALUES ('html', 'html.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1677,7 +1677,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- html
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('html', 'html.svg')
+  VALUES ('html', 'html.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1687,7 +1687,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- coldfusion
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('coldfusion', 'coldfusion.svg')
+  VALUES ('coldfusion', 'coldfusion.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1697,7 +1697,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- coldfusion
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('coldfusion', 'coldfusion.svg')
+  VALUES ('coldfusion', 'coldfusion.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1707,7 +1707,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1717,7 +1717,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1727,7 +1727,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1737,7 +1737,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- crystal
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('crystal', 'crystal.svg')
+  VALUES ('crystal', 'crystal.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1747,7 +1747,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- crystal_embedded
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('crystal_embedded', 'crystal_embedded.svg')
+  VALUES ('crystal_embedded', 'crystal_embedded.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1757,7 +1757,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- crystal_embedded
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('crystal_embedded', 'crystal_embedded.svg')
+  VALUES ('crystal_embedded', 'crystal_embedded.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1767,7 +1767,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- css
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('css', 'css.svg')
+  VALUES ('css', 'css.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1777,7 +1777,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- css
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('css', 'css.svg')
+  VALUES ('css', 'css.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1787,7 +1787,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- csv
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('csv', 'csv.svg')
+  VALUES ('csv', 'csv.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1797,7 +1797,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- xls
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('xls', 'xls.svg')
+  VALUES ('xls', 'xls.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1807,7 +1807,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- xls
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('xls', 'xls.svg')
+  VALUES ('xls', 'xls.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1817,7 +1817,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- cake
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('cake', 'cake.svg')
+  VALUES ('cake', 'cake.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1827,7 +1827,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- cake_php
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('cake_php', 'cake_php.svg')
+  VALUES ('cake_php', 'cake_php.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1837,7 +1837,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- d
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('d', 'd.svg')
+  VALUES ('d', 'd.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1847,7 +1847,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- word
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('word', 'word.svg')
+  VALUES ('word', 'word.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1857,7 +1857,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- word
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('word', 'word.svg')
+  VALUES ('word', 'word.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1867,7 +1867,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ejs
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ejs', 'ejs.svg')
+  VALUES ('ejs', 'ejs.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1877,7 +1877,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- elixir_script
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('elixir_script', 'elixir_script.svg')
+  VALUES ('elixir_script', 'elixir_script.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1887,7 +1887,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- favicon
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('favicon', 'favicon.svg')
+  VALUES ('favicon', 'favicon.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1897,7 +1897,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- git
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('git', 'git.svg')
+  VALUES ('git', 'git.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1907,7 +1907,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- git
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('git', 'git.svg')
+  VALUES ('git', 'git.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1917,7 +1917,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- git
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('git', 'git.svg')
+  VALUES ('git', 'git.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1927,7 +1927,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- git
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('git', 'git.svg')
+  VALUES ('git', 'git.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1937,7 +1937,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- git
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('git', 'git.svg')
+  VALUES ('git', 'git.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1947,7 +1947,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- go
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('go', 'go.svg')
+  VALUES ('go', 'go.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1957,7 +1957,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- go
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('go', 'go.svg')
+  VALUES ('go', 'go.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1967,7 +1967,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- grails
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('grails', 'grails.svg')
+  VALUES ('grails', 'grails.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1977,7 +1977,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- graphql
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('graphql', 'graphql.svg')
+  VALUES ('graphql', 'graphql.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1987,7 +1987,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- graphql
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('graphql', 'graphql.svg')
+  VALUES ('graphql', 'graphql.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -1997,7 +1997,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haskell
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haskell', 'haskell.svg')
+  VALUES ('haskell', 'haskell.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2007,7 +2007,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haxe
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haxe', 'haxe.svg')
+  VALUES ('haxe', 'haxe.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2017,7 +2017,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haxe
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haxe', 'haxe.svg')
+  VALUES ('haxe', 'haxe.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2027,7 +2027,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- haxe
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('haxe', 'haxe.svg')
+  VALUES ('haxe', 'haxe.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2037,7 +2037,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- java
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('java', 'java.svg')
+  VALUES ('java', 'java.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2047,7 +2047,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- java
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('java', 'java.svg')
+  VALUES ('java', 'java.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2057,7 +2057,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2067,7 +2067,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2077,7 +2077,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2087,7 +2087,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2097,7 +2097,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2107,7 +2107,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- javascript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('javascript', 'javascript.svg')
+  VALUES ('javascript', 'javascript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2117,7 +2117,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- jinja
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('jinja', 'jinja.svg')
+  VALUES ('jinja', 'jinja.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2127,7 +2127,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- julia
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('julia', 'julia.svg')
+  VALUES ('julia', 'julia.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2137,7 +2137,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- kotlin
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('kotlin', 'kotlin.svg')
+  VALUES ('kotlin', 'kotlin.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2147,7 +2147,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- dart
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('dart', 'dart.svg')
+  VALUES ('dart', 'dart.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2157,7 +2157,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- liquid
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('liquid', 'liquid.svg')
+  VALUES ('liquid', 'liquid.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2167,7 +2167,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- livescript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('livescript', 'livescript.svg')
+  VALUES ('livescript', 'livescript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2177,7 +2177,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- nunjucks
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('nunjucks', 'nunjucks.svg')
+  VALUES ('nunjucks', 'nunjucks.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2187,7 +2187,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- npm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('npm', 'npm.svg')
+  VALUES ('npm', 'npm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2197,7 +2197,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- npm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('npm', 'npm.svg')
+  VALUES ('npm', 'npm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2207,7 +2207,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- npm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('npm', 'npm.svg')
+  VALUES ('npm', 'npm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2217,7 +2217,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ocaml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ocaml', 'ocaml.svg')
+  VALUES ('ocaml', 'ocaml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2227,7 +2227,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ocaml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ocaml', 'ocaml.svg')
+  VALUES ('ocaml', 'ocaml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2237,7 +2237,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- odata
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('odata', 'odata.svg')
+  VALUES ('odata', 'odata.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2247,7 +2247,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- php
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('php', 'php.svg')
+  VALUES ('php', 'php.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2257,7 +2257,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- pddl
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('pddl', 'pddl.svg')
+  VALUES ('pddl', 'pddl.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2267,7 +2267,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- plan
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('plan', 'plan.svg')
+  VALUES ('plan', 'plan.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2277,7 +2277,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- happenings
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('happenings', 'happenings.svg')
+  VALUES ('happenings', 'happenings.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2287,7 +2287,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- pug
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('pug', 'pug.svg')
+  VALUES ('pug', 'pug.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2297,7 +2297,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- puppet
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('puppet', 'puppet.svg')
+  VALUES ('puppet', 'puppet.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2307,7 +2307,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- puppet
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('puppet', 'puppet.svg')
+  VALUES ('puppet', 'puppet.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2317,7 +2317,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- react
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('react', 'react.svg')
+  VALUES ('react', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2327,7 +2327,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- react
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('react', 'react.svg')
+  VALUES ('react', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2337,7 +2337,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- react
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('react', 'react.svg')
+  VALUES ('react', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2347,7 +2347,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- react
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('react', 'react.svg')
+  VALUES ('react', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2357,7 +2357,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- react
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('react', 'react.svg')
+  VALUES ('react', 'react.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2367,7 +2367,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- reasonml
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('reasonml', 'reasonml.svg')
+  VALUES ('reasonml', 'reasonml.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2377,7 +2377,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- html_erb
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('html_erb', 'html_erb.svg')
+  VALUES ('html_erb', 'html_erb.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2387,7 +2387,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- html_erb
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('html_erb', 'html_erb.svg')
+  VALUES ('html_erb', 'html_erb.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2397,7 +2397,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- spring
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('spring', 'spring.svg')
+  VALUES ('spring', 'spring.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2407,7 +2407,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- slim
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('slim', 'slim.svg')
+  VALUES ('slim', 'slim.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2417,7 +2417,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- smarty
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('smarty', 'smarty.svg')
+  VALUES ('smarty', 'smarty.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2427,7 +2427,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- sbt
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sbt', 'sbt.svg')
+  VALUES ('sbt', 'sbt.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2437,7 +2437,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- scala
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('scala', 'scala.svg')
+  VALUES ('scala', 'scala.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2447,7 +2447,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ethereum
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ethereum', 'ethereum.svg')
+  VALUES ('ethereum', 'ethereum.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2457,7 +2457,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- terraform
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('terraform', 'terraform.svg')
+  VALUES ('terraform', 'terraform.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2467,7 +2467,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- tex
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('tex', 'tex.svg')
+  VALUES ('tex', 'tex.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2477,7 +2477,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- tex
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('tex', 'tex.svg')
+  VALUES ('tex', 'tex.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2487,7 +2487,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- tex
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('tex', 'tex.svg')
+  VALUES ('tex', 'tex.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2497,7 +2497,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- tex
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('tex', 'tex.svg')
+  VALUES ('tex', 'tex.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2507,7 +2507,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2517,7 +2517,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- twig
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('twig', 'twig.svg')
+  VALUES ('twig', 'twig.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2527,7 +2527,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- typescript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('typescript', 'typescript.svg')
+  VALUES ('typescript', 'typescript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2537,7 +2537,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- typescript
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('typescript', 'typescript.svg')
+  VALUES ('typescript', 'typescript.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2547,7 +2547,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- vala
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('vala', 'vala.svg')
+  VALUES ('vala', 'vala.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2557,7 +2557,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- wasm
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('wasm', 'wasm.svg')
+  VALUES ('wasm', 'wasm.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2567,7 +2567,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- wat
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('wat', 'wat.svg')
+  VALUES ('wat', 'wat.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2577,7 +2577,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- zip
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('zip', 'zip.svg')
+  VALUES ('zip', 'zip.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2587,7 +2587,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- zip
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('zip', 'zip.svg')
+  VALUES ('zip', 'zip.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2597,7 +2597,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- wgt
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('wgt', 'wgt.svg')
+  VALUES ('wgt', 'wgt.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2607,7 +2607,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- illustrator
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('illustrator', 'illustrator.svg')
+  VALUES ('illustrator', 'illustrator.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2617,7 +2617,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- photoshop
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('photoshop', 'photoshop.svg')
+  VALUES ('photoshop', 'photoshop.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2627,7 +2627,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- pdf
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('pdf', 'pdf.svg')
+  VALUES ('pdf', 'pdf.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2637,7 +2637,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- font
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('font', 'font.svg')
+  VALUES ('font', 'font.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2647,7 +2647,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- font
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('font', 'font.svg')
+  VALUES ('font', 'font.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2657,7 +2657,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- font
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('font', 'font.svg')
+  VALUES ('font', 'font.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2667,7 +2667,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- font
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('font', 'font.svg')
+  VALUES ('font', 'font.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2677,7 +2677,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2687,7 +2687,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2697,7 +2697,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2707,7 +2707,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2717,7 +2717,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2727,7 +2727,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2737,7 +2737,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- image
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('image', 'image.svg')
+  VALUES ('image', 'image.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2747,7 +2747,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- sublime
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sublime', 'sublime.svg')
+  VALUES ('sublime', 'sublime.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2757,7 +2757,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- sublime
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sublime', 'sublime.svg')
+  VALUES ('sublime', 'sublime.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2767,7 +2767,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- salesforce
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('salesforce', 'salesforce.svg')
+  VALUES ('salesforce', 'salesforce.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2777,7 +2777,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- salesforce
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('salesforce', 'salesforce.svg')
+  VALUES ('salesforce', 'salesforce.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2787,7 +2787,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- shell
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('shell', 'shell.svg')
+  VALUES ('shell', 'shell.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2797,7 +2797,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2807,7 +2807,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2817,7 +2817,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2827,7 +2827,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2837,7 +2837,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2847,7 +2847,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- video
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('video', 'video.svg')
+  VALUES ('video', 'video.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2857,7 +2857,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- audio
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('audio', 'audio.svg')
+  VALUES ('audio', 'audio.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2867,7 +2867,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- audio
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('audio', 'audio.svg')
+  VALUES ('audio', 'audio.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2877,7 +2877,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- audio
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('audio', 'audio.svg')
+  VALUES ('audio', 'audio.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2887,7 +2887,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- audio
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('audio', 'audio.svg')
+  VALUES ('audio', 'audio.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2897,7 +2897,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2907,7 +2907,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2917,7 +2917,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2927,7 +2927,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2937,7 +2937,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- svg
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('svg', 'svg.svg')
+  VALUES ('svg', 'svg.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2947,7 +2947,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- babel
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('babel', 'babel.svg')
+  VALUES ('babel', 'babel.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2957,7 +2957,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2967,7 +2967,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- code-climate
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('code-climate', 'code-climate.svg')
+  VALUES ('code-climate', 'code-climate.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2977,7 +2977,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2987,7 +2987,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -2997,7 +2997,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3007,7 +3007,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3017,7 +3017,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3027,7 +3027,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- eslint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('eslint', 'eslint.svg')
+  VALUES ('eslint', 'eslint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3037,7 +3037,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- firebase
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('firebase', 'firebase.svg')
+  VALUES ('firebase', 'firebase.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3047,7 +3047,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3057,7 +3057,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3067,7 +3067,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3077,7 +3077,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3087,7 +3087,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3097,7 +3097,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3107,7 +3107,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3117,7 +3117,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3127,7 +3127,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3137,7 +3137,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3147,7 +3147,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3157,7 +3157,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3167,7 +3167,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3177,7 +3177,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- lock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('lock', 'lock.svg')
+  VALUES ('lock', 'lock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3187,7 +3187,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- lock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('lock', 'lock.svg')
+  VALUES ('lock', 'lock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3197,7 +3197,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- ignored
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ignored', 'ignored.svg')
+  VALUES ('ignored', 'ignored.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_extensions (extension, icon_mapping_id)
   VALUES (
@@ -3207,7 +3207,7 @@ INSERT INTO file_extensions (extension, icon_mapping_id)
 
 -- hex
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('hex', 'hex.svg')
+  VALUES ('hex', 'hex.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3217,7 +3217,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- karma
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('karma', 'karma.svg')
+  VALUES ('karma', 'karma.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3227,7 +3227,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- karma
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('karma', 'karma.svg')
+  VALUES ('karma', 'karma.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3237,7 +3237,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- info
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('info', 'info.svg')
+  VALUES ('info', 'info.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3247,7 +3247,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3257,7 +3257,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3267,7 +3267,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3277,7 +3277,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3287,7 +3287,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- clock
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('clock', 'clock.svg')
+  VALUES ('clock', 'clock.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3297,7 +3297,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- maven
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('maven', 'maven.svg')
+  VALUES ('maven', 'maven.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3307,7 +3307,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- tsconfig
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('tsconfig', 'tsconfig.svg')
+  VALUES ('tsconfig', 'tsconfig.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3317,7 +3317,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- json
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('json', 'json.svg')
+  VALUES ('json', 'json.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3327,7 +3327,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- json
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('json', 'json.svg')
+  VALUES ('json', 'json.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3337,7 +3337,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- json
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('json', 'json.svg')
+  VALUES ('json', 'json.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3347,7 +3347,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- config
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('config', 'config.svg')
+  VALUES ('config', 'config.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3357,7 +3357,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- bower
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('bower', 'bower.svg')
+  VALUES ('bower', 'bower.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3367,7 +3367,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3377,7 +3377,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3387,7 +3387,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3397,7 +3397,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3407,7 +3407,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- docker
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('docker', 'docker.svg')
+  VALUES ('docker', 'docker.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3417,7 +3417,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- firebase
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('firebase', 'firebase.svg')
+  VALUES ('firebase', 'firebase.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3427,7 +3427,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- firefox
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('firefox', 'firefox.svg')
+  VALUES ('firefox', 'firefox.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3437,7 +3437,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- grunt
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('grunt', 'grunt.svg')
+  VALUES ('grunt', 'grunt.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3447,7 +3447,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- grunt
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('grunt', 'grunt.svg')
+  VALUES ('grunt', 'grunt.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3457,7 +3457,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- grunt
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('grunt', 'grunt.svg')
+  VALUES ('grunt', 'grunt.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3467,7 +3467,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- gulp
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('gulp', 'gulp.svg')
+  VALUES ('gulp', 'gulp.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3477,7 +3477,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- ionic
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ionic', 'ionic.svg')
+  VALUES ('ionic', 'ionic.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3487,7 +3487,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- ionic
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('ionic', 'ionic.svg')
+  VALUES ('ionic', 'ionic.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3497,7 +3497,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- platformio
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('platformio', 'platformio.svg')
+  VALUES ('platformio', 'platformio.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3507,7 +3507,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- rollup
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('rollup', 'rollup.svg')
+  VALUES ('rollup', 'rollup.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3517,7 +3517,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- sass
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('sass', 'sass.svg')
+  VALUES ('sass', 'sass.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3527,7 +3527,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- stylelint
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('stylelint', 'stylelint.svg')
+  VALUES ('stylelint', 'stylelint.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3537,7 +3537,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- yarn
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('yarn', 'yarn.svg')
+  VALUES ('yarn', 'yarn.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3547,7 +3547,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- yarn
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('yarn', 'yarn.svg')
+  VALUES ('yarn', 'yarn.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3557,7 +3557,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- webpack
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('webpack', 'webpack.svg')
+  VALUES ('webpack', 'webpack.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3567,7 +3567,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- webpack
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('webpack', 'webpack.svg')
+  VALUES ('webpack', 'webpack.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3577,7 +3577,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- webpack
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('webpack', 'webpack.svg')
+  VALUES ('webpack', 'webpack.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3587,7 +3587,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- webpack
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('webpack', 'webpack.svg')
+  VALUES ('webpack', 'webpack.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3597,7 +3597,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- webpack
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('webpack', 'webpack.svg')
+  VALUES ('webpack', 'webpack.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3607,7 +3607,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- license
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('license', 'license.svg')
+  VALUES ('license', 'license.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3617,7 +3617,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- license
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('license', 'license.svg')
+  VALUES ('license', 'license.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3627,7 +3627,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- license
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('license', 'license.svg')
+  VALUES ('license', 'license.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3637,7 +3637,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- license
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('license', 'license.svg')
+  VALUES ('license', 'license.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3647,7 +3647,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- license
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('license', 'license.svg')
+  VALUES ('license', 'license.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3657,7 +3657,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- makefile
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('makefile', 'makefile.svg')
+  VALUES ('makefile', 'makefile.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3667,7 +3667,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- makefile
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('makefile', 'makefile.svg')
+  VALUES ('makefile', 'makefile.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3677,7 +3677,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- makefile
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('makefile', 'makefile.svg')
+  VALUES ('makefile', 'makefile.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3687,7 +3687,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- heroku
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('heroku', 'heroku.svg')
+  VALUES ('heroku', 'heroku.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
@@ -3697,7 +3697,7 @@ INSERT INTO file_names (name, icon_mapping_id)
 
 -- npm_ignored
 INSERT INTO icon_mappings (file_type, image_file)
-  VALUES ('npm_ignored', 'npm_ignored.svg')
+  VALUES ('npm_ignored', 'npm_ignored.png')
   ON CONFLICT DO NOTHING;
 INSERT INTO file_names (name, icon_mapping_id)
   VALUES (
