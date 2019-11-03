@@ -42,7 +42,7 @@ impl Block {
             .collect();
 
         elements.append(&mut images);
-        elements.truncate(3);
+        elements.truncate(10);
 
         vec![
             Block::Section(Section {

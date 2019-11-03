@@ -188,26 +188,6 @@ pub fn delete_webhook(
     ))
 }
 
-// Icons
-
-#[derive(Template)]
-#[template(path = "icons/index.html")]
-struct IconsIndexTemplate<'a> {
-    flash: &'a Option<Flash>,
-}
-
-pub fn show_icons(
-    state: Data<AppConfig>,
-    session: Session,
-    flash_message: Option<FlashMessage<Flash>>,
-) -> Result<HttpResponse> {
-    let flash = &flash_message.map(|flash| flash.into_inner());
-    let _current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
-    let rendered_template = IconsIndexTemplate { flash }.render()?;
-
-    build_response(rendered_template)
-}
-
 fn build_response(body: String) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().content_type("text/html").body(body))
 }
