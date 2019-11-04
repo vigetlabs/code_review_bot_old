@@ -47,19 +47,9 @@ table! {
     }
 }
 
-table! {
-    webhooks (id) {
-        id -> Int4,
-        hook_id -> Varchar,
-        name -> Varchar,
-        owner -> Varchar,
-    }
-}
-
 allow_tables_to_appear_in_same_query!(
     github_users,
     pull_requests,
     reviews,
     users,
-    webhooks,
 );

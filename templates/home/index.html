@@ -3,31 +3,11 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% include "shared/flash.html" %}
-
 <h2>Repos</h2>
 <ul>
-    {% for (repo, hook) in repos %}
-    <li>{{repo.full_name}}
-        {% if repo.permissions.admin %}
-        {% match hook %}
-        {% when Some with (hook) %}
-        <form action="/webhook/{{hook.id}}" method="POST">
-            <input type="hidden" name="_method" value="delete" />
-            <button>Remove Webhook</button>
-        </form>
-        {% when None %}
-        <form action="/webhook" method="POST">
-            <input type="hidden" value="{{repo.owner.login}}" name="owner">
-            <input type="hidden" value="{{repo.name}}" name="name">
-            <button>Add Webhook</button>
-        </form>
-        {% endmatch %}
-        {% endif %}
-    </li>
+    {% for repo in repos %}
+    <li>{{repo.full_name}}</li>
     {% endfor %}
 </ul>
-
-{% include "shared/pagination.html" %}
 
 {% endblock %}

@@ -1,6 +1,0 @@
-CREATE TABLE webhooks (
-    id SERIAL PRIMARY KEY,
-    hook_id VARCHAR NOT NULL,
-    name VARCHAR NOT NULL,
-    owner VARCHAR NOT NULL
-)

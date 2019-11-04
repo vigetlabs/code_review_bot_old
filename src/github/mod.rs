@@ -1,13 +1,7 @@
-use std::fmt;
-use std::path::Path;
-
-mod add_user_token;
-mod github_client;
-mod github_oauth_client;
-mod review_request;
-pub use github_client::GithubClient;
-pub use github_oauth_client::GithubOauthClient;
-pub use review_request::ReviewRequest;
+use crate::error::{Result, UrlParseError};
+use crate::utils::Languages;
+use std::{fmt, path::Path, str::FromStr};
+use url::{self, Url};
 
 #[derive(Deserialize, Debug)]
 pub struct PullRequestEvent {
@@ -99,18 +93,7 @@ pub struct User {
 
 #[derive(Clone, Deserialize, Debug)]
 pub struct Repo {
-    pub id: i32,
-    pub owner: User,
-    pub name: String,
     pub full_name: String,
-    pub permissions: RepoPermissions,
-}
-
-#[derive(Clone, Deserialize, Debug)]
-pub struct RepoPermissions {
-    pub admin: bool,
-    pub push: bool,
-    pub pull: bool,
 }
 
 #[derive(Clone, Deserialize, Debug)]
@@ -149,15 +132,6 @@ struct FileResult {
     filename: String,
 }
 
-impl FileResult {
-    pub fn extension(&self) -> Option<String> {
-        Path::new(&self.filename)
-            .extension()
-            .and_then(|os_str| os_str.to_str())
-            .map(|string| format!(".{}", string).to_string())
-    }
-}
-
 impl fmt::Display for PRResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let title = format!("{}: {}", self.base.repo.full_name, self.title);
@@ -193,45 +167,265 @@ impl PRResult {
     }
 }
 
-#[derive(Debug, Serialize)]
-struct NewWebhook {
-    config: WebhookConfig,
+#[derive(Debug)]
+pub struct PullRequest {
+    pub owner: String,
+    pub name: String,
+    pub id: String,
+}
+
+impl FromStr for PullRequest {
+    type Err = UrlParseError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let repository_url = Url::parse(s).map_err(UrlParseError::Parse)?;
+        let mut path = repository_url
+            .path_segments()
+            .ok_or(UrlParseError::MissingSegment)?;
+
+        Ok(Self {
+            owner: path
+                .nth(0)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
+            name: path
+                .nth(0)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
+            id: path
+                .nth(1)
+                .ok_or(UrlParseError::MissingSegment)?
+                .to_string(),
+        })
+    }
+}
+
+#[derive(Clone)]
+pub struct GithubClient {
+    url: String,
+    client: reqwest::Client,
+}
+
+impl GithubClient {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(url: String, token: &str) -> Result<GithubClient> {
+        let mut headers = reqwest::header::HeaderMap::new();
+        headers.insert(
+            reqwest::header::AUTHORIZATION,
+            reqwest::header::HeaderValue::from_str(&format!("bearer {}", token)).unwrap(),
+        );
+        let client = reqwest::Client::builder()
+            .default_headers(headers)
+            .build()?;
+
+        Ok(GithubClient { url, client })
+    }
+
+    pub fn get_pr(&self, pull_request: &PullRequest) -> Result<PRResult> {
+        let request_url = format!(
+            "{url}/repos/{owner}/{repo}/pulls/{id}",
+            url = self.url,
+            owner = pull_request.owner,
+            repo = pull_request.name,
+            id = pull_request.id
+        );
+
+        self.client
+            .get(&request_url)
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+    }
+
+    pub fn get_files(&self, pull_request: &PRResult, lookup: &Languages) -> Result<String> {
+        let request_url = format!("{}/files", pull_request.url);
+
+        let res: Vec<FileResult> = self
+            .client
+            .get(&request_url)
+            .send()?
+            .error_for_status()?
+            .json()?;
+
+        let mut file_extensions: Vec<String> = res
+            .iter()
+            .filter_map(|file_res| Path::new(&file_res.filename).extension())
+            .filter_map(|os_str| os_str.to_str())
+            .map(|string| format!(".{}", string).to_string())
+            .filter_map(|ext| lookup.get(&ext))
+            .map(|icon| icon.to_string())
+            .collect();
+
+        file_extensions.sort();
+        file_extensions.dedup();
+
+        Ok(file_extensions.join(" "))
+    }
+
+    pub fn create_webhook(&self, pull_request: &PullRequest, webhook_url: &str) -> Result<()> {
+        let request_url = format!(
+            "{url}/repos/{owner}/{repo}/hooks",
+            url = self.url,
+            owner = pull_request.owner,
+            repo = pull_request.name,
+        );
+
+        let hooks: Vec<WebHook> = self
+            .client
+            .get(&request_url)
+            .send()?
+            .error_for_status()?
+            .json()?;
+
+        if !hooks
+            .iter()
+            .any(|hook| hook.config.url.contains("github_event"))
+        {
+            let body = serde_json::to_string(&WebHook::new(webhook_url)).unwrap();
+            self.client
+                .post(&request_url)
+                .header(reqwest::header::CONTENT_TYPE, "application/json")
+                .body(body)
+                .send()?
+                .error_for_status()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn get_user(&self, access_token: &str) -> Result<User> {
+        let request_url = format!("{url}/user", url = self.url,);
+
+        self.client
+            .get(&request_url)
+            .header(
+                reqwest::header::AUTHORIZATION,
+                format!("token {}", access_token),
+            )
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+    }
+
+    pub fn get_repos(&self, access_token: &str) -> Result<Vec<Repo>> {
+        let request_url = format!(
+            "{url}/user/repos?sort={sort}",
+            url = self.url,
+            sort = "updated",
+        );
+
+        self.client
+            .get(&request_url)
+            .header(
+                reqwest::header::AUTHORIZATION,
+                format!("token {}", access_token),
+            )
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+    }
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WebHook {
+    config: WebHookConfig,
     events: Vec<String>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
-pub struct Webhook {
-    pub id: i32,
-    pub config: WebhookConfig,
-    pub events: Vec<String>,
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct WebhookConfig {
+#[derive(Debug, Deserialize, Serialize)]
+struct WebHookConfig {
     url: String,
     content_type: ContentType,
     secret: Option<String>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ContentType {
+enum ContentType {
     Json,
     Form,
 }
 
-impl NewWebhook {
+impl WebHook {
     fn new(webhook_url: &str) -> Self {
         Self {
             events: vec![
                 "pull_request".to_string(),
                 "pull_request_review".to_string(),
             ],
-            config: WebhookConfig {
+            config: WebHookConfig {
                 url: webhook_url.to_string(),
                 content_type: ContentType::Json,
                 secret: Some("update-only".to_string()),
             },
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct GithubOauthClient {
+    pub client_id: String,
+    client_secret: String,
+}
+
+impl GithubOauthClient {
+    pub fn new(client_id: &str, client_secret: &str) -> Self {
+        Self {
+            client_id: client_id.to_owned(),
+            client_secret: client_secret.to_owned(),
+        }
+    }
+
+    pub fn get_token(&self, code: &str) -> Result<GHAuthResponse> {
+        let params = GHTokenParams {
+            client_id: &self.client_id,
+            client_secret: &self.client_secret,
+            code,
+        };
+
+        reqwest::Client::new()
+            .post("https://github.com/login/oauth/access_token")
+            .header(reqwest::header::ACCEPT, "application/json")
+            .form(&params)
+            .send()?
+            .error_for_status()?
+            .json()
+            .map_err(|e| e.into())
+    }
+}
+
+#[derive(Serialize)]
+pub struct GHTokenParams<'a> {
+    client_id: &'a str,
+    client_secret: &'a str,
+    code: &'a str,
+}
+
+#[derive(Deserialize)]
+pub struct GHAuthResponse {
+    pub access_token: String,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_url_sucess() {
+        let repo: PullRequest = "http://github.com/facebook/react/pulls/1234"
+            .parse()
+            .expect("Can't parse url");
+        assert_eq!(repo.id, "1234");
+        assert_eq!(repo.owner, "facebook");
+        assert_eq!(repo.name, "react");
+    }
+
+    #[test]
+    fn test_parse_url_failure() {
+        let repo = "totally invalid url".parse::<PullRequest>();
+        assert!(repo.is_err(), "Should not parse")
     }
 }

@@ -38,9 +38,6 @@ pub enum Error {
 
     #[fail(display = "Record not found")]
     NotFoundError,
-
-    #[fail(display = "You are not authorized")]
-    NotAuthedError,
 }
 
 impl ResponseError for Error {
@@ -51,7 +48,6 @@ impl ResponseError for Error {
                 prepare_response(&format!(r#"{{ "error": "{}" }}"#, e))
             }
             Error::NotFoundError => prepare_response(r#"{ "error": "Record not found" }"#),
-            Error::NotAuthedError => HttpResponse::new(http::StatusCode::UNAUTHORIZED),
             _ => HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR),
         }
     }
@@ -105,18 +101,6 @@ impl From<UrlParseError> for Error {
 impl From<askama::Error> for Error {
     fn from(err: askama::Error) -> Self {
         Error::TemplateError(format!("{}", err))
-    }
-}
-
-impl From<http::header::ToStrError> for Error {
-    fn from(err: http::header::ToStrError) -> Self {
-        Error::ServerError(format!("{}", err))
-    }
-}
-
-impl From<hyperx::Error> for Error {
-    fn from(err: hyperx::Error) -> Self {
-        Error::ServerError(format!("{}", err))
     }
 }
 
