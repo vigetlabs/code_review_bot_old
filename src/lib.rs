@@ -22,6 +22,7 @@ pub use crate::utils::{app_config::AppConfig, db, load_languages, Languages};
 use actix_files as fs;
 use actix_session::CookieSession;
 use actix_web::{self, guard, middleware::Logger, web, App, HttpServer};
+use actix_web_flash::FlashMiddleware;
 use listenfd::ListenFd;
 
 const LOG_FORMAT: &str =
@@ -31,12 +32,6 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(routes::web::root))
         .route("/auth/slack", web::get().to(routes::auth::slack))
         .route("/auth/github", web::get().to(routes::auth::github))
-        .route("/review", web::post().to(routes::slack_webhook::review))
-        .route(
-            "/slack_event",
-            web::post().to(routes::slack_webhook::message),
-        )
-        .route("/reviews", web::post().to(routes::slack_webhook::reviews))
         .route(
             "/github_event",
             web::post()
@@ -51,14 +46,23 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             web::post()
                 .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
                 .to(routes::github_webhook::review),
-        );
+        )
+        .route("/review", web::post().to(routes::slack_webhook::review))
+        .route("/reviews", web::post().to(routes::slack_webhook::reviews))
+        .route(
+            "/slack_event",
+            web::post().to(routes::slack_webhook::message),
+        )
+        .route("/webhook", web::post().to(routes::web::create_webhook))
+        .route("/webhook/{id}", web::post().to(routes::web::delete_webhook));
 }
 
 pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
-            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
+            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
+            .wrap(FlashMiddleware::default())
             .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .configure(configure_app)
@@ -75,6 +79,7 @@ pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str
         App::new()
             .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
+            .wrap(FlashMiddleware::default())
             .data(app_config.clone())
             .configure(configure_app)
     });

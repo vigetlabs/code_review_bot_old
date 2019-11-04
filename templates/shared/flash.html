@@ -1,0 +1,7 @@
+{% match flash %}
+{% when Some with (message) %}
+<div class="flash flash-{{message.message_type}}">
+    {{message.message}}
+</div>
+{% when None %}
+{% endmatch %}
