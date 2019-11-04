@@ -249,6 +249,7 @@ impl User {
             Err(err) => Err(err.into()),
         }
     }
+
     pub fn connect_to_github_user(
         &self,
         access_token: &str,
@@ -266,5 +267,84 @@ impl User {
 
     pub fn is_gh_authed(&self) -> bool {
         self.github_access_token.is_some()
+    }
+}
+
+#[derive(Debug, Insertable)]
+#[table_name = "webhooks"]
+pub struct NewWebhook {
+    pub hook_id: String,
+    pub name: String,
+    pub owner: String,
+}
+
+#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable)]
+#[table_name = "webhooks"]
+pub struct Webhook {
+    pub id: i32,
+    pub hook_id: String,
+    pub name: String,
+    pub owner: String,
+}
+
+impl Webhook {
+    pub fn create(new_webhook: &NewWebhook, db: &DBExecutor) -> Result<Webhook> {
+        use crate::schema::webhooks::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::insert_into(webhooks)
+            .values(new_webhook)
+            .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn for_repos(repos: &[github::Repo], db: &DBExecutor) -> Result<Vec<Webhook>> {
+        let conn = db.0.get()?;
+
+        let in_query = repos.to_query();
+
+        diesel::sql_query(format!(
+            "SELECT * FROM webhooks WHERE (owner, name) IN ({})",
+            in_query,
+        ))
+        .load(&conn)
+        .map_err(|e| e.into())
+    }
+
+    pub fn find(find_id: i32, db: &DBExecutor) -> Result<Webhook> {
+        use crate::schema::webhooks::dsl::*;
+        let conn = db.0.get()?;
+
+        webhooks.find(find_id).first(&conn).map_err(|e| e.into())
+    }
+
+    pub fn delete(&self, db: &DBExecutor) -> Result<()> {
+        use crate::schema::webhooks::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::delete(webhooks.filter(id.eq(self.id))).execute(&conn)?;
+        Ok(())
+    }
+}
+
+trait ToQuery {
+    fn to_query(&self) -> String;
+}
+
+impl<T> ToQuery for &[T]
+where
+    T: ToQuery,
+{
+    fn to_query(&self) -> String {
+        self.iter()
+            .map(|item| item.to_query())
+            .collect::<Vec<String>>()
+            .join(",")
+    }
+}
+
+impl ToQuery for github::Repo {
+    fn to_query(&self) -> String {
+        format!("('{}','{}')", self.owner.login, self.name)
     }
 }
