@@ -12,11 +12,13 @@ serde_yaml = "0.8"
 regex = "1"
 lazy_static = "1.2"
 base64 = "0.10"
+rand = "0.7"
 
 actix-session = "0.2"
 actix-files = "0.1"
 actix-web-flash = { version = "0.3", git = "https://github.com/hatzel/actix-web-flash" }
 actix-web = "1.0"
+actix-service = "0.4"
 log = "0.4.0"
 env_logger = "0.6.0"
 futures = "0.1.25"

@@ -1,5 +1,5 @@
 use actix_web::{
-    web::{Data, Form, Json},
+    web::{Form, Json},
     HttpResponse,
 };
 
@@ -7,9 +7,9 @@ use crate::error::Result;
 use crate::models::{IconMapping, PullRequest as PullRequestModel, User};
 use crate::slack::{attachment, SlackRequest};
 use crate::utils::prepare_response;
-use crate::AppConfig;
+use crate::AppData;
 
-pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
+pub fn review(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> {
     let access_token = if let Some(token) =
         User::find_by_slack_id(&form.user_id, &state.db)?.and_then(|user| user.github_access_token)
     {
@@ -61,7 +61,7 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
     Ok(prepare_response(&message))
 }
 
-pub fn reviews(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
+pub fn reviews(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> {
     let prs = PullRequestModel::by_state("open", &state.db)?;
 
     let open_prs: Vec<String> = if prs.is_empty() {

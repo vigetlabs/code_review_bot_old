@@ -1,7 +1,8 @@
 use env_logger;
+use rand::Rng;
 use structopt;
 
-use code_review_bot::{db, start_dev_server, start_server, AppConfig};
+use code_review_bot::{db, start_dev_server, start_server, AppConfig, AppData};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
@@ -52,34 +53,32 @@ fn main() {
     let slack_client_secret =
         std::env::var("SLACK_CLIENT_SECRET").expect("Can't find var SLACK_CLIENT_SECRET");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
-    let webhook_url = std::env::var("WEBHOOK_URL").expect("Can't find var WEBHOOK_URL");
     let app_url = std::env::var("APP_URL").expect("Can't find var APP_URL");
-    let app_secret = std::env::var("APP_SECRET").expect("Can't find var APP_SECRET");
+
+    let app_secret = std::env::var("APP_SECRET").unwrap_or_else(|_| {
+        String::from_utf8_lossy(&rand::thread_rng().gen::<[u8; 32]>()).into_owned()
+    });
 
     // Setup database
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     let pool = Pool::new(manager).expect("Can't create conneciton pool");
     let db = db::DBExecutor(pool.clone());
 
+    let builder = AppData::new(db, app_url)
+        .github(&github_client_id, &github_client_secret)
+        .slack(
+            &slack_client_id,
+            &slack_client_secret,
+            &slack_channel,
+            &slack_token,
+        );
     // Create AppConfig
-    let app_config = AppConfig::new(
-        &github_client_id,
-        &github_client_secret,
-        &slack_token,
-        &slack_channel,
-        &slack_client_id,
-        &slack_client_secret,
-        db,
-        webhook_url,
-        app_url,
-        app_secret,
-    )
-    .expect("Can't create app config");
+    let app_config = AppConfig::new(builder.clone(), builder.build());
 
     if opt.dev {
-        start_dev_server(opt.port, app_config)
+        start_dev_server(opt.port, app_config, app_secret)
     } else {
-        start_server(opt.port, app_config)
+        start_server(opt.port, app_config, app_secret)
     }
     .expect("Could not start server");
 }

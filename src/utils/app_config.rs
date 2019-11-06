@@ -1,51 +1,120 @@
+use actix_web::error::ErrorBadRequest;
+use actix_web::{dev, Error, FromRequest, HttpRequest};
+use std::sync::{Arc, Mutex};
+
 use crate::db;
-use crate::error::Result;
 use crate::github::{GithubClient, GithubOauthClient};
 use crate::slack::SlackClient;
 
 #[derive(Clone)]
 pub struct AppConfig {
+    pub builder: AppDataBuilder,
+    pub data: Arc<Mutex<Option<AppData>>>,
+}
+
+impl AppConfig {
+    pub fn new(builder: AppDataBuilder, data: Option<AppData>) -> Self {
+        Self {
+            builder,
+            data: Arc::new(Mutex::new(data)),
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct AppData {
     pub github: GithubClient,
     pub github_oauth: GithubOauthClient,
     pub slack: SlackClient,
     pub db: db::DBExecutor,
-    pub webhook_url: String,
     pub app_url: String,
-    pub app_secret: String,
 }
 
-impl AppConfig {
-    // TODO: Builder pattern
-    #[allow(clippy::new_ret_no_self, clippy::too_many_arguments)]
-    pub fn new(
-        github_client_id: &str,
-        github_client_secret: &str,
-        slack_token: &str,
-        channel: &str,
-        client_id: &str,
-        cient_secret: &str,
-        db: db::DBExecutor,
-        webhook_url: String,
-        app_url: String,
-        app_secret: String,
-    ) -> Result<Self> {
-        let github_url = "https://api.github.com".to_string();
-        let slack_url = "https://slack.com/api/".to_string();
+#[derive(Clone, Default)]
+pub struct AppDataBuilder {
+    app_url: String,
+    github: GithubClient,
+    db: Option<db::DBExecutor>,
+    github_oauth: Option<GithubOauthClient>,
+    slack: Option<SlackClient>,
+}
 
-        Ok(AppConfig {
-            github: GithubClient::new(github_url),
-            github_oauth: GithubOauthClient::new(&github_client_id, &github_client_secret),
-            slack: SlackClient::new(
-                slack_url,
-                &slack_token,
-                channel.to_string(),
-                client_id.to_string(),
-                cient_secret.to_string(),
-            )?,
-            db,
-            webhook_url,
-            app_url,
-            app_secret,
+impl AppDataBuilder {
+    pub fn github(mut self, client_id: &str, client_secret: &str) -> Self {
+        self.github_oauth
+            .replace(GithubOauthClient::new(client_id, client_secret));
+        self
+    }
+
+    pub fn slack(
+        mut self,
+        client_id: &str,
+        client_secret: &str,
+        channel: &str,
+        token: &str,
+    ) -> Self {
+        self.slack.replace(
+            SlackClient::new(token, channel, client_id, client_secret)
+                .expect("Error creating slack client"),
+        );
+        self
+    }
+
+    pub fn build(mut self) -> Option<AppData> {
+        Some(AppData {
+            github: self.github,
+            github_oauth: self.github_oauth.take()?,
+            slack: self.slack.take()?,
+            db: self.db.take()?,
+            app_url: self.app_url,
         })
+    }
+
+    pub fn is_complete(&self) -> bool {
+        let Self {
+            db,
+            github_oauth,
+            slack,
+            ..
+        } = self;
+
+        db.is_some() && github_oauth.is_some() && slack.is_some()
+    }
+}
+
+impl AppData {
+    // TODO: Builder pattern
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(db: db::DBExecutor, app_url: String) -> AppDataBuilder {
+        AppDataBuilder {
+            app_url,
+            db: Some(db),
+            ..Default::default()
+        }
+    }
+
+    pub fn webhook_url(&self) -> String {
+        format!("{}/github_event", self.app_url)
+    }
+}
+
+impl FromRequest for AppData {
+    type Error = Error;
+    type Future = Result<Self, Self::Error>;
+    type Config = ();
+
+    fn from_request(req: &HttpRequest, _payload: &mut dev::Payload) -> Self::Future {
+        req.app_data::<AppConfig>()
+            .ok_or_else(|| ErrorBadRequest("App data failed"))
+            .and_then(|config| {
+                config
+                    .data
+                    .lock()
+                    .map_err(|_| ErrorBadRequest("App data failed"))
+            })
+            .and_then(|data| match &*data {
+                Some(app_data) => Ok(app_data.clone()),
+                None => Err(ErrorBadRequest("App data failed")),
+            })
     }
 }

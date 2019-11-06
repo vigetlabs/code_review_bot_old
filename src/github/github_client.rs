@@ -16,14 +16,18 @@ pub struct GithubClient {
     client: reqwest::Client,
 }
 
-impl GithubClient {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(url: String) -> Self {
+impl Default for GithubClient {
+    fn default() -> Self {
         let client = reqwest::Client::new();
 
-        Self { url, client }
+        Self {
+            url: "https://api.github.com".to_owned(),
+            client,
+        }
     }
+}
 
+impl GithubClient {
     pub fn get_pr(&self, pull_request: &ReviewRequest, token: &str) -> Result<PRResult> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/pulls/{id}",
