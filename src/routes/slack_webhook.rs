@@ -1,17 +1,22 @@
 use actix_web::{
-    web::{Form, Json},
+    web::{Data, Form, Json},
     HttpResponse,
 };
 
+use crate::db::DBExecutor;
 use crate::error::Result;
 use crate::models::{IconMapping, PullRequest as PullRequestModel, User};
 use crate::slack::{attachment, SlackRequest};
 use crate::utils::prepare_response;
 use crate::AppData;
 
-pub fn review(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> {
+pub fn review(
+    form: Form<SlackRequest>,
+    state: AppData,
+    db: Data<DBExecutor>,
+) -> Result<HttpResponse> {
     let access_token = if let Some(token) =
-        User::find_by_slack_id(&form.user_id, &state.db)?.and_then(|user| user.github_access_token)
+        User::find_by_slack_id(&form.user_id, &db)?.and_then(|user| user.github_access_token)
     {
         token
     } else {
@@ -43,7 +48,7 @@ pub fn review(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> 
     let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
     extensions.dedup();
 
-    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+    let mappings = IconMapping::from(filenames, extensions, &db)?;
 
     state.slack.post_message(
         &pr_response,
@@ -61,8 +66,12 @@ pub fn review(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> 
     Ok(prepare_response(&message))
 }
 
-pub fn reviews(form: Form<SlackRequest>, state: AppData) -> Result<HttpResponse> {
-    let prs = PullRequestModel::by_state("open", &state.db)?;
+pub fn reviews(
+    form: Form<SlackRequest>,
+    state: AppData,
+    db: Data<DBExecutor>,
+) -> Result<HttpResponse> {
+    let prs = PullRequestModel::by_state("open", &db)?;
 
     let open_prs: Vec<String> = if prs.is_empty() {
         vec!["All PRs Reviewed! :partyparrot:".to_string()]

@@ -1,12 +1,13 @@
 use actix_session::Session;
 use actix_web::{
-    web::{Form, Path, Query},
+    web::{Data, Form, Path, Query},
     HttpResponse,
 };
 use actix_web_flash::{FlashMessage, FlashResponse};
 use askama::Template;
 use std::fmt;
 
+use crate::db::DBExecutor;
 use crate::error::{Error, Result};
 use crate::github;
 use crate::models::{NewWebhook, User, Webhook};
@@ -79,12 +80,13 @@ struct IndexTemplate<'a> {
 
 pub fn root(
     state: AppData,
+    db: Data<DBExecutor>,
     session: Session,
     params: Query<paginated_resource::PaginationParams>,
     flash_message: Option<FlashMessage<Flash>>,
 ) -> Result<HttpResponse> {
     let flash = flash_message.map(|flash| flash.into_inner());
-    let current_user = get_current_user(&state, &session)?;
+    let current_user = get_current_user(&db, &session)?;
     let is_gh_authed = current_user
         .clone()
         .and_then(|u| if u.is_gh_authed() { Some(u) } else { None })
@@ -96,7 +98,7 @@ pub fn root(
             .github
             .get_repos(&user.github_access_token.unwrap(), &*params)?;
 
-        let webhooks = Webhook::for_repos(&github_repos.resources, &state.db)?;
+        let webhooks = Webhook::for_repos(&github_repos.resources, &db)?;
         let repos = github_repos
             .resources
             .iter()
@@ -137,9 +139,10 @@ pub struct WebhookParams {
 pub fn create_webhook(
     form: Form<WebhookParams>,
     state: AppData,
+    db: Data<DBExecutor>,
     session: Session,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
-    let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
+    let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
     let access_token = current_user
         .github_access_token
         .ok_or(Error::NotAuthedError)?;
@@ -162,7 +165,7 @@ pub fn create_webhook(
                     name: form.name.clone(),
                     owner: form.owner.clone(),
                 },
-                &state.db,
+                &db,
             )
         });
 
@@ -174,16 +177,17 @@ pub fn create_webhook(
 
 pub fn delete_webhook(
     state: AppData,
+    db: Data<DBExecutor>,
     session: Session,
     path: Path<(i32,)>,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
-    let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
+    let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
     let access_token = current_user
         .github_access_token
         .ok_or(Error::NotAuthedError)?;
-    let result = Webhook::find(path.0, &state.db).and_then(|webhook| {
+    let result = Webhook::find(path.0, &db).and_then(|webhook| {
         state.github.delete_webhook(&webhook, &access_token)?;
-        webhook.delete(&state.db)
+        webhook.delete(&db)
     });
 
     Ok(FlashResponse::with_redirect(

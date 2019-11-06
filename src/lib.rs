@@ -71,6 +71,7 @@ pub fn start_server(
     port: u32,
     app_config: AppConfig,
     app_secret: String,
+    db: db::DBExecutor,
 ) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
@@ -79,6 +80,7 @@ pub fn start_server(
             .wrap(FlashMiddleware::default())
             .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
+            .data(db.clone())
             .register_data(web::Data::new(app_config.clone()))
             .configure(configure_app)
     })
@@ -92,6 +94,7 @@ pub fn start_dev_server(
     port: u32,
     app_config: AppConfig,
     app_secret: String,
+    db: db::DBExecutor,
 ) -> Result<&'static str, std::io::Error> {
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
@@ -102,6 +105,7 @@ pub fn start_dev_server(
             .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
             .register_data(web::Data::new(app_config.clone()))
+            .data(db.clone())
             .configure(configure_app)
     });
 

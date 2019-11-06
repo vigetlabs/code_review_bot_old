@@ -58,7 +58,7 @@ fn main() {
         .map(|config| (config.key.as_ref(), config.value.as_ref()))
         .collect();
 
-    let mut builder = AppData::new(db);
+    let mut builder = AppData::new();
 
     if configs.contains_key("githbub_client_id") && configs.contains_key("github_client_secret") {
         builder = builder.github(
@@ -88,9 +88,9 @@ fn main() {
     let app_config = AppConfig::new(builder.clone(), builder.build());
 
     if opt.dev {
-        start_dev_server(opt.port, app_config, app_secret)
+        start_dev_server(opt.port, app_config, app_secret, db)
     } else {
-        start_server(opt.port, app_config, app_secret)
+        start_server(opt.port, app_config, app_secret, db)
     }
     .expect("Could not start server");
 }

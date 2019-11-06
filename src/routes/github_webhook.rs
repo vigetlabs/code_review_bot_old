@@ -1,5 +1,9 @@
-use actix_web::{web::Json, HttpResponse};
+use actix_web::{
+    web::{Data, Json},
+    HttpResponse,
+};
 
+use crate::db::DBExecutor;
 use crate::error::{Error, Result};
 use crate::github::{
     PRAction, PRFiles, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent,
@@ -9,15 +13,19 @@ use crate::slack::Reaction;
 use crate::utils::prepare_response;
 use crate::AppData;
 
-fn handle_pull_request_opened(state: AppData, json: PullRequestEvent) -> Result<HttpResponse> {
+fn handle_pull_request_opened(
+    state: AppData,
+    db: Data<DBExecutor>,
+    json: PullRequestEvent,
+) -> Result<HttpResponse> {
     if json.pull_request.draft {
         return Err(Error::GuardError("Ignoring Draft PR"));
     }
 
-    let requester = GithubUser::find_or_create(&json.pull_request.user, &state.db, None)?;
+    let requester = GithubUser::find_or_create(&json.pull_request.user, &db, None)?;
     let user = requester
         .user_id
-        .and_then(|id| User::find(id, &state.db).ok())
+        .and_then(|id| User::find(id, &db).ok())
         .and_then(|inner| inner);
 
     let pr_files = PRFiles::new(
@@ -25,7 +33,7 @@ fn handle_pull_request_opened(state: AppData, json: PullRequestEvent) -> Result<
         &state.github,
         user.clone().and_then(|u| u.github_access_token),
     );
-    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &state.db)?;
+    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &db)?;
 
     let result = state.slack.post_message(
         &json.pull_request,
@@ -47,29 +55,33 @@ fn handle_pull_request_opened(state: AppData, json: PullRequestEvent) -> Result<
             display_text: format!("{}", json.pull_request),
             github_user_id: requester.github_id,
         },
-        &state.db,
+        &db,
     )?;
 
     Ok(prepare_response(""))
 }
 
-fn handle_pull_request_closed(state: AppData, json: PullRequestEvent) -> Result<HttpResponse> {
+fn handle_pull_request_closed(
+    state: AppData,
+    db: Data<DBExecutor>,
+    json: PullRequestEvent,
+) -> Result<HttpResponse> {
     let db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,
             json.pull_request.number,
         ),
-        &state.db,
+        &db,
     )?
-    .update("closed", &state.db)?;
-    let user = db_pr.user(&state.db)?;
+    .update("closed", &db)?;
+    let user = db_pr.user(&db)?;
 
     let pr_files = PRFiles::new(
         &json.pull_request,
         &state.github,
         user.clone().and_then(|u| u.github_access_token),
     );
-    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &state.db)?;
+    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &db)?;
 
     state.slack.update_message(
         &json.pull_request,
@@ -82,10 +94,16 @@ fn handle_pull_request_closed(state: AppData, json: PullRequestEvent) -> Result<
     Ok(prepare_response(""))
 }
 
-pub fn pull_request(json: Json<PullRequestEvent>, state: AppData) -> Result<HttpResponse> {
+pub fn pull_request(
+    json: Json<PullRequestEvent>,
+    state: AppData,
+    db: Data<DBExecutor>,
+) -> Result<HttpResponse> {
     match json.action {
-        PRAction::Opened | PRAction::ReadyForReview => handle_pull_request_opened(state, json.0),
-        PRAction::Closed => handle_pull_request_closed(state, json.0),
+        PRAction::Opened | PRAction::ReadyForReview => {
+            handle_pull_request_opened(state, db, json.0)
+        }
+        PRAction::Closed => handle_pull_request_closed(state, db, json.0),
         _ => Err(Error::GithubError(format!(
             "Unhandled PR Action: {:?}",
             json.action
@@ -93,14 +111,22 @@ pub fn pull_request(json: Json<PullRequestEvent>, state: AppData) -> Result<Http
     }
 }
 
-pub fn review(json: Json<ReviewEvent>, state: AppData) -> Result<HttpResponse> {
+pub fn review(
+    json: Json<ReviewEvent>,
+    state: AppData,
+    db: Data<DBExecutor>,
+) -> Result<HttpResponse> {
     match json.action {
-        ReviewAction::Submitted => handle_review_submitted(state, json.0),
+        ReviewAction::Submitted => handle_review_submitted(state, db, json.0),
         _ => Ok(prepare_response("")),
     }
 }
 
-fn handle_review_submitted(state: AppData, json: ReviewEvent) -> Result<HttpResponse> {
+fn handle_review_submitted(
+    state: AppData,
+    db: Data<DBExecutor>,
+    json: ReviewEvent,
+) -> Result<HttpResponse> {
     if json.review.user.login == json.pull_request.user.login {
         return Err(Error::GuardError("Reviewer same as opened pull request"));
     }
@@ -111,17 +137,17 @@ fn handle_review_submitted(state: AppData, json: ReviewEvent) -> Result<HttpResp
         approved = true;
     }
 
-    let reviewer = GithubUser::find_or_create(&json.review.user, &state.db, None)?;
-    let reviewer_user = reviewer.user(&state.db)?;
+    let reviewer = GithubUser::find_or_create(&json.review.user, &db, None)?;
+    let reviewer_user = reviewer.user(&db)?;
     let mut db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,
             json.pull_request.number,
         ),
-        &state.db,
+        &db,
     )?;
-    db_pr = db_pr.update(&next_state(&db_pr.state, approved), &state.db)?;
-    Review::create_or_update(&reviewer, &db_pr, &json.review.state.to_string(), &state.db)?;
+    db_pr = db_pr.update(&next_state(&db_pr.state, approved), &db)?;
+    Review::create_or_update(&reviewer, &db_pr, &json.review.state.to_string(), &db)?;
 
     state.slack.add_reaction(
         &reaction,
