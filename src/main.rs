@@ -1,8 +1,9 @@
 use env_logger;
 use rand::Rng;
+use std::collections::HashMap;
 use structopt;
 
-use code_review_bot::{db, start_dev_server, start_server, AppConfig, AppData};
+use code_review_bot::{db, start_dev_server, start_server, AppConfig, AppData, Config};
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
 use dotenv::dotenv;
@@ -42,19 +43,7 @@ fn main() {
     );
     env_logger::init();
 
-    // Load variables and language lookup
-    let github_client_id =
-        std::env::var("GITHUB_CLIENT_ID").expect("Can't find var GITHUB_CLIENT_ID");
-    let github_client_secret =
-        std::env::var("GITHUB_CLIENT_SECRET").expect("Can't find var GITHUB_CLIENT_SECRET");
-    let slack_token = std::env::var("SLACK_TOKEN").expect("Can't find var SLACK_TOKEN");
-    let slack_channel = std::env::var("SLACK_CHANNEL").expect("Can't find var SLACK_CHANNEL");
-    let slack_client_id = std::env::var("SLACK_CLIENT_ID").expect("Can't find var SLACK_CLIENT_ID");
-    let slack_client_secret =
-        std::env::var("SLACK_CLIENT_SECRET").expect("Can't find var SLACK_CLIENT_SECRET");
     let database_url = std::env::var("DATABASE_URL").expect("Can't find var DATABASE_URL");
-    let app_url = std::env::var("APP_URL").expect("Can't find var APP_URL");
-
     let app_secret = std::env::var("APP_SECRET").unwrap_or_else(|_| {
         String::from_utf8_lossy(&rand::thread_rng().gen::<[u8; 32]>()).into_owned()
     });
@@ -63,15 +52,38 @@ fn main() {
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     let pool = Pool::new(manager).expect("Can't create conneciton pool");
     let db = db::DBExecutor(pool.clone());
+    let config_rows = Config::all(&db).expect("Can't get configurations");
+    let configs: HashMap<&str, &str> = config_rows
+        .iter()
+        .map(|config| (config.key.as_ref(), config.value.as_ref()))
+        .collect();
 
-    let builder = AppData::new(db, app_url)
-        .github(&github_client_id, &github_client_secret)
-        .slack(
-            &slack_client_id,
-            &slack_client_secret,
-            &slack_channel,
-            &slack_token,
+    let mut builder = AppData::new(db);
+
+    if configs.contains_key("githbub_client_id") && configs.contains_key("github_client_secret") {
+        builder = builder.github(
+            configs.get("github_client_id").unwrap(),
+            configs.get("github_client_secret").unwrap(),
         );
+    }
+
+    if configs.contains_key("slack_client_id")
+        && configs.contains_key("slack_client_secret")
+        && configs.contains_key("slack_channel")
+        && configs.contains_key("slack_token")
+    {
+        builder = builder.slack(
+            configs.get("slack_client_id").unwrap(),
+            configs.get("slack_client_secret").unwrap(),
+            configs.get("slack_channel").unwrap(),
+            configs.get("slack_token").unwrap(),
+        );
+    }
+
+    if configs.contains_key("app_url") {
+        builder = builder.app_url(configs.get("app_url").unwrap());
+    }
+
     // Create AppConfig
     let app_config = AppConfig::new(builder.clone(), builder.build());
 

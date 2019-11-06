@@ -6,6 +6,32 @@ use crate::error::Result;
 use crate::github;
 use crate::schema::*;
 
+#[derive(Clone, Debug, Queryable, Insertable)]
+#[table_name = "configs"]
+pub struct Config {
+    pub key: String,
+    pub value: String,
+}
+
+impl Config {
+    pub fn all(db: &DBExecutor) -> Result<Vec<Config>> {
+        use crate::schema::configs::dsl::*;
+        let conn = db.0.get()?;
+
+        configs.load(&conn).map_err(|e| e.into())
+    }
+
+    pub fn create(&self, db: &DBExecutor) -> Result<Config> {
+        use crate::schema::configs::dsl::*;
+        let conn = db.0.get()?;
+
+        diesel::insert_into(configs)
+            .values(self)
+            .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+}
+
 #[derive(Debug, Insertable)]
 #[table_name = "pull_requests"]
 pub struct NewPullRequest {

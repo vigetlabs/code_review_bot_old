@@ -1,4 +1,11 @@
 table! {
+    configs (key) {
+        key -> Varchar,
+        value -> Varchar,
+    }
+}
+
+table! {
     file_extensions (id) {
         id -> Int4,
         extension -> Varchar,
@@ -84,6 +91,7 @@ joinable!(file_extensions -> icon_mappings (icon_mapping_id));
 joinable!(file_names -> icon_mappings (icon_mapping_id));
 
 allow_tables_to_appear_in_same_query!(
+    configs,
     file_extensions,
     file_names,
     github_users,
