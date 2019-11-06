@@ -2,7 +2,6 @@ use actix_web::error::ErrorBadRequest;
 use actix_web::{dev, Error, FromRequest, HttpRequest};
 use std::sync::{Arc, Mutex};
 
-use crate::db;
 use crate::github::{GithubClient, GithubOauthClient};
 use crate::slack::SlackClient;
 
@@ -26,7 +25,6 @@ pub struct AppData {
     pub github: GithubClient,
     pub github_oauth: GithubOauthClient,
     pub slack: SlackClient,
-    pub db: db::DBExecutor,
     pub app_url: String,
 }
 
@@ -34,7 +32,6 @@ pub struct AppData {
 pub struct AppDataBuilder {
     github: GithubClient,
     app_url: Option<String>,
-    db: Option<db::DBExecutor>,
     github_oauth: Option<GithubOauthClient>,
     slack: Option<SlackClient>,
 }
@@ -70,31 +67,26 @@ impl AppDataBuilder {
             github: self.github,
             github_oauth: self.github_oauth.take()?,
             slack: self.slack.take()?,
-            db: self.db.take()?,
             app_url: self.app_url.take()?,
         })
     }
 
     pub fn is_complete(&self) -> bool {
         let Self {
-            db,
             github_oauth,
             slack,
             ..
         } = self;
 
-        db.is_some() && github_oauth.is_some() && slack.is_some()
+        github_oauth.is_some() && slack.is_some()
     }
 }
 
 impl AppData {
     // TODO: Builder pattern
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(db: db::DBExecutor) -> AppDataBuilder {
-        AppDataBuilder {
-            db: Some(db),
-            ..Default::default()
-        }
+    pub fn new() -> AppDataBuilder {
+        AppDataBuilder::default()
     }
 
     pub fn webhook_url(&self) -> String {

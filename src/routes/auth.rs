@@ -1,6 +1,11 @@
 use actix_session::Session;
-use actix_web::{http, web::Query, HttpResponse};
+use actix_web::{
+    http,
+    web::{Data, Query},
+    HttpResponse,
+};
 
+use crate::db::DBExecutor;
 use crate::error::Result;
 use crate::models::{NewUser, User};
 use crate::utils::app_config::AppData;
@@ -11,7 +16,12 @@ pub struct AuthRedirect {
     code: String,
 }
 
-pub fn slack(state: AppData, query: Query<AuthRedirect>, session: Session) -> Result<HttpResponse> {
+pub fn slack(
+    state: AppData,
+    db: Data<DBExecutor>,
+    query: Query<AuthRedirect>,
+    session: Session,
+) -> Result<HttpResponse> {
     let response = state.slack.get_token(&query.code)?;
     let access_token = response.access_token.unwrap();
     let user_data = response.user.unwrap();
@@ -21,7 +31,7 @@ pub fn slack(state: AppData, query: Query<AuthRedirect>, session: Session) -> Re
             slack_user_id: user_data.id,
             slack_access_token: access_token,
         },
-        &state.db,
+        &db,
     )?;
     session.set("id", user.id)?;
 
@@ -30,14 +40,15 @@ pub fn slack(state: AppData, query: Query<AuthRedirect>, session: Session) -> Re
 
 pub fn github(
     state: AppData,
+    db: Data<DBExecutor>,
     query: Query<AuthRedirect>,
     session: Session,
 ) -> Result<HttpResponse> {
     let response = state.github_oauth.get_token(&query.code)?;
     let github_user = state.github.get_user(&response.access_token)?;
     let user =
-        helpers::get_current_user(&state, &session)?.ok_or(crate::error::Error::NotFoundError)?;
-    user.connect_to_github_user(&response.access_token, &github_user, &state.db)?;
+        helpers::get_current_user(&db, &session)?.ok_or(crate::error::Error::NotFoundError)?;
+    user.connect_to_github_user(&response.access_token, &github_user, &db)?;
 
     Ok(redirect_to("/"))
 }

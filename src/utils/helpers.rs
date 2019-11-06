@@ -1,12 +1,12 @@
 use actix_session::Session;
 
+use crate::db::DBExecutor;
 use crate::error::Result;
 use crate::models::User;
-use crate::utils::app_config::AppData;
 
-pub fn get_current_user(state: &AppData, session: &Session) -> Result<Option<User>> {
+pub fn get_current_user(db: &DBExecutor, session: &Session) -> Result<Option<User>> {
     if let Some(id) = session.get("id")? {
-        User::find(id, &state.db)
+        User::find(id, db)
     } else {
         Ok(None)
     }
