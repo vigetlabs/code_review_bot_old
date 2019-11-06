@@ -32,8 +32,8 @@ pub struct AppData {
 
 #[derive(Clone, Default)]
 pub struct AppDataBuilder {
-    app_url: String,
     github: GithubClient,
+    app_url: Option<String>,
     db: Option<db::DBExecutor>,
     github_oauth: Option<GithubOauthClient>,
     slack: Option<SlackClient>,
@@ -60,13 +60,18 @@ impl AppDataBuilder {
         self
     }
 
+    pub fn app_url(mut self, url: &str) -> Self {
+        self.app_url.replace(url.to_string());
+        self
+    }
+
     pub fn build(mut self) -> Option<AppData> {
         Some(AppData {
             github: self.github,
             github_oauth: self.github_oauth.take()?,
             slack: self.slack.take()?,
             db: self.db.take()?,
-            app_url: self.app_url,
+            app_url: self.app_url.take()?,
         })
     }
 
@@ -85,9 +90,8 @@ impl AppDataBuilder {
 impl AppData {
     // TODO: Builder pattern
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(db: db::DBExecutor, app_url: String) -> AppDataBuilder {
+    pub fn new(db: db::DBExecutor) -> AppDataBuilder {
         AppDataBuilder {
-            app_url,
             db: Some(db),
             ..Default::default()
         }

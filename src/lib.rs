@@ -16,6 +16,7 @@ mod schema;
 mod slack;
 mod utils;
 
+pub use crate::models::Config;
 pub use crate::utils::{
     app_config::{AppConfig, AppData},
     db,
