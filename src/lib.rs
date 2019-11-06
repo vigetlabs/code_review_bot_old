@@ -9,13 +9,17 @@ extern crate failure_derive;
 
 mod error;
 mod github;
+mod middlewares;
 mod models;
 mod routes;
 mod schema;
 mod slack;
 mod utils;
 
-pub use crate::utils::{app_config::AppConfig, db};
+pub use crate::utils::{
+    app_config::{AppConfig, AppData},
+    db,
+};
 
 use actix_files as fs;
 use actix_session::CookieSession;
@@ -62,14 +66,19 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
         );
 }
 
-pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
+pub fn start_server(
+    port: u32,
+    app_config: AppConfig,
+    app_secret: String,
+) -> Result<&'static str, std::io::Error> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::new(LOG_FORMAT))
-            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
+            .wrap(CookieSession::signed(app_secret.as_bytes()).secure(false))
             .wrap(FlashMiddleware::default())
+            .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
-            .data(app_config.clone())
+            .register_data(web::Data::new(app_config.clone()))
             .configure(configure_app)
     })
     .bind(format!("0.0.0.0:{}", port))?
@@ -78,15 +87,20 @@ pub fn start_server(port: u32, app_config: AppConfig) -> Result<&'static str, st
     Ok("Done")
 }
 
-pub fn start_dev_server(port: u32, app_config: AppConfig) -> Result<&'static str, std::io::Error> {
+pub fn start_dev_server(
+    port: u32,
+    app_config: AppConfig,
+    app_secret: String,
+) -> Result<&'static str, std::io::Error> {
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
         App::new()
-            .wrap(CookieSession::signed(app_config.app_secret.as_bytes()).secure(false))
+            .wrap(CookieSession::signed(app_secret.as_bytes()).secure(false))
             .wrap(Logger::new(LOG_FORMAT))
             .wrap(FlashMiddleware::default())
+            .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
-            .data(app_config.clone())
+            .register_data(web::Data::new(app_config.clone()))
             .configure(configure_app)
     });
 

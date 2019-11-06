@@ -1,25 +1,17 @@
 use actix_session::Session;
-use actix_web::{
-    http,
-    web::{Data, Query},
-    HttpResponse,
-};
+use actix_web::{http, web::Query, HttpResponse};
 
 use crate::error::Result;
 use crate::models::{NewUser, User};
+use crate::utils::app_config::AppData;
 use crate::utils::helpers;
-use crate::AppConfig;
 
 #[derive(Deserialize)]
 pub struct AuthRedirect {
     code: String,
 }
 
-pub fn slack(
-    state: Data<AppConfig>,
-    query: Query<AuthRedirect>,
-    session: Session,
-) -> Result<HttpResponse> {
+pub fn slack(state: AppData, query: Query<AuthRedirect>, session: Session) -> Result<HttpResponse> {
     let response = state.slack.get_token(&query.code)?;
     let access_token = response.access_token.unwrap();
     let user_data = response.user.unwrap();
@@ -37,7 +29,7 @@ pub fn slack(
 }
 
 pub fn github(
-    state: Data<AppConfig>,
+    state: AppData,
     query: Query<AuthRedirect>,
     session: Session,
 ) -> Result<HttpResponse> {

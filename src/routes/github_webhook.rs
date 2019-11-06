@@ -1,7 +1,4 @@
-use actix_web::{
-    web::{Data, Json},
-    HttpResponse,
-};
+use actix_web::{web::Json, HttpResponse};
 
 use crate::error::{Error, Result};
 use crate::github::{
@@ -9,12 +6,10 @@ use crate::github::{
 };
 use crate::models::{GithubUser, IconMapping, NewPullRequest, PullRequest, Review, User};
 use crate::slack::Reaction;
-use crate::utils::{app_config::AppConfig, prepare_response};
+use crate::utils::prepare_response;
+use crate::AppData;
 
-fn handle_pull_request_opened(
-    state: Data<AppConfig>,
-    json: PullRequestEvent,
-) -> Result<HttpResponse> {
+fn handle_pull_request_opened(state: AppData, json: PullRequestEvent) -> Result<HttpResponse> {
     if json.pull_request.draft {
         return Err(Error::GuardError("Ignoring Draft PR"));
     }
@@ -58,10 +53,7 @@ fn handle_pull_request_opened(
     Ok(prepare_response(""))
 }
 
-fn handle_pull_request_closed(
-    state: Data<AppConfig>,
-    json: PullRequestEvent,
-) -> Result<HttpResponse> {
+fn handle_pull_request_closed(state: AppData, json: PullRequestEvent) -> Result<HttpResponse> {
     let db_pr = PullRequest::find(
         &github_id(
             &json.pull_request.base.repo.full_name,
@@ -90,7 +82,7 @@ fn handle_pull_request_closed(
     Ok(prepare_response(""))
 }
 
-pub fn pull_request(json: Json<PullRequestEvent>, state: Data<AppConfig>) -> Result<HttpResponse> {
+pub fn pull_request(json: Json<PullRequestEvent>, state: AppData) -> Result<HttpResponse> {
     match json.action {
         PRAction::Opened | PRAction::ReadyForReview => handle_pull_request_opened(state, json.0),
         PRAction::Closed => handle_pull_request_closed(state, json.0),
@@ -101,14 +93,14 @@ pub fn pull_request(json: Json<PullRequestEvent>, state: Data<AppConfig>) -> Res
     }
 }
 
-pub fn review(json: Json<ReviewEvent>, state: Data<AppConfig>) -> Result<HttpResponse> {
+pub fn review(json: Json<ReviewEvent>, state: AppData) -> Result<HttpResponse> {
     match json.action {
         ReviewAction::Submitted => handle_review_submitted(state, json.0),
         _ => Ok(prepare_response("")),
     }
 }
 
-fn handle_review_submitted(state: Data<AppConfig>, json: ReviewEvent) -> Result<HttpResponse> {
+fn handle_review_submitted(state: AppData, json: ReviewEvent) -> Result<HttpResponse> {
     if json.review.user.login == json.pull_request.user.login {
         return Err(Error::GuardError("Reviewer same as opened pull request"));
     }

@@ -143,12 +143,12 @@ impl fmt::Display for Reaction {
 impl SlackClient {
     #[allow(clippy::new_ret_no_self)]
     pub fn new(
-        url: String,
         token: &str,
-        channel: String,
-        client_id: String,
-        client_secret: String,
+        channel: &str,
+        client_id: &str,
+        client_secret: &str,
     ) -> Result<SlackClient> {
+        let url = "https://slack.com/api/".to_owned();
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
             reqwest::header::AUTHORIZATION,
@@ -161,9 +161,9 @@ impl SlackClient {
         Ok(SlackClient {
             url,
             client,
-            channel,
-            client_id,
-            client_secret,
+            channel: channel.to_owned(),
+            client_id: client_id.to_owned(),
+            client_secret: client_secret.to_owned(),
         })
     }
 

@@ -1,6 +1,6 @@
 use actix_session::Session;
 use actix_web::{
-    web::{Data, Form, Path, Query},
+    web::{Form, Path, Query},
     HttpResponse,
 };
 use actix_web_flash::{FlashMessage, FlashResponse};
@@ -12,7 +12,7 @@ use crate::github;
 use crate::models::{NewWebhook, User, Webhook};
 use crate::utils::helpers::get_current_user;
 use crate::utils::paginated_resource;
-use crate::AppConfig;
+use crate::AppData;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Flash {
@@ -78,7 +78,7 @@ struct IndexTemplate<'a> {
 }
 
 pub fn root(
-    state: Data<AppConfig>,
+    state: AppData,
     session: Session,
     params: Query<paginated_resource::PaginationParams>,
     flash_message: Option<FlashMessage<Flash>>,
@@ -136,7 +136,7 @@ pub struct WebhookParams {
 
 pub fn create_webhook(
     form: Form<WebhookParams>,
-    state: Data<AppConfig>,
+    state: AppData,
     session: Session,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
     let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
@@ -152,7 +152,7 @@ pub fn create_webhook(
                 name: form.name.clone(),
                 id: "".to_owned(),
             },
-            &state.webhook_url,
+            &state.webhook_url(),
             &access_token,
         )
         .and_then(|webhook| {
@@ -173,7 +173,7 @@ pub fn create_webhook(
 }
 
 pub fn delete_webhook(
-    state: Data<AppConfig>,
+    state: AppData,
     session: Session,
     path: Path<(i32,)>,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
