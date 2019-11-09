@@ -10,10 +10,10 @@ use std::fmt;
 use crate::db::DBExecutor;
 use crate::error::{Error, Result};
 use crate::github;
-use crate::models::{NewWebhook, User, Webhook};
+use crate::models::{Config, NewWebhook, User, Webhook};
 use crate::utils::helpers::get_current_user;
 use crate::utils::paginated_resource;
-use crate::AppData;
+use crate::{AppConfig, AppData};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Flash {
@@ -193,6 +193,62 @@ pub fn delete_webhook(
     Ok(FlashResponse::with_redirect(
         Flash::from_result(result, "Webhook Deleted!"),
         "/",
+    ))
+}
+
+#[derive(Template)]
+#[template(path = "setup/new.html")]
+struct NewSetup;
+
+pub fn new_setup() -> Result<HttpResponse> {
+    build_response(NewSetup.render()?)
+}
+
+#[derive(Deserialize)]
+pub struct SetupData {
+    slack_client_id: String,
+    slack_client_secret: String,
+    slack_token: String,
+    slack_channel: String,
+    github_client_id: String,
+    github_client_secret: String,
+    app_url: String,
+}
+
+pub fn create_setup(
+    form: Form<SetupData>,
+    db: Data<DBExecutor>,
+    config: Data<AppConfig>,
+) -> Result<FlashResponse<HttpResponse, Flash>> {
+    let mut builder = config.builder.lock().expect("Builder not available");
+
+    *builder = builder
+        .clone()
+        .slack(
+            &form.slack_client_id,
+            &form.slack_client_secret,
+            &form.slack_channel,
+            &form.slack_token,
+        )
+        .github(&form.github_client_id, &form.github_client_secret)
+        .app_url(&form.app_url);
+
+    Config::create(
+        &[
+            Config::new("slack_client_id", &form.slack_client_id),
+            Config::new("slack_client_secret", &form.slack_client_secret),
+            Config::new("slack_channel", &form.slack_channel),
+            Config::new("slack_token", &form.slack_token),
+            Config::new("github_client_id", &form.github_client_id),
+            Config::new("github_client_secret", &form.github_client_secret),
+            Config::new("app_url", &form.app_url),
+        ],
+        &db,
+    )?;
+
+    Ok(FlashResponse::with_redirect(
+        Flash::from_result(Ok(()), "Setup Complete!"),
+        "/setup",
     ))
 }
 

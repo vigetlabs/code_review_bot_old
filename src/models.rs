@@ -14,6 +14,13 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new(key: &str, value: &str) -> Config {
+        Config {
+            key: key.to_owned(),
+            value: value.to_owned(),
+        }
+    }
+
     pub fn all(db: &DBExecutor) -> Result<Vec<Config>> {
         use crate::schema::configs::dsl::*;
         let conn = db.0.get()?;
@@ -21,13 +28,13 @@ impl Config {
         configs.load(&conn).map_err(|e| e.into())
     }
 
-    pub fn create(&self, db: &DBExecutor) -> Result<Config> {
+    pub fn create(new_configs: &[Self], db: &DBExecutor) -> Result<Vec<Config>> {
         use crate::schema::configs::dsl::*;
         let conn = db.0.get()?;
 
         diesel::insert_into(configs)
-            .values(self)
-            .get_result(&conn)
+            .values(new_configs)
+            .get_results(&conn)
             .map_err(|e| e.into())
     }
 }

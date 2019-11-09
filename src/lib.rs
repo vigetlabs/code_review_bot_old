@@ -61,6 +61,11 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             web::post().to(routes::slack_webhook::message),
         )
         .service(
+            web::resource("/setup")
+                .route(web::get().to(routes::web::new_setup))
+                .route(web::post().to(routes::web::create_setup)),
+        )
+        .service(
             web::scope("/webhooks")
                 .route("", web::post().to(routes::web::create_webhook))
                 .route("/{id}", web::post().to(routes::web::delete_webhook)),
