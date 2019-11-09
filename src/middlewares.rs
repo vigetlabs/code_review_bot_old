@@ -48,20 +48,18 @@ where
         let config = req
             .app_data::<AppConfig>()
             .expect("AppConfig must be setup");
-        let data_builder = config.builder.clone();
-        let mut app_data = config.data.lock().expect("Builder can't be accessed");
 
-        if app_data.is_some() {
-            return Either::A(self.service.call(req));
-        }
+        let app_data = {
+            let data_builder = config.builder.lock().expect("Builder can't be accessed");
+            let mut app_data = config.data.lock().expect("Data can't be accessed");
 
-        if data_builder.is_complete() {
-            *app_data = data_builder.build();
-            return Either::A(self.service.call(req));
-        }
+            if data_builder.is_complete() && app_data.is_none() {
+                *app_data = data_builder.clone().build();
+            }
+            app_data.clone()
+        };
 
-        // Don't forward to /setup if we are already on /setup
-        if req.path() == "/setup" {
+        if app_data.is_some() || req.path() == "/setup" {
             Either::A(self.service.call(req))
         } else {
             Either::B(ok(req.into_response(

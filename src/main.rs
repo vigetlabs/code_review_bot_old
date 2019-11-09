@@ -60,7 +60,7 @@ fn main() {
 
     let mut builder = AppData::new();
 
-    if configs.contains_key("githbub_client_id") && configs.contains_key("github_client_secret") {
+    if configs.contains_key("github_client_id") && configs.contains_key("github_client_secret") {
         builder = builder.github(
             configs.get("github_client_id").unwrap(),
             configs.get("github_client_secret").unwrap(),

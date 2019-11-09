@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Setup{% endblock %}
+
+{% block content %}
+<h2>Setup</h2>
+
+<form action="/setup" method="POST">
+    <h3>Slack</h3>
+    <label>Client ID <input type="text" name="slack_client_id" /></label>
+    <label>Client Secret <input type="text" name="slack_client_secret" /></label>
+    <label>Token <input type="text" name="slack_token" /></label>
+    <label>Channel <input type="text" name="slack_channel" /></label>
+
+    <h3>Github</h3>
+    <label>Client ID <input type="text" name="github_client_id" /></label>
+    <label>Client Secret <input type="text" name="github_client_secret" /></label>
+
+    <h3>App</h3>
+    <label>App Url <input type="text" name="app_url" /></label>
+    <button>Finish Setup</button>
+</form>
+
+{% endblock %}
