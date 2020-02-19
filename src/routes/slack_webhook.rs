@@ -5,7 +5,7 @@ use actix_web::{
 
 use crate::error::{Error, Result};
 use crate::github::{PRResult, ReviewRequest};
-use crate::models::{GithubUser, NewPullRequest, PullRequest as PullRequestModel};
+use crate::models::{GithubUser, IconMapping, NewPullRequest, PullRequest as PullRequestModel};
 use crate::slack::{attachment, extract_links, SlackRequest};
 use crate::utils::prepare_response;
 use crate::AppConfig;
@@ -20,13 +20,28 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
 
     let pull_request = form.text.to_lowercase().parse()?;
     let pr_response = state.github.get_pr(&pull_request)?;
-    let pr_files = state
+    let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&pr_response, &state.language_lookup)?;
+        .get_files(&pr_response)
+        .map(|files| {
+            files
+                .into_iter()
+                .map(|file| (file.filename(), file.extension()))
+        })?
+        .unzip();
+    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
+    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
+    extensions.dedup();
 
-    state
-        .slack
-        .post_message(&pr_response, &pr_files, &form.channel_id, None)?;
+    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+
+    state.slack.post_message(
+        &pr_response,
+        mappings,
+        &form.channel_id,
+        &state.app_url,
+        None,
+    )?;
     let message = state.slack.immediate_response(
         "To have these automatically posted for you see: \
         <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\

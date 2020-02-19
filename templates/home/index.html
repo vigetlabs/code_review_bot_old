@@ -4,6 +4,7 @@
 
 {% block content %}
 {% include "shared/flash.html" %}
+<a href="/icons">Manage Icons</a>
 
 <h2>Repos</h2>
 <ul>
@@ -12,12 +13,12 @@
         {% if repo.permissions.admin %}
         {% match hook %}
         {% when Some with (hook) %}
-        <form action="/webhook/{{hook.id}}" method="POST">
+        <form action="/webhooks/{{hook.id}}" method="POST">
             <input type="hidden" name="_method" value="delete" />
             <button>Remove Webhook</button>
         </form>
         {% when None %}
-        <form action="/webhook" method="POST">
+        <form action="/webhooks" method="POST">
             <input type="hidden" value="{{repo.owner.login}}" name="owner">
             <input type="hidden" value="{{repo.name}}" name="name">
             <button>Add Webhook</button>

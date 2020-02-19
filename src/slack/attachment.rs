@@ -1,5 +1,3 @@
-use crate::github;
-
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Field {
     title: String,
@@ -24,36 +22,4 @@ pub struct Attachment {
     footer: Option<String>,
     footer_icon: Option<String>,
     ts: Option<u64>,
-}
-
-impl Attachment {
-    pub fn from_pull_request(
-        pull_request: &github::PRResult,
-        files: &str,
-        title: &str,
-    ) -> Attachment {
-        let color = pull_request.color();
-        let text = format!(
-            "<{}|{}> by {} {}",
-            pull_request.html_url, pull_request.base.repo.full_name, pull_request.user.login, files
-        );
-
-        Attachment {
-            fallback: format!("{}", pull_request),
-            color: Some(color),
-            pretext: None,
-            author_name: None,
-            author_link: None,
-            author_icon: None,
-            title: Some(title.to_owned()),
-            title_link: None,
-            text,
-            fields: None,
-            image_url: None,
-            thumb_url: None,
-            footer: None,
-            footer_icon: None,
-            ts: None,
-        }
-    }
 }

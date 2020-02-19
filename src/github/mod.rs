@@ -103,10 +103,11 @@ pub struct Repo {
     pub owner: User,
     pub name: String,
     pub full_name: String,
+    #[serde(default)]
     pub permissions: RepoPermissions,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug, Default)]
 pub struct RepoPermissions {
     pub admin: bool,
     pub push: bool,
@@ -145,7 +146,7 @@ pub enum PRState {
 }
 
 #[derive(Deserialize)]
-struct FileResult {
+pub struct FileResult {
     filename: String,
 }
 
@@ -155,6 +156,13 @@ impl FileResult {
             .extension()
             .and_then(|os_str| os_str.to_str())
             .map(|string| format!(".{}", string).to_string())
+    }
+
+    pub fn filename(&self) -> Option<String> {
+        Path::new(&self.filename)
+            .file_name()
+            .and_then(|os_str| os_str.to_str())
+            .map(|string| string.to_owned())
     }
 }
 
@@ -174,13 +182,13 @@ impl fmt::Display for PRResult {
 }
 
 impl PRResult {
-    pub fn color(&self) -> String {
+    pub fn image_path(&self) -> String {
         if let PRState::Open = self.state {
-            "#34d058".to_string()
+            "/public/images/open.png".to_string()
         } else if self.merged {
-            "#6f42c1".to_string()
+            "/public/images/merged.png".to_string()
         } else {
-            "#cb2431".to_string()
+            "/public/images/closed.png".to_string()
         }
     }
 

@@ -1,4 +1,5 @@
 pub mod attachment;
+mod blocks;
 mod helpers;
 
 use base64::encode;
@@ -14,7 +15,7 @@ pub use helpers::extract_links;
 #[derive(Serialize, Debug)]
 pub struct SlackMessageResponse {
     text: Option<String>,
-    attachments: Option<Vec<attachment::Attachment>>,
+    blocks: Option<Vec<blocks::Block>>,
     response_type: String,
     username: Option<String>,
     as_user: bool,
@@ -25,7 +26,7 @@ pub struct SlackMessageResponse {
 pub struct SlackMessagePost {
     text: Option<String>,
     channel: String,
-    attachments: Option<Vec<attachment::Attachment>>,
+    blocks: Option<Vec<blocks::Block>>,
     username: Option<String>,
     as_user: bool,
     icon_url: Option<String>,
@@ -34,7 +35,7 @@ pub struct SlackMessagePost {
 #[derive(Serialize, Debug)]
 pub struct SlackMessageUpdate {
     as_user: Option<bool>,
-    attachments: Option<Vec<attachment::Attachment>>,
+    blocks: Option<Vec<blocks::Block>>,
     channel: String,
     text: Option<String>,
     ts: String,
@@ -171,21 +172,22 @@ impl SlackClient {
     pub fn post_message(
         &self,
         pull_request: &github::PRResult,
-        files: &str,
+        files: Vec<crate::models::IconMapping>,
         channel: &str,
+        url: &str,
         user: Option<models::User>,
     ) -> Result<SlackMessagePostResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
-        let title = format!("{} {}", additions, pull_request.title);
         let as_user = user.is_some();
 
         let message = serde_json::to_string(&SlackMessagePost {
             text: None,
-            attachments: Some(vec![attachment::Attachment::from_pull_request(
+            blocks: Some(blocks::Block::from_pull_request(
                 pull_request,
                 files,
-                &title,
-            )]),
+                &additions,
+                url,
+            )),
             channel: channel.to_string(),
             username: None,
             icon_url: Some(pull_request.user.avatar_url.to_string()),
@@ -216,22 +218,23 @@ impl SlackClient {
     pub fn update_message(
         &self,
         pull_request: &github::PRResult,
-        files: &str,
+        files: Vec<crate::models::IconMapping>,
         ts: &str,
         channel: &str,
+        url: &str,
         user: Option<models::User>,
     ) -> Result<SlackMessageUpdateResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
-        let title = format!("{} {}", additions, pull_request.title);
         let as_user = user.is_some();
 
         let message = serde_json::to_string(&SlackMessageUpdate {
             text: None,
-            attachments: Some(vec![attachment::Attachment::from_pull_request(
+            blocks: Some(blocks::Block::from_pull_request(
                 pull_request,
                 files,
-                &title,
-            )]),
+                &additions,
+                url,
+            )),
             channel: channel.to_string(),
             as_user: Some(as_user),
             ts: ts.to_string(),
@@ -258,7 +261,7 @@ impl SlackClient {
     pub fn immediate_response(&self, text: String) -> Result<String> {
         serde_json::to_string(&SlackMessageResponse {
             text: Some(text),
-            attachments: None,
+            blocks: None,
             response_type: "ephemeral".to_string(),
             username: None,
             as_user: true,
@@ -270,7 +273,7 @@ impl SlackClient {
     pub fn reviews_response(&self, text: &str, channel_id: &str) -> Result<()> {
         let response = serde_json::to_string(&SlackMessageResponse {
             text: Some(text.to_string()),
-            attachments: None,
+            blocks: None,
             response_type: "in_channel".to_string(),
             username: Some("Waiting for Review".to_string()),
             as_user: false,
