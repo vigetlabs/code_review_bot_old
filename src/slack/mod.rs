@@ -1,6 +1,5 @@
 pub mod attachment;
 mod blocks;
-mod helpers;
 
 use base64::encode;
 use reqwest;
@@ -9,8 +8,6 @@ use std::fmt;
 use crate::error::{Error, Result};
 use crate::github;
 use crate::models;
-
-pub use helpers::extract_links;
 
 #[derive(Serialize, Debug)]
 pub struct SlackMessageResponse {
@@ -76,6 +73,7 @@ pub struct SlackRequest {
     token: String,
     pub response_url: String,
     pub channel_id: String,
+    pub user_id: String,
 }
 
 #[derive(Clone)]

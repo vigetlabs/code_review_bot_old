@@ -18,20 +18,13 @@ pub struct GithubClient {
 
 impl GithubClient {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(url: String, token: &str) -> Result<GithubClient> {
-        let mut headers = reqwest::header::HeaderMap::new();
-        headers.insert(
-            reqwest::header::AUTHORIZATION,
-            reqwest::header::HeaderValue::from_str(&format!("bearer {}", token)).unwrap(),
-        );
-        let client = reqwest::Client::builder()
-            .default_headers(headers)
-            .build()?;
+    pub fn new(url: String) -> Self {
+        let client = reqwest::Client::new();
 
-        Ok(GithubClient { url, client })
+        Self { url, client }
     }
 
-    pub fn get_pr(&self, pull_request: &ReviewRequest) -> Result<PRResult> {
+    pub fn get_pr(&self, pull_request: &ReviewRequest, token: &str) -> Result<PRResult> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/pulls/{id}",
             url = self.url,
@@ -40,20 +33,20 @@ impl GithubClient {
             id = pull_request.id
         );
 
-        self.get_json(&request_url, None)
+        self.get_json(&request_url, token)
     }
 
-    pub fn get_files(&self, pull_request: &PRResult) -> Result<Vec<FileResult>> {
+    pub fn get_files(&self, pull_request: &PRResult, token: &str) -> Result<Vec<FileResult>> {
         let request_url = format!("{}/files", pull_request.url);
 
-        self.get_json(&request_url, None)
+        self.get_json(&request_url, token)
     }
 
     pub fn create_webhook(
         &self,
         pull_request: &ReviewRequest,
         webhook_url: &str,
-        token: Option<String>,
+        token: &str,
     ) -> Result<Webhook> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/hooks",
@@ -62,7 +55,7 @@ impl GithubClient {
             repo = pull_request.name,
         );
 
-        let hooks: Vec<Webhook> = self.get_json(&request_url, token.clone())?;
+        let hooks: Vec<Webhook> = self.get_json(&request_url, token)?;
 
         hooks
             .iter()
@@ -77,7 +70,7 @@ impl GithubClient {
             )
     }
 
-    pub fn delete_webhook(&self, hook: &models::Webhook, token: Option<String>) -> Result<()> {
+    pub fn delete_webhook(&self, hook: &models::Webhook, token: &str) -> Result<()> {
         let request_url = format!(
             "{url}/repos/{owner}/{repo}/hooks/{hook_id}",
             url = self.url,
@@ -92,7 +85,7 @@ impl GithubClient {
     pub fn get_user(&self, access_token: &str) -> Result<User> {
         let request_url = format!("{url}/user", url = self.url,);
 
-        self.get_json(&request_url, Some(access_token.to_owned()))
+        self.get_json(&request_url, access_token)
     }
 
     pub fn get_repos(
@@ -107,53 +100,52 @@ impl GithubClient {
             page = params.page.as_ref().unwrap_or(&"1".to_owned()),
         );
 
-        self.get(&request_url, Some(access_token.to_owned()))
-            .and_then(|mut res| {
-                let resources: Vec<Repo> = res.json()?;
-                let link_header = res.headers().get(reqwest::header::LINK);
+        self.get(&request_url, access_token).and_then(|mut res| {
+            let resources: Vec<Repo> = res.json()?;
+            let link_header = res.headers().get(reqwest::header::LINK);
 
-                if let Some(link_str) = link_header {
-                    let link = hyperx::header::Link::from_str(link_str.to_str()?)?;
-                    PaginatedResource::new(resources, link.values())
-                } else {
-                    PaginatedResource::new(resources, &[])
-                }
-            })
+            if let Some(link_str) = link_header {
+                let link = hyperx::header::Link::from_str(link_str.to_str()?)?;
+                PaginatedResource::new(resources, link.values())
+            } else {
+                PaginatedResource::new(resources, &[])
+            }
+        })
     }
 
-    fn get_json<T>(&self, url: &str, token: Option<String>) -> Result<T>
+    fn get_json<T>(&self, url: &str, token: &str) -> Result<T>
     where
         T: DeserializeOwned,
     {
         self.get(url, token)?.json().map_err(|e| e.into())
     }
 
-    fn get(&self, url: &str, token: Option<String>) -> Result<reqwest::Response> {
+    fn get(&self, url: &str, token: &str) -> Result<reqwest::Response> {
         self.client
             .get(url)
-            .maybe_add_token(token)
+            .add_token(token)
             .send()?
             .error_for_status()
             .map_err(|e| e.into())
     }
 
-    fn delete(&self, url: &str, token: Option<String>) -> Result<reqwest::Response> {
+    fn delete(&self, url: &str, token: &str) -> Result<reqwest::Response> {
         self.client
             .delete(url)
-            .maybe_add_token(token)
+            .add_token(token)
             .send()?
             .error_for_status()
             .map_err(|e| e.into())
     }
 
-    fn post_json<T>(&self, url: &str, body: &str, token: Option<String>) -> Result<T>
+    fn post_json<T>(&self, url: &str, body: &str, token: &str) -> Result<T>
     where
         T: DeserializeOwned,
     {
         self.client
             .post(url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
-            .maybe_add_token(token)
+            .add_token(token)
             .body(body.to_owned())
             .send()?
             .error_for_status()?

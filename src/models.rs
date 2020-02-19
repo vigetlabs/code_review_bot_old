@@ -243,11 +243,21 @@ impl User {
         use crate::schema::users::dsl::*;
         let conn = db.0.get()?;
 
-        match users.find(find_id).first(&conn) {
-            Ok(user) => Ok(Some(user)),
-            Err(diesel::result::Error::NotFound) => Ok(None),
-            Err(err) => Err(err.into()),
-        }
+        users
+            .find(find_id)
+            .first(&conn)
+            .optional()
+            .map_err(|e| e.into())
+    }
+    pub fn find_by_slack_id(slack_id: &str, db: &DBExecutor) -> Result<Option<User>> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+
+        users
+            .filter(slack_user_id.eq(slack_id))
+            .first(&conn)
+            .optional()
+            .map_err(|e| e.into())
     }
 
     pub fn connect_to_github_user(
