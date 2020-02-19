@@ -42,7 +42,6 @@ fn main() {
     env_logger::init();
 
     // Load variables and language lookup
-    let github_token = std::env::var("GITHUB_TOKEN").expect("Can't find var GITHUB_TOKEN");
     let github_client_id =
         std::env::var("GITHUB_CLIENT_ID").expect("Can't find var GITHUB_CLIENT_ID");
     let github_client_secret =
@@ -64,7 +63,6 @@ fn main() {
 
     // Create AppConfig
     let app_config = AppConfig::new(
-        &github_token,
         &github_client_id,
         &github_client_secret,
         &slack_token,

@@ -4,7 +4,9 @@ use actix_web::{
 };
 
 use crate::error::{Error, Result};
-use crate::github::{PRAction, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent};
+use crate::github::{
+    PRAction, PRFiles, PRReviewState, PullRequestEvent, ReviewAction, ReviewEvent,
+};
 use crate::models::{GithubUser, IconMapping, NewPullRequest, PullRequest, Review, User};
 use crate::slack::Reaction;
 use crate::utils::{app_config::AppConfig, prepare_response};
@@ -23,20 +25,12 @@ fn handle_pull_request_opened(
         .and_then(|id| User::find(id, &state.db).ok())
         .and_then(|inner| inner);
 
-    let (filenames, extensions): (Vec<_>, Vec<_>) = state
-        .github
-        .get_files(&json.pull_request)
-        .map(|files| {
-            files
-                .into_iter()
-                .map(|file| (file.filename(), file.extension()))
-        })?
-        .unzip();
-    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
-    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
-    extensions.dedup();
-
-    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+    let pr_files = PRFiles::new(
+        &json.pull_request,
+        &state.github,
+        user.clone().and_then(|u| u.github_access_token),
+    );
+    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &state.db)?;
 
     let result = state.slack.post_message(
         &json.pull_request,
@@ -78,20 +72,12 @@ fn handle_pull_request_closed(
     .update("closed", &state.db)?;
     let user = db_pr.user(&state.db)?;
 
-    let (filenames, extensions): (Vec<_>, Vec<_>) = state
-        .github
-        .get_files(&json.pull_request)
-        .map(|files| {
-            files
-                .into_iter()
-                .map(|file| (file.filename(), file.extension()))
-        })?
-        .unzip();
-    let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
-    let mut extensions: Vec<String> = extensions.into_iter().filter_map(|o| o).collect();
-    extensions.dedup();
-
-    let mappings = IconMapping::from(filenames, extensions, &state.db)?;
+    let pr_files = PRFiles::new(
+        &json.pull_request,
+        &state.github,
+        user.clone().and_then(|u| u.github_access_token),
+    );
+    let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &state.db)?;
 
     state.slack.update_message(
         &json.pull_request,

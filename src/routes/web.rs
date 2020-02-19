@@ -140,6 +140,9 @@ pub fn create_webhook(
     session: Session,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
     let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
+    let access_token = current_user
+        .github_access_token
+        .ok_or(Error::NotAuthedError)?;
 
     let result = state
         .github
@@ -150,7 +153,7 @@ pub fn create_webhook(
                 id: "".to_owned(),
             },
             &state.webhook_url,
-            current_user.github_access_token,
+            &access_token,
         )
         .and_then(|webhook| {
             Webhook::create(
@@ -175,10 +178,11 @@ pub fn delete_webhook(
     path: Path<(i32,)>,
 ) -> Result<FlashResponse<HttpResponse, Flash>> {
     let current_user = get_current_user(&state, &session)?.ok_or(Error::NotAuthedError)?;
+    let access_token = current_user
+        .github_access_token
+        .ok_or(Error::NotAuthedError)?;
     let result = Webhook::find(path.0, &state.db).and_then(|webhook| {
-        state
-            .github
-            .delete_webhook(&webhook, current_user.github_access_token)?;
+        state.github.delete_webhook(&webhook, &access_token)?;
         webhook.delete(&state.db)
     });
 

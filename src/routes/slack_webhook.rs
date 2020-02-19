@@ -3,14 +3,24 @@ use actix_web::{
     HttpResponse,
 };
 
-use crate::error::{Error, Result};
-use crate::github::{PRResult, ReviewRequest};
-use crate::models::{GithubUser, IconMapping, NewPullRequest, PullRequest as PullRequestModel};
-use crate::slack::{attachment, extract_links, SlackRequest};
+use crate::error::Result;
+use crate::models::{IconMapping, PullRequest as PullRequestModel, User};
+use crate::slack::{attachment, SlackRequest};
 use crate::utils::prepare_response;
 use crate::AppConfig;
 
 pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpResponse> {
+    let access_token = if let Some(token) =
+        User::find_by_slack_id(&form.user_id, &state.db)?.and_then(|user| user.github_access_token)
+    {
+        token
+    } else {
+        let res = state.slack.immediate_response(
+            "To submit a pull request you must first sign in and connect your account to github."
+                .to_string(),
+        )?;
+        return Ok(prepare_response(&res));
+    };
     if form.text.trim().is_empty() {
         let res = state.slack.immediate_response(
                 "Specify pull request For example: /code_review_bot http://github.com/facebook/react/pulls/123".to_string(),
@@ -19,10 +29,10 @@ pub fn review(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpRe
     }
 
     let pull_request = form.text.to_lowercase().parse()?;
-    let pr_response = state.github.get_pr(&pull_request)?;
+    let pr_response = state.github.get_pr(&pull_request, &access_token)?;
     let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&pr_response)
+        .get_files(&pr_response, &access_token)
         .map(|files| {
             files
                 .into_iter()
@@ -70,18 +80,7 @@ pub fn reviews(form: Form<SlackRequest>, state: Data<AppConfig>) -> Result<HttpR
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum SlackEventWrapper {
-    UrlVerification {
-        token: String,
-        challenge: String,
-    },
-    EventCallback {
-        token: String,
-        team_id: String,
-        api_app_id: String,
-        event: SlackEvent,
-        event_id: String,
-        event_time: u32,
-    },
+    UrlVerification { token: String, challenge: String },
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -103,12 +102,11 @@ pub struct UrlVerification {
     challenge: String,
 }
 
-pub fn message((json, state): (Json<SlackEventWrapper>, Data<AppConfig>)) -> Result<HttpResponse> {
+pub fn message(json: Json<SlackEventWrapper>) -> Result<HttpResponse> {
     let Json(event_wrapper) = json;
 
     match event_wrapper {
         SlackEventWrapper::UrlVerification { challenge, .. } => handle_url_verification(challenge),
-        SlackEventWrapper::EventCallback { event, .. } => handle_event(event, state),
     }
 }
 
@@ -116,70 +114,4 @@ fn handle_url_verification(challenge: String) -> Result<HttpResponse> {
     let res = serde_json::to_string(&UrlVerification { challenge })?;
 
     Ok(prepare_response(&res))
-}
-
-fn handle_event(event: SlackEvent, state: Data<AppConfig>) -> Result<HttpResponse> {
-    let SlackEvent::Message {
-        mut text,
-        channel,
-        ts,
-        subtype,
-        attachments,
-        ..
-    } = event.clone();
-
-    if subtype.is_some() && subtype.unwrap_or_else(|| "".to_string()) != "bot_message" {
-        return Ok(prepare_response(""));
-    }
-
-    if let Some(atts) = attachments {
-        text = format!(
-            "{}{}",
-            text,
-            atts.iter()
-                .map(|att| att.fallback.clone())
-                .collect::<Vec<String>>()
-                .join("")
-        );
-    }
-
-    let result = extract_links(&text)
-        .iter()
-        .filter_map(|url| url.parse::<ReviewRequest>().ok())
-        .filter_map(|pr| state.github.get_pr(&pr).map(|res| (pr, res)).ok())
-        .nth(0)
-        .ok_or_else(|| Error::GuardError("No PR"))?;
-
-    let (pr, res) = result;
-
-    if res.open() {
-        return Err(Error::GuardError("PR Already Closed"));
-    }
-
-    let db_pr = PullRequestModel::find(&github_id(&res), &state.db);
-
-    if db_pr.is_ok() {
-        return Err(Error::GuardError("PR Already Closed"));
-    }
-
-    state.github.create_webhook(&pr, &state.webhook_url, None)?;
-
-    let requester = GithubUser::find_or_create(&res.user, &state.db, None)?;
-    PullRequestModel::create(
-        &NewPullRequest {
-            github_id: github_id(&res),
-            state: "open".to_string(),
-            slack_message_id: ts.to_string(),
-            channel: channel.to_string(),
-            display_text: format!("{}", res),
-            github_user_id: requester.id,
-        },
-        &state.db,
-    )?;
-
-    Ok(prepare_response(""))
-}
-
-fn github_id(pr: &PRResult) -> String {
-    format!("{}-{}", pr.base.repo.full_name, pr.number)
 }

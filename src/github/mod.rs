@@ -9,6 +9,8 @@ pub use github_client::GithubClient;
 pub use github_oauth_client::GithubOauthClient;
 pub use review_request::ReviewRequest;
 
+use crate::error;
+
 #[derive(Deserialize, Debug)]
 pub struct PullRequestEvent {
     pub number: u32,
@@ -241,5 +243,37 @@ impl NewWebhook {
                 secret: Some("update-only".to_string()),
             },
         }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct PRFiles {
+    pub extensions: Vec<String>,
+    pub filenames: Vec<String>,
+}
+
+impl PRFiles {
+    pub fn new(pull_request: &PRResult, client: &GithubClient, token: Option<String>) -> Self {
+        token
+            .ok_or_else(|| error::Error::ServerError("No token".to_owned()))
+            .and_then(|token| client.get_files(pull_request, &token))
+            .map(|files| {
+                files
+                    .into_iter()
+                    .map(|file| (file.filename(), file.extension()))
+            })
+            .map(|file_info| file_info.unzip())
+            .map(|(filenames, extensions): (Vec<_>, Vec<_>)| {
+                let filenames: Vec<String> = filenames.into_iter().filter_map(|o| o).collect();
+                let mut extensions: Vec<String> =
+                    extensions.into_iter().filter_map(|o| o).collect();
+                extensions.dedup();
+
+                PRFiles {
+                    extensions,
+                    filenames,
+                }
+            })
+            .unwrap_or_default()
     }
 }

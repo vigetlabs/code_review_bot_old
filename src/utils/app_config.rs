@@ -18,7 +18,6 @@ impl AppConfig {
     // TODO: Builder pattern
     #[allow(clippy::new_ret_no_self, clippy::too_many_arguments)]
     pub fn new(
-        github_token: &str,
         github_client_id: &str,
         github_client_secret: &str,
         slack_token: &str,
@@ -34,7 +33,7 @@ impl AppConfig {
         let slack_url = "https://slack.com/api/".to_string();
 
         Ok(AppConfig {
-            github: GithubClient::new(github_url, &github_token)?,
+            github: GithubClient::new(github_url),
             github_oauth: GithubOauthClient::new(&github_client_id, &github_client_secret),
             slack: SlackClient::new(
                 slack_url,
