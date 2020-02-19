@@ -157,7 +157,7 @@ impl FileResult {
         Path::new(&self.filename)
             .extension()
             .and_then(|os_str| os_str.to_str())
-            .map(|string| format!(".{}", string).to_string())
+            .map(|string| format!(".{}", string))
     }
 
     pub fn filename(&self) -> Option<String> {

@@ -51,7 +51,7 @@ fn main() {
     // Setup database
     let manager = ConnectionManager::<PgConnection>::new(database_url);
     let pool = Pool::new(manager).expect("Can't create conneciton pool");
-    let db = db::DBExecutor(pool.clone());
+    let db = db::DBExecutor(pool);
     let config_rows = Config::all(&db).expect("Can't get configurations");
     let configs: HashMap<&str, &str> = config_rows
         .iter()
