@@ -10,7 +10,7 @@ use crate::slack::{attachment, SlackRequest};
 use crate::utils::prepare_response;
 use crate::AppData;
 
-pub fn review(
+pub async fn review(
     form: Form<SlackRequest>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -34,10 +34,10 @@ pub fn review(
     }
 
     let pull_request = form.text.to_lowercase().parse()?;
-    let pr_response = state.github.get_pr(&pull_request, &access_token)?;
+    let pr_response = state.github.get_pr(&pull_request, &access_token).await?;
     let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&pr_response, &access_token)
+        .get_files(&pr_response, &access_token).await
         .map(|files| {
             files
                 .into_iter()
@@ -56,7 +56,7 @@ pub fn review(
         &form.channel_id,
         &state.app_url,
         None,
-    )?;
+    ).await?;
     let message = state.slack.immediate_response(
         "To have these automatically posted for you see: \
         <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
@@ -66,7 +66,7 @@ pub fn review(
     Ok(prepare_response(&message))
 }
 
-pub fn reviews(
+pub async fn reviews(
     form: Form<SlackRequest>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -81,7 +81,7 @@ pub fn reviews(
 
     state
         .slack
-        .reviews_response(&open_prs.join("\n"), &form.channel_id)?;
+        .reviews_response(&open_prs.join("\n"), &form.channel_id).await?;
     Ok(prepare_response(""))
 }
 
@@ -111,7 +111,7 @@ pub struct UrlVerification {
     challenge: String,
 }
 
-pub fn message(json: Json<SlackEventWrapper>) -> Result<HttpResponse> {
+pub async fn message(json: Json<SlackEventWrapper>) -> Result<HttpResponse> {
     let Json(event_wrapper) = json;
 
     match event_wrapper {

@@ -167,7 +167,7 @@ impl SlackClient {
         })
     }
 
-    pub fn post_message(
+    pub async fn post_message(
         &self,
         pull_request: &github::PRResult,
         files: Vec<crate::models::IconMapping>,
@@ -206,14 +206,14 @@ impl SlackClient {
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send()?
+            .send().await?
             .error_for_status()?
-            .json::<SlackMessagePostResponse>()
+            .json::<SlackMessagePostResponse>().await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
 
-    pub fn update_message(
+    pub async fn update_message(
         &self,
         pull_request: &github::PRResult,
         files: Vec<crate::models::IconMapping>,
@@ -249,9 +249,9 @@ impl SlackClient {
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send()?
+            .send().await?
             .error_for_status()?
-            .json::<SlackMessageUpdateResponse>()
+            .json::<SlackMessageUpdateResponse>().await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
@@ -268,7 +268,7 @@ impl SlackClient {
         .map_err(|e| e.into())
     }
 
-    pub fn reviews_response(&self, text: &str, channel_id: &str) -> Result<()> {
+    pub async fn reviews_response(&self, text: &str, channel_id: &str) -> Result<()> {
         let response = serde_json::to_string(&SlackMessageResponse {
             text: Some(text.to_string()),
             blocks: None,
@@ -282,12 +282,12 @@ impl SlackClient {
             .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(response)
-            .send()?;
+            .send().await?;
 
         Ok(())
     }
 
-    pub fn add_reaction(
+    pub async fn add_reaction(
         &self,
         reaction: &Reaction,
         ts: &str,
@@ -314,14 +314,14 @@ impl SlackClient {
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send()?
+            .send().await?
             .error_for_status()?
-            .json()
+            .json().await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
 
-    pub fn get_token(&self, code: &str) -> Result<SlackAuthResponse> {
+    pub async fn get_token(&self, code: &str) -> Result<SlackAuthResponse> {
         let auth_code = encode(&format!("{}:{}", self.client_id, self.client_secret));
         let mut headers = reqwest::header::HeaderMap::new();
         headers.insert(
@@ -334,9 +334,9 @@ impl SlackClient {
             .post(&format!("{}/{}", self.url, "oauth.access"))
             .form(&[("code", code)])
             .headers(headers)
-            .send()?
+            .send().await?
             .error_for_status()?
-            .json()
+            .json().await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }

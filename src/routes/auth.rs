@@ -16,13 +16,13 @@ pub struct AuthRedirect {
     code: String,
 }
 
-pub fn slack(
+pub async fn slack(
     state: AppData,
     db: Data<DBExecutor>,
     query: Query<AuthRedirect>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let response = state.slack.get_token(&query.code)?;
+    let response = state.slack.get_token(&query.code).await?;
     let access_token = response.access_token.unwrap();
     let user_data = response.user.unwrap();
     let user = User::create_or_udpate(
@@ -38,14 +38,14 @@ pub fn slack(
     Ok(redirect_to("/"))
 }
 
-pub fn github(
+pub async fn github(
     state: AppData,
     db: Data<DBExecutor>,
     query: Query<AuthRedirect>,
     session: Session,
 ) -> Result<HttpResponse> {
-    let response = state.github_oauth.get_token(&query.code)?;
-    let github_user = state.github.get_user(&response.access_token)?;
+    let response = state.github_oauth.get_token(&query.code).await?;
+    let github_user = state.github.get_user(&response.access_token).await?;
     let user =
         helpers::get_current_user(&db, &session)?.ok_or(crate::error::Error::NotFoundError)?;
     user.connect_to_github_user(&response.access_token, &github_user, &db)?;

@@ -78,7 +78,7 @@ struct IndexTemplate<'a> {
     flash: &'a Option<Flash>,
 }
 
-pub fn root(
+pub async fn root(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
@@ -96,7 +96,7 @@ pub fn root(
         let user = current_user.unwrap();
         let github_repos = state
             .github
-            .get_repos(&user.github_access_token.unwrap(), &*params)?;
+            .get_repos(&user.github_access_token.unwrap(), &*params).await?;
 
         let webhooks = Webhook::for_repos(&github_repos.resources, &db)?;
         let repos = github_repos
@@ -136,7 +136,7 @@ pub struct WebhookParams {
     name: String,
 }
 
-pub fn create_webhook(
+pub async fn create_webhook(
     form: Form<WebhookParams>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -157,7 +157,7 @@ pub fn create_webhook(
             },
             &state.webhook_url(),
             &access_token,
-        )
+        ).await
         .and_then(|webhook| {
             Webhook::create(
                 &NewWebhook {
@@ -175,7 +175,7 @@ pub fn create_webhook(
     ))
 }
 
-pub fn delete_webhook(
+pub async fn delete_webhook(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
@@ -185,10 +185,14 @@ pub fn delete_webhook(
     let access_token = current_user
         .github_access_token
         .ok_or(Error::NotAuthedError)?;
-    let result = Webhook::find(path.0, &db).and_then(|webhook| {
-        state.github.delete_webhook(&webhook, &access_token)?;
-        webhook.delete(&db)
-    });
+
+    let result = match Webhook::find(path.0, &db) {
+        Ok(webhook) => {
+            state.github.delete_webhook(&webhook, &access_token).await?;
+            webhook.delete(&db)
+        }
+        Err(err) => Err(err)
+    };
 
     Ok(FlashResponse::with_redirect(
         Flash::from_result(result, "Webhook Deleted!"),
@@ -200,7 +204,7 @@ pub fn delete_webhook(
 #[template(path = "setup/new.html")]
 struct NewSetup;
 
-pub fn new_setup() -> Result<HttpResponse> {
+pub async fn new_setup() -> Result<HttpResponse> {
     build_response(NewSetup.render()?)
 }
 
@@ -215,7 +219,7 @@ pub struct SetupData {
     app_url: String,
 }
 
-pub fn create_setup(
+pub async fn create_setup(
     form: Form<SetupData>,
     db: Data<DBExecutor>,
     config: Data<AppConfig>,

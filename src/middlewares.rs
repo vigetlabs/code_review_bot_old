@@ -1,11 +1,14 @@
 use actix_service::{Service, Transform};
 use actix_web::{dev::ServiceRequest, dev::ServiceResponse, http, Error, HttpResponse};
-use futures::future::{ok, Either, FutureResult};
-use futures::Poll;
+use futures::future::{ok, Either, Future, Ready};
+use std::task::{Context, Poll};
+use std::pin::Pin;
 
 use crate::utils::app_config::AppConfig;
 
 pub struct SetupRedirect;
+
+type PinBox<T> = Pin<Box<T>>;
 
 impl<S, B> Transform<S> for SetupRedirect
 where
@@ -18,7 +21,7 @@ where
     type Error = Error;
     type InitError = ();
     type Transform = SetupRedirectMiddleware<S>;
-    type Future = FutureResult<Self::Transform, Self::InitError>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
 
     fn new_transform(&self, service: S) -> Self::Future {
         ok(SetupRedirectMiddleware { service })
@@ -38,10 +41,10 @@ where
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = Error;
-    type Future = Either<S::Future, FutureResult<Self::Response, Self::Error>>;
+    type Future = PinBox<dyn Future<Output = Result<Self::Response, Self::Error>>>;
 
-    fn poll_ready(&mut self) -> Poll<(), Self::Error> {
-        self.service.poll_ready()
+    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(cx)
     }
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
@@ -59,15 +62,17 @@ where
             app_data.clone()
         };
 
-        if app_data.is_some() || req.path() == "/setup" {
-            Either::A(self.service.call(req))
+        let fut = if app_data.is_some() || req.path() == "/setup" {
+            Either::Left(self.service.call(req))
         } else {
-            Either::B(ok(req.into_response(
+            Either::Right(ok(req.into_response(
                 HttpResponse::Found()
                     .header(http::header::LOCATION, "/setup")
                     .finish()
                     .into_body(),
             )))
-        }
+        };
+
+        Box::pin(fut)
     }
 }
