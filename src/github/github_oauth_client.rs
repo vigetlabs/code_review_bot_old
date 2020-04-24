@@ -26,7 +26,7 @@ impl GithubOauthClient {
         }
     }
 
-    pub fn get_token(&self, code: &str) -> Result<GHAuthResponse> {
+    pub async fn get_token(&self, code: &str) -> Result<GHAuthResponse> {
         let params = GHTokenParams {
             client_id: &self.client_id,
             client_secret: &self.client_secret,
@@ -37,9 +37,9 @@ impl GithubOauthClient {
             .post("https://github.com/login/oauth/access_token")
             .header(reqwest::header::ACCEPT, "application/json")
             .form(&params)
-            .send()?
+            .send().await?
             .error_for_status()?
-            .json()
+            .json().await
             .map_err(|e| e.into())
     }
 }

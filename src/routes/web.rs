@@ -96,7 +96,7 @@ pub async fn root(
         let user = current_user.unwrap();
         let github_repos = state
             .github
-            .get_repos(&user.github_access_token.unwrap(), &*params)?;
+            .get_repos(&user.github_access_token.unwrap(), &*params).await?;
 
         let webhooks = Webhook::for_repos(&github_repos.resources, &db)?;
         let repos = github_repos
@@ -157,7 +157,7 @@ pub async fn create_webhook(
             },
             &state.webhook_url(),
             &access_token,
-        )
+        ).await
         .and_then(|webhook| {
             Webhook::create(
                 &NewWebhook {
@@ -185,10 +185,14 @@ pub async fn delete_webhook(
     let access_token = current_user
         .github_access_token
         .ok_or(Error::NotAuthedError)?;
-    let result = Webhook::find(path.0, &db).and_then(|webhook| {
-        state.github.delete_webhook(&webhook, &access_token)?;
-        webhook.delete(&db)
-    });
+
+    let result = match Webhook::find(path.0, &db) {
+        Ok(webhook) => {
+            state.github.delete_webhook(&webhook, &access_token).await?;
+            webhook.delete(&db)
+        }
+        Err(err) => Err(err)
+    };
 
     Ok(FlashResponse::with_redirect(
         Flash::from_result(result, "Webhook Deleted!"),

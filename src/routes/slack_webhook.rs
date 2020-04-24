@@ -34,10 +34,10 @@ pub async fn review(
     }
 
     let pull_request = form.text.to_lowercase().parse()?;
-    let pr_response = state.github.get_pr(&pull_request, &access_token)?;
+    let pr_response = state.github.get_pr(&pull_request, &access_token).await?;
     let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&pr_response, &access_token)
+        .get_files(&pr_response, &access_token).await
         .map(|files| {
             files
                 .into_iter()
@@ -56,7 +56,7 @@ pub async fn review(
         &form.channel_id,
         &state.app_url,
         None,
-    )?;
+    ).await?;
     let message = state.slack.immediate_response(
         "To have these automatically posted for you see: \
         <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
@@ -81,7 +81,7 @@ pub async fn reviews(
 
     state
         .slack
-        .reviews_response(&open_prs.join("\n"), &form.channel_id)?;
+        .reviews_response(&open_prs.join("\n"), &form.channel_id).await?;
     Ok(prepare_response(""))
 }
 
