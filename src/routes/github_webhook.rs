@@ -94,7 +94,7 @@ fn handle_pull_request_closed(
     Ok(prepare_response(""))
 }
 
-pub fn pull_request(
+pub async fn pull_request(
     json: Json<PullRequestEvent>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -111,7 +111,7 @@ pub fn pull_request(
     }
 }
 
-pub fn review(
+pub async fn review(
     json: Json<ReviewEvent>,
     state: AppData,
     db: Data<DBExecutor>,

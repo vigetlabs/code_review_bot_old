@@ -78,7 +78,7 @@ struct IndexTemplate<'a> {
     flash: &'a Option<Flash>,
 }
 
-pub fn root(
+pub async fn root(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
@@ -136,7 +136,7 @@ pub struct WebhookParams {
     name: String,
 }
 
-pub fn create_webhook(
+pub async fn create_webhook(
     form: Form<WebhookParams>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -175,7 +175,7 @@ pub fn create_webhook(
     ))
 }
 
-pub fn delete_webhook(
+pub async fn delete_webhook(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
@@ -200,7 +200,7 @@ pub fn delete_webhook(
 #[template(path = "setup/new.html")]
 struct NewSetup;
 
-pub fn new_setup() -> Result<HttpResponse> {
+pub async fn new_setup() -> Result<HttpResponse> {
     build_response(NewSetup.render()?)
 }
 
@@ -215,7 +215,7 @@ pub struct SetupData {
     app_url: String,
 }
 
-pub fn create_setup(
+pub async fn create_setup(
     form: Form<SetupData>,
     db: Data<DBExecutor>,
     config: Data<AppConfig>,

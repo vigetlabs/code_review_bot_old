@@ -21,11 +21,11 @@ impl FromStr for ReviewRequest {
 
         Ok(ReviewRequest {
             owner: path
-                .nth(0)
+                .next()
                 .ok_or(UrlParseError::MissingSegment)?
                 .to_string(),
             name: path
-                .nth(0)
+                .next()
                 .ok_or(UrlParseError::MissingSegment)?
                 .to_string(),
             id: path

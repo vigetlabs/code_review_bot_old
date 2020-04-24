@@ -1,6 +1,10 @@
 use actix_web::error::ErrorBadRequest;
+use actix_web::web::Data;
 use actix_web::{dev, Error, FromRequest, HttpRequest};
 use std::sync::{Arc, Mutex};
+use std::pin::Pin;
+use futures::future::{ok, err, Future};
+use futures::TryFutureExt;
 
 use crate::github::{GithubClient, GithubOauthClient};
 use crate::slack::SlackClient;
@@ -95,18 +99,21 @@ impl AppData {
 
 impl FromRequest for AppData {
     type Error = Error;
-    type Future = Result<Self, Self::Error>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
     type Config = ();
 
-    fn from_request(req: &HttpRequest, _payload: &mut dev::Payload) -> Self::Future {
-        let config = req
-            .app_data::<AppConfig>()
-            .ok_or_else(|| ErrorBadRequest("App data failed"))?;
-        let data = config.data.lock().expect("Lock stuff happened");
+    fn from_request(req: &HttpRequest, payload: &mut dev::Payload) -> Self::Future {
+        let fut = Data::from_request(req, payload)
+            .map_err(ErrorBadRequest)
+            .and_then(|conf: Data<AppConfig>| {
+                let data = conf.data.lock().expect("Lock failed");
 
-        match &*data {
-            Some(app_data) => Ok(app_data.clone()),
-            None => Err(ErrorBadRequest("App data failed")),
-        }
+                match &*data {
+                    Some(app_data) => ok(app_data.clone()),
+                    None => err(ErrorBadRequest("App data failed")),
+                }
+            });
+
+        Box::pin(fut)
     }
 }

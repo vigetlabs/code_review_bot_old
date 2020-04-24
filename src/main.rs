@@ -26,7 +26,8 @@ struct Opt {
     log_level: String,
 }
 
-fn main() {
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
     // Load Environment
     dotenv().ok();
 
@@ -88,9 +89,8 @@ fn main() {
     let app_config = AppConfig::new(builder.clone(), builder.build());
 
     if opt.dev {
-        start_dev_server(opt.port, app_config, app_secret, db)
+        start_dev_server(opt.port, app_config, app_secret, db).await
     } else {
-        start_server(opt.port, app_config, app_secret, db)
+        start_server(opt.port, app_config, app_secret, db).await
     }
-    .expect("Could not start server");
 }

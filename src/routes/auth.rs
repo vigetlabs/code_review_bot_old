@@ -16,7 +16,7 @@ pub struct AuthRedirect {
     code: String,
 }
 
-pub fn slack(
+pub async fn slack(
     state: AppData,
     db: Data<DBExecutor>,
     query: Query<AuthRedirect>,
@@ -38,7 +38,7 @@ pub fn slack(
     Ok(redirect_to("/"))
 }
 
-pub fn github(
+pub async fn github(
     state: AppData,
     db: Data<DBExecutor>,
     query: Query<AuthRedirect>,

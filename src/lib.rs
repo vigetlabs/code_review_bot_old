@@ -72,12 +72,12 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
         );
 }
 
-pub fn start_server(
+pub async fn start_server(
     port: u32,
     app_config: AppConfig,
     app_secret: String,
     db: db::DBExecutor,
-) -> Result<&'static str, std::io::Error> {
+) -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::new(LOG_FORMAT))
@@ -86,21 +86,20 @@ pub fn start_server(
             .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
             .data(db.clone())
-            .register_data(web::Data::new(app_config.clone()))
+            .app_data(web::Data::new(app_config.clone()))
             .configure(configure_app)
     })
     .bind(format!("0.0.0.0:{}", port))?
-    .run()?;
-
-    Ok("Done")
+    .run()
+    .await
 }
 
-pub fn start_dev_server(
+pub async fn start_dev_server(
     port: u32,
     app_config: AppConfig,
     app_secret: String,
     db: db::DBExecutor,
-) -> Result<&'static str, std::io::Error> {
+) -> std::io::Result<()> {
     let mut listenfd = ListenFd::from_env();
     let server = HttpServer::new(move || {
         App::new()
@@ -109,7 +108,7 @@ pub fn start_dev_server(
             .wrap(FlashMiddleware::default())
             .wrap(middlewares::SetupRedirect)
             .service(fs::Files::new("/public", "./public"))
-            .register_data(web::Data::new(app_config.clone()))
+            .data(app_config.clone())
             .data(db.clone())
             .configure(configure_app)
     });
@@ -119,7 +118,6 @@ pub fn start_dev_server(
     } else {
         server.bind(format!("0.0.0.0:{}", port))?
     }
-    .run()?;
-
-    Ok("Done")
+    .run()
+    .await
 }

@@ -10,7 +10,7 @@ use crate::slack::{attachment, SlackRequest};
 use crate::utils::prepare_response;
 use crate::AppData;
 
-pub fn review(
+pub async fn review(
     form: Form<SlackRequest>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -66,7 +66,7 @@ pub fn review(
     Ok(prepare_response(&message))
 }
 
-pub fn reviews(
+pub async fn reviews(
     form: Form<SlackRequest>,
     state: AppData,
     db: Data<DBExecutor>,
@@ -111,7 +111,7 @@ pub struct UrlVerification {
     challenge: String,
 }
 
-pub fn message(json: Json<SlackEventWrapper>) -> Result<HttpResponse> {
+pub async fn message(json: Json<SlackEventWrapper>) -> Result<HttpResponse> {
     let Json(event_wrapper) = json;
 
     match event_wrapper {

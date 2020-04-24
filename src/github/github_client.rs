@@ -1,7 +1,7 @@
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
 
-use crate::error::Result;
+use crate::error::{Result, Error};
 use crate::models;
 use crate::utils::paginated_resource::{PaginatedResource, PaginationParams};
 
@@ -109,7 +109,7 @@ impl GithubClient {
             let link_header = res.headers().get(reqwest::header::LINK);
 
             if let Some(link_str) = link_header {
-                let link = hyperx::header::Link::from_str(link_str.to_str()?)?;
+                let link = hyperx::header::Link::from_str(link_str.to_str().map_err(|_| Error::ServerError("header error".to_string()))?)?;
                 PaginatedResource::new(resources, link.values())
             } else {
                 PaginatedResource::new(resources, &[])
