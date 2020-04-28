@@ -2,6 +2,7 @@ version: '3'
 
 volumes:
   target:
+  public:
 
 services:
   web:
@@ -9,5 +10,18 @@ services:
     volumes:
       - .:/app
       - target:/app/target
+      - public:/app/public
     ports:
       - "8088:8088"
+    depends_on:
+      - db
+      - webpack
+
+  webpack:
+    build: .
+    command: npm run watch
+    volumes:
+      - .:/app
+      - target:/app/target
+      - public:/app/public
+
