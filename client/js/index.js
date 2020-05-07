@@ -1,12 +1,6 @@
+import UIKit from 'uikit'
+import Icons from 'uikit/dist/js/uikit-icons'
+import 'uikit/dist/css/uikit.css'
 import '../styles/styles.css'
 
-function component() {
-    const element = document.createElement('div')
-
-    // Lodash, currently included via a script, is required for this line to work
-    element.innerHTML = ['Hello', 'webpack!'].join(' ')
-
-    return element
-}
-
-document.body.appendChild(component())
+UIKit.use(Icons)
