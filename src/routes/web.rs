@@ -65,9 +65,7 @@ impl fmt::Display for FlashType {
 #[derive(Template)]
 #[template(path = "home/login.html")]
 struct LoginTemplate<'a> {
-    client_id: &'a str,
-    gh_client_id: &'a str,
-    current_user: &'a Option<User>,
+    info: &'a Info<'a>,
 }
 
 #[derive(Template)]
@@ -76,6 +74,13 @@ struct IndexTemplate<'a> {
     repos: &'a Vec<(&'a github::Repo, Option<&'a Webhook>)>,
     pagination: &'a paginated_resource::PaginatedResource<github::Repo>,
     flash: &'a Option<Flash>,
+    info: &'a Info<'a>,
+}
+
+struct Info<'a> {
+    client_id: &'a str,
+    gh_client_id: &'a str,
+    current_user: &'a Option<User>,
 }
 
 pub async fn root(
@@ -92,11 +97,19 @@ pub async fn root(
         .and_then(|u| if u.is_gh_authed() { Some(u) } else { None })
         .is_some();
 
+    let info = Info {
+        client_id: &state.slack.client_id,
+        gh_client_id: &state.github_oauth.client_id,
+        current_user: &current_user,
+    };
+
     let rendered_template = if is_gh_authed {
-        let user = current_user.unwrap();
+        let user = current_user.clone().unwrap();
+
         let github_repos = state
             .github
-            .get_repos(&user.github_access_token.unwrap(), &*params).await?;
+            .get_repos(&user.github_access_token.unwrap(), &*params)
+            .await?;
 
         let webhooks = Webhook::for_repos(&github_repos.resources, &db)?;
         let repos = github_repos
@@ -116,15 +129,11 @@ pub async fn root(
             repos: &repos,
             pagination: &github_repos,
             flash: &flash,
+            info: &info,
         }
         .render()?
     } else {
-        LoginTemplate {
-            client_id: &state.slack.client_id,
-            gh_client_id: &state.github_oauth.client_id,
-            current_user: &current_user,
-        }
-        .render()?
+        LoginTemplate { info: &info }.render()?
     };
 
     build_response(rendered_template)
@@ -157,7 +166,8 @@ pub async fn create_webhook(
             },
             &state.webhook_url(),
             &access_token,
-        ).await
+        )
+        .await
         .and_then(|webhook| {
             Webhook::create(
                 &NewWebhook {
@@ -191,7 +201,7 @@ pub async fn delete_webhook(
             state.github.delete_webhook(&webhook, &access_token).await?;
             webhook.delete(&db)
         }
-        Err(err) => Err(err)
+        Err(err) => Err(err),
     };
 
     Ok(FlashResponse::with_redirect(

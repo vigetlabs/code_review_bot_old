@@ -37,9 +37,11 @@ impl GithubOauthClient {
             .post("https://github.com/login/oauth/access_token")
             .header(reqwest::header::ACCEPT, "application/json")
             .form(&params)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json().await
+            .json()
+            .await
             .map_err(|e| e.into())
     }
 }

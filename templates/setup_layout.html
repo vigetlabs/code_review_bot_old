@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>{% block title %}{{title}} - Code Review Bot {% endblock %}</title>
+</head>
+
+<body>
+  <header>
+    <div class="uk-container">
+      <nav class="uk-navbar-transparent" data-uk-navbar>
+        <div class="uk-navbar-left">
+          <a href="/" class="uk-navbar-item uk-logo">CRBot</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <section class="uk-section uk-section-muted">
+    <div class="uk-container">
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+
+  <script src="/public/main.js"></script>
+</body>
