@@ -321,7 +321,7 @@ pub struct NewWebhook {
     pub owner: String,
 }
 
-#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable)]
+#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable, Serialize)]
 #[table_name = "webhooks"]
 pub struct Webhook {
     pub id: i32,

@@ -34,6 +34,15 @@ const LOG_FORMAT: &str =
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(routes::web::root))
         .service(
+            web::scope("/github")
+                .route("/repos", web::get().to(routes::github::repos))
+                .route("/webhooks", web::post().to(routes::github::create_webhook))
+                .route(
+                    "/webhooks/{id}",
+                    web::post().to(routes::github::delete_webhook),
+                ),
+        )
+        .service(
             web::scope("/auth")
                 .route("/slack", web::get().to(routes::auth::slack))
                 .route("/github", web::get().to(routes::auth::github)),
@@ -64,11 +73,6 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             web::resource("/setup")
                 .route(web::get().to(routes::web::new_setup))
                 .route(web::post().to(routes::web::create_setup)),
-        )
-        .service(
-            web::scope("/webhooks")
-                .route("", web::post().to(routes::web::create_webhook))
-                .route("/{id}", web::post().to(routes::web::delete_webhook)),
         );
 }
 

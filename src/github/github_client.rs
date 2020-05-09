@@ -100,7 +100,7 @@ impl GithubClient {
         params: &PaginationParams,
     ) -> Result<PaginatedResource<Repo>> {
         let request_url = format!(
-            "{url}/user/repos?sort={sort}&page={page}",
+            "{url}/user/repos?sort={sort}&page={page}&per_page=100",
             url = self.url,
             sort = "updated",
             page = params.page.as_ref().unwrap_or(&"1".to_owned()),

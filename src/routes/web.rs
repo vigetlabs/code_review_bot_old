@@ -1,6 +1,6 @@
 use actix_session::Session;
 use actix_web::{
-    web::{Data, Form, Path, Query},
+    web::{Data, Form},
     HttpResponse,
 };
 use actix_web_flash::{FlashMessage, FlashResponse};
@@ -8,11 +8,9 @@ use askama::Template;
 use std::fmt;
 
 use crate::db::DBExecutor;
-use crate::error::{Error, Result};
-use crate::github;
-use crate::models::{Config, NewWebhook, User, Webhook};
+use crate::error::Result;
+use crate::models::{Config, User};
 use crate::utils::helpers::get_current_user;
-use crate::utils::paginated_resource;
 use crate::{AppConfig, AppData};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -71,8 +69,6 @@ struct LoginTemplate<'a> {
 #[derive(Template)]
 #[template(path = "home/index.html")]
 struct IndexTemplate<'a> {
-    repos: &'a Vec<(&'a github::Repo, Option<&'a Webhook>)>,
-    pagination: &'a paginated_resource::PaginatedResource<github::Repo>,
     flash: &'a Option<Flash>,
     info: &'a Info<'a>,
 }
@@ -87,7 +83,6 @@ pub async fn root(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
-    params: Query<paginated_resource::PaginationParams>,
     flash_message: Option<FlashMessage<Flash>>,
 ) -> Result<HttpResponse> {
     let flash = flash_message.map(|flash| flash.into_inner());
@@ -104,30 +99,7 @@ pub async fn root(
     };
 
     let rendered_template = if is_gh_authed {
-        let user = current_user.clone().unwrap();
-
-        let github_repos = state
-            .github
-            .get_repos(&user.github_access_token.unwrap(), &*params)
-            .await?;
-
-        let webhooks = Webhook::for_repos(&github_repos.resources, &db)?;
-        let repos = github_repos
-            .resources
-            .iter()
-            .map(|r| {
-                (
-                    r,
-                    webhooks
-                        .iter()
-                        .find(|w| w.owner == r.owner.login && w.name == r.name),
-                )
-            })
-            .collect();
-
         IndexTemplate {
-            repos: &repos,
-            pagination: &github_repos,
             flash: &flash,
             info: &info,
         }
@@ -137,77 +109,6 @@ pub async fn root(
     };
 
     build_response(rendered_template)
-}
-
-#[derive(Deserialize)]
-pub struct WebhookParams {
-    owner: String,
-    name: String,
-}
-
-pub async fn create_webhook(
-    form: Form<WebhookParams>,
-    state: AppData,
-    db: Data<DBExecutor>,
-    session: Session,
-) -> Result<FlashResponse<HttpResponse, Flash>> {
-    let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
-    let access_token = current_user
-        .github_access_token
-        .ok_or(Error::NotAuthedError)?;
-
-    let result = state
-        .github
-        .create_webhook(
-            &github::ReviewRequest {
-                owner: form.owner.clone(),
-                name: form.name.clone(),
-                id: "".to_owned(),
-            },
-            &state.webhook_url(),
-            &access_token,
-        )
-        .await
-        .and_then(|webhook| {
-            Webhook::create(
-                &NewWebhook {
-                    hook_id: format!("{}", webhook.id),
-                    name: form.name.clone(),
-                    owner: form.owner.clone(),
-                },
-                &db,
-            )
-        });
-
-    Ok(FlashResponse::with_redirect(
-        Flash::from_result(result, "Webhook Created!"),
-        "/",
-    ))
-}
-
-pub async fn delete_webhook(
-    state: AppData,
-    db: Data<DBExecutor>,
-    session: Session,
-    path: Path<(i32,)>,
-) -> Result<FlashResponse<HttpResponse, Flash>> {
-    let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
-    let access_token = current_user
-        .github_access_token
-        .ok_or(Error::NotAuthedError)?;
-
-    let result = match Webhook::find(path.0, &db) {
-        Ok(webhook) => {
-            state.github.delete_webhook(&webhook, &access_token).await?;
-            webhook.delete(&db)
-        }
-        Err(err) => Err(err),
-    };
-
-    Ok(FlashResponse::with_redirect(
-        Flash::from_result(result, "Webhook Deleted!"),
-        "/",
-    ))
 }
 
 #[derive(Template)]

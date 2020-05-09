@@ -6,28 +6,15 @@
 {% include "shared/flash.html" %}
 
 <h2>Repos</h2>
-<ul>
-    {% for (repo, hook) in repos %}
-    <li>{{repo.full_name}}
-        {% if repo.permissions.admin %}
-        {% match hook %}
-        {% when Some with (hook) %}
-        <form action="/webhooks/{{hook.id}}" method="POST">
-            <input type="hidden" name="_method" value="delete" />
-            <button>Remove Webhook</button>
-        </form>
-        {% when None %}
-        <form action="/webhooks" method="POST">
-            <input type="hidden" value="{{repo.owner.login}}" name="owner">
-            <input type="hidden" value="{{repo.name}}" name="name">
-            <button>Add Webhook</button>
-        </form>
-        {% endmatch %}
-        {% endif %}
+
+<div class="uk-inline">
+    <span class="uk-form-icon" uk-icon="icon:search"></span>
+    <input type="text" class="uk-input">
+</div>
+
+<ul id="github-repos" class="uk-list uk-list-divider">
+    <li>
+        <div uk-spinner></div>
     </li>
-    {% endfor %}
 </ul>
-
-{% include "shared/pagination.html" %}
-
 {% endblock %}
