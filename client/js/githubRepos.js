@@ -1,3 +1,8 @@
+import { debounce } from './utils'
+
+let repoListElements
+let repoListEl
+
 async function* getRepoList() {
     let repoList = []
     let nextUrl = "/github/repos"
@@ -45,19 +50,29 @@ async function handleRemoveSubmit(e, repo) {
     e.preventDefault()
 
     try {
-        const hook = await postForm(formEl)
         formEl.replaceWith(createWebhookForm(repo))
     } catch (e) {
         console.error(e)
     }
 }
 
+function handleSearch(e) {
+    let searchVal = e.target.value
+
+    const filtered = repoListElements.filter(
+        el => el.textContent.toLowerCase().includes(searchVal.toLowerCase())
+    )
+
+    repoListEl.innerHTML = ''
+    repoListEl.append(...filtered)
+}
+
 function urlencodeFormData(fd) {
-    var params = new URLSearchParams();
+    var params = new URLSearchParams()
     for (var pair of fd.entries()) {
-        typeof pair[1] == 'string' && params.append(pair[0], pair[1]);
+        typeof pair[1] == 'string' && params.append(pair[0], pair[1])
     }
-    return params.toString();
+    return params.toString()
 }
 
 function repoListElement(repo) {
@@ -128,10 +143,10 @@ function removeWebhookForm(repo, hook) {
     return formEl
 }
 
-
 export const init = async () => {
-    const repoListEl = document.getElementById('github-repos')
+    repoListEl = document.getElementById('github-repos')
     const spinner = repoListEl.firstElementChild
+    const searchInput = document.getElementById('repo-search')
 
     if (repoListEl != null) {
         try {
@@ -142,6 +157,11 @@ export const init = async () => {
             }
 
             spinner.remove()
+
+            repoListElements = [...repoListEl.children]
+
+            searchInput.removeAttribute('disabled')
+            searchInput.addEventListener('keydown', debounce(handleSearch, 1000, false))
         } catch (err) {
             console.error(err)
             const error = document.createElement('li')
