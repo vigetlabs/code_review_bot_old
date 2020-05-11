@@ -105,6 +105,13 @@ function repoListElement(repo) {
             : removeWebhookForm(repo.repo, repo.webhook)
 
         div.appendChild(webhookForm)
+    } else {
+        const button = document.createElement('button')
+        button.innerHTML = 'Not an Admin'
+        button.className = 'uk-button uk-button-small'
+        button.disabled = true
+
+        div.appendChild(button)
     }
 
     li.appendChild(div)
