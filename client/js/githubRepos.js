@@ -2,6 +2,7 @@ import { debounce } from './utils'
 
 let repoListElements
 let repoListEl
+let owners = new Set([''])
 
 async function* getRepoList() {
     let repoList = []
@@ -67,6 +68,22 @@ function handleSearch(e) {
     repoListEl.append(...filtered)
 }
 
+function handleOwnerSelect(e) {
+    let filtered
+    let ownerVal = e.target.value
+
+    if (ownerVal === '') {
+        filtered = repoListElements
+    } else {
+        filtered = repoListElements.filter(
+            el => el.textContent.toLowerCase().split('/')[0] === ownerVal.toLowerCase()
+        )
+    }
+
+    repoListEl.innerHTML = ''
+    repoListEl.append(...filtered)
+}
+
 function urlencodeFormData(fd) {
     var params = new URLSearchParams()
     for (var pair of fd.entries()) {
@@ -93,6 +110,14 @@ function repoListElement(repo) {
     li.appendChild(div)
 
     return li
+}
+
+function ownerSelectElement(owner) {
+    const option = document.createElement('option')
+    option.innerHTML = owner
+    option.value = owner
+
+    return option
 }
 
 function createWebhookForm(repo) {
@@ -145,14 +170,23 @@ function removeWebhookForm(repo, hook) {
 
 export const init = async () => {
     repoListEl = document.getElementById('github-repos')
+    const ownerSelectEl = document.getElementById('owner-filter')
     const spinner = repoListEl.firstElementChild
     const searchInput = document.getElementById('repo-search')
 
     if (repoListEl != null) {
         try {
             for await (let repos of getRepoList()) {
+                for (let repo of repos) {
+                    console.log(repo.repo.owner.login)
+                    owners.add(repo.repo.owner.login)
+                }
+
+                const ownerElements = [...owners].map(ownerSelectElement)
                 const repoElements = repos.map(repoListElement)
 
+                ownerSelectEl.innerHTML = ''
+                ownerSelectEl.append(...ownerElements)
                 repoListEl.append(...repoElements)
             }
 
@@ -162,6 +196,9 @@ export const init = async () => {
 
             searchInput.removeAttribute('disabled')
             searchInput.addEventListener('keydown', debounce(handleSearch, 1000, false))
+
+            ownerSelectEl.removeAttribute('disabled')
+            ownerSelectEl.addEventListener('change', handleOwnerSelect)
         } catch (err) {
             console.error(err)
             const error = document.createElement('li')
