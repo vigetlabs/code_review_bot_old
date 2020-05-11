@@ -251,6 +251,13 @@ pub struct User {
     pub github_access_token: Option<String>,
 }
 
+#[derive(AsChangeset)]
+#[table_name = "users"]
+#[changeset_options(treat_none_as_null = "true")]
+struct RemoveGithubToken<'a> {
+    github_access_token: Option<&'a str>,
+}
+
 impl User {
     pub fn create_or_udpate(new_user: &NewUser, db: &DBExecutor) -> Result<User> {
         use crate::schema::users::dsl::*;
@@ -305,6 +312,18 @@ impl User {
         diesel::update(users.find(self.id))
             .set(github_access_token.eq(access_token))
             .get_result(&conn)
+            .map_err(|e| e.into())
+    }
+
+    pub fn logout(&self, db: &DBExecutor) -> Result<()> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+        diesel::update(users.find(self.id))
+            .set(&RemoveGithubToken {
+                github_access_token: None,
+            })
+            .execute(&conn)
+            .map(|_| ())
             .map_err(|e| e.into())
     }
 

@@ -51,6 +51,7 @@ async function handleRemoveSubmit(e, repo) {
     e.preventDefault()
 
     try {
+        await postForm(formEl)
         formEl.replaceWith(createWebhookForm(repo))
     } catch (e) {
         console.error(e)
@@ -185,7 +186,6 @@ export const init = async () => {
         try {
             for await (let repos of getRepoList()) {
                 for (let repo of repos) {
-                    console.log(repo.repo.owner.login)
                     owners.add(repo.repo.owner.login)
                 }
 

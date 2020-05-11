@@ -3,14 +3,13 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Code Review Bot</h1>
+<h1>Sign In</h1>
 
 {% match info.current_user %}
 {% when Some with (user) %}
-<h2>Hello {{user.username}}!</h2>
-
 {% if !user.is_gh_authed() %}
-<a href="https://github.com/login/oauth/authorize?scope=repo+admin:repo_hook&client_id={{info.gh_client_id}}">
+<a class="uk-button uk-button-default"
+    href="https://github.com/login/oauth/authorize?scope=repo+admin:repo_hook&client_id={{info.gh_client_id}}">
     Connect to Github
 </a>
 {% endif %}

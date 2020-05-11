@@ -33,6 +33,7 @@ const LOG_FORMAT: &str =
 
 pub fn configure_app(cfg: &mut web::ServiceConfig) {
     cfg.route("/", web::get().to(routes::web::root))
+        .route("/logout", web::get().to(routes::web::logout))
         .service(
             web::scope("/github")
                 .route("/repos", web::get().to(routes::github::repos))

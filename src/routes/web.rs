@@ -8,9 +8,9 @@ use askama::Template;
 use std::fmt;
 
 use crate::db::DBExecutor;
-use crate::error::Result;
+use crate::error::{self, Result};
 use crate::models::{Config, User};
-use crate::utils::helpers::get_current_user;
+use crate::utils::helpers::{get_current_user, sign_out_current_user};
 use crate::{AppConfig, AppData};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -165,6 +165,25 @@ pub async fn create_setup(
         Flash::from_result(Ok(()), "Setup Complete!"),
         "/setup",
     ))
+}
+
+pub async fn logout(
+    db: Data<DBExecutor>,
+    session: Session,
+) -> Result<FlashResponse<HttpResponse, Flash>> {
+    let current_user = get_current_user(&db, &session)
+        .and_then(|user| user.ok_or(error::Error::NotAuthedError))
+        .map_err(|e| {
+            println!("{:?}", e);
+            e
+        })?;
+    current_user.logout(&db).map_err(|e| {
+        println!("{:?}", e);
+        e
+    })?;
+
+    sign_out_current_user(&session);
+    Ok(FlashResponse::with_redirect(Flash::info("Signed Out"), "/"))
 }
 
 fn build_response(body: String) -> Result<HttpResponse> {
