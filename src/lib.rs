@@ -66,6 +66,11 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
                 web::post()
                     .guard(guard::Header("X-GitHub-Event", "pull_request_review"))
                     .to(routes::github_webhook::review),
+            )
+            .route(
+                web::post()
+                    .guard(guard::Header("X-GitHub-Event", "ping"))
+                    .to(routes::github_webhook::ping),
             ),
     )
     .route("/review", web::post().to(routes::slack_webhook::review))
