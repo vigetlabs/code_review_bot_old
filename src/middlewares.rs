@@ -1,8 +1,8 @@
 use actix_service::{Service, Transform};
 use actix_web::{dev::ServiceRequest, dev::ServiceResponse, http, Error, HttpResponse};
 use futures::future::{ok, Either, Future, Ready};
-use std::task::{Context, Poll};
 use std::pin::Pin;
+use std::task::{Context, Poll};
 
 use crate::utils::app_config::AppConfig;
 
@@ -62,7 +62,7 @@ where
             app_data.clone()
         };
 
-        let fut = if app_data.is_some() || req.path() == "/setup" {
+        let fut = if app_data.is_some() {
             Either::Left(self.service.call(req))
         } else {
             Either::Right(ok(req.into_response(

@@ -3,22 +3,229 @@
 {% block title %}Setup{% endblock %}
 
 {% block content %}
-<h2>Setup</h2>
+<form id="setup-form" action="/setup" method="POST">
+    <ul class="uk-subnav uk-subnav-pill" uk-switcher>
+        <li><a href="#">Slack</a></li>
+        <li><a href="#">Github</a></li>
+        <li><a href="#">App</a></li>
+    </ul>
 
-<form action="/setup" method="POST">
-    <h3>Slack</h3>
-    <label>Client ID <input type="text" name="slack_client_id" /></label>
-    <label>Client Secret <input type="text" name="slack_client_secret" /></label>
-    <label>Token <input type="text" name="slack_token" /></label>
-    <label>Channel <input type="text" name="slack_channel" /></label>
+    <ul class="uk-switcher">
+        <li>
+            <div class="uk-grid">
+                <div class="uk-width-1-2">
+                    <h3>Slack Setup</h3>
 
-    <h3>Github</h3>
-    <label>Client ID <input type="text" name="github_client_id" /></label>
-    <label>Client Secret <input type="text" name="github_client_secret" /></label>
+                    <ul class="uk-list uk-list-divider">
+                        <li>
+                            <p>
+                                <a href="https://api.slack.com/apps" target="_blank">Navigate</a> to your slack apps
+                                page and click <strong>Create New App</strong>
+                            </p>
+                        </li>
 
-    <h3>App</h3>
-    <label>App Url <input type="text" name="app_url" /></label>
-    <button>Finish Setup</button>
+                        <li>
+                            <p>
+                                Enter an app name (e.g Code Review Bot), and choose a workspace
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Under <strong>App Credentials</strong> copy the Client ID and Client Secret into the
+                                form
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Click <strong>Slash Commands</strong> then <strong>Create New Command</strong>
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Enter <em>reviews</em> in the <strong>Command</strong> field,
+                                <em>https://yourapp.url/reviews</em> in the <strong>Request Url</strong> field,
+                                and something like <em>Show open reviews</em> in <strong>Short Description</strong>, and
+                                click <strong>Save</strong>
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Click <strong>Oauth & Permissions</strong> on the sidebar, then copy the oath bot token
+                                into the form
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Install the app to your workspace
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Click <strong>Add New Redirect Url</strong> and enter
+                                <em>https://yourapp.url/auth/slack</em>, then make sure
+                                to click <strong>Save URLs</strong>
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Under <strong>Bot Token Scopes</strong> add the following scopes: chat:write
+                                chat:write.public
+                                reactions.write
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Under <strong>User Token Scopes</strong> add the following scopes: chat:write
+                                reactions:write
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Create and choose a channel for review requests to be posted to and enter it into the
+                                form. (e.g #code-review)
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>Click <strong>Next</strong> to continue to github setup</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="uk-width-1-2">
+                    <div class="uk-margin">
+                        <label class="uk-form-label">Client ID
+                            <input class="uk-input" type="text" name="slack_client_id" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <label class="uk-form-label">Client Secret
+                            <input class="uk-input" type="password" name="slack_client_secret" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <label class="uk-form-label">Oauth Bot Token
+                            <input class="uk-input" type="text" name="slack_token" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <label class="uk-form-label">Channel
+                            <input class="uk-input" type="text" name="slack_channel" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <a href="#" class="uk-button uk-button-primary" next-index="1">Next</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+
+        <li>
+            <div class="uk-grid">
+                <div class="uk-width-1-2">
+                    <h3>Github Setup</h3>
+
+                    <ul class="uk-list uk-list-divider">
+                        <li>
+                            <p>
+                                Navigate to developer settings, either
+                                <a href="https://github.com/settings/apps">personal</a> or for an oragnization
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>Click <strong>Oauth Apps</strong> and create a new app</p>
+                        </li>
+
+                        <li>
+                            <p>
+                                Fill in <strong>Application name</strong> with something like <em>Code Review Bot</em>,
+                                <strong>Homepage URL</strong> with <em>https://yourapp.url/</em>, and
+                                <strong>Authorization callback URL</strong> with
+                                <em>https://yourapp.url/auth/github</em>
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>Click <strong>Register Application</strong></p>
+                        </li>
+
+                        <li>
+                            <p>Copy the <strong>Client ID</strong> and <strong>Client Secret</strong> to the form</p>
+                        </li>
+
+                        <li>
+                            <p>Click <strong>Next</strong> to continue to application setup</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="uk-width-1-2">
+                    <div class="uk-margin">
+                        <label class="uk-form-label">Client ID
+                            <input class="uk-input" type="text" name="github_client_id" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <label>Client Secret
+                            <input class="uk-input" type="password" name="github_client_secret" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <a href="#" class="uk-button uk-button-primary" next-index="2">Next</a>
+                    </div>
+
+                </div>
+            </div>
+        </li>
+
+        <li>
+            <div class="uk-grid">
+                <div class="uk-width-1-2">
+                    <h3>Application Setup</h3>
+
+                    <ul class="uk-list uk-list-divider">
+                        <li>
+                            <p>
+                                Enter the bot's url in the form (e.g https://yourapp.url)
+                            </p>
+                        </li>
+
+                        <li>
+                            <p>Click <strong>Finish Setup</strong></p>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="uk-width-1-2">
+                    <div class="uk-margin">
+                        <label>App Url
+                            <input class="uk-input" type="url" name="app_url" required />
+                        </label>
+                    </div>
+
+                    <div class="uk-margin">
+                        <button class="uk-button uk-button-primary">Finish Setup</button>
+                    </div>
+                </div>
+            </div>
+        </li>
+    </ul>
 </form>
 
 {% endblock %}

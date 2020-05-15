@@ -163,7 +163,7 @@ pub async fn create_setup(
 
     Ok(FlashResponse::with_redirect(
         Flash::from_result(Ok(()), "Setup Complete!"),
-        "/setup",
+        "/",
     ))
 }
 

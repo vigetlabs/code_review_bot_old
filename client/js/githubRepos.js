@@ -178,11 +178,12 @@ function removeWebhookForm(repo, hook) {
 
 export const init = async () => {
     repoListEl = document.getElementById('github-repos')
-    const ownerSelectEl = document.getElementById('owner-filter')
-    const spinner = repoListEl.firstElementChild
-    const searchInput = document.getElementById('repo-search')
 
     if (repoListEl != null) {
+        const ownerSelectEl = document.getElementById('owner-filter')
+        const spinner = repoListEl.firstElementChild
+        const searchInput = document.getElementById('repo-search')
+
         try {
             for await (let repos of getRepoList()) {
                 for (let repo of repos) {
