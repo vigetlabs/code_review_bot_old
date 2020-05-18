@@ -238,7 +238,7 @@ impl NewWebhook {
             config: WebhookConfig {
                 url: webhook_url.to_string(),
                 content_type: ContentType::Json,
-                secret: Some("update-only".to_string()),
+                secret: None,
             },
         }
     }
