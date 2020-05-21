@@ -3,6 +3,7 @@ version: '3'
 volumes:
   target:
   public:
+  node_modules:
 
 services:
   web:
@@ -19,9 +20,10 @@ services:
 
   webpack:
     build: .
-    command: npm run watch
+    command: bash -c "npm install && npm run watch"
     volumes:
       - .:/app
       - target:/app/target
       - public:/app/public
+      - node_modules:/app/node_modules
 
