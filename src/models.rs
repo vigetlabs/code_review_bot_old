@@ -235,7 +235,6 @@ impl Review {
 #[derive(Debug, Insertable)]
 #[table_name = "users"]
 pub struct NewUser {
-    pub username: String,
     pub slack_user_id: String,
     pub slack_access_token: String,
 }

@@ -335,7 +335,7 @@ impl SlackClient {
 
         let client = reqwest::Client::new();
         client
-            .post(&format!("{}/{}", self.url, "oauth.access"))
+            .post(&format!("{}/{}", self.url, "oauth.v2.access"))
             .form(&[("code", code)])
             .headers(headers)
             .send()
@@ -351,10 +351,16 @@ impl SlackClient {
 #[derive(Clone, Debug, Deserialize)]
 pub struct SlackAuthResponse {
     pub ok: bool,
-    pub scope: Option<String>,
     pub error: Option<String>,
-    pub access_token: Option<String>,
-    pub user: Option<SlackUserData>,
+    pub authed_user: AuthedUser,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AuthedUser {
+    pub id: String,
+    pub scope: String,
+    pub access_token: String,
+    pub token_type: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

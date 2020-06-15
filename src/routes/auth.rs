@@ -23,13 +23,11 @@ pub async fn slack(
     session: Session,
 ) -> Result<HttpResponse> {
     let response = state.slack.get_token(&query.code).await?;
-    let access_token = response.access_token.unwrap();
-    let user_data = response.user.unwrap();
+    let user_data = response.authed_user;
     let user = User::create_or_udpate(
         &NewUser {
-            username: user_data.name,
             slack_user_id: user_data.id,
-            slack_access_token: access_token,
+            slack_access_token: user_data.access_token,
         },
         &db,
     )?;
