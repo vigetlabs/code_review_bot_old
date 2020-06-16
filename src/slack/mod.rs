@@ -15,7 +15,6 @@ pub struct SlackMessageResponse {
     blocks: Option<Vec<blocks::Block>>,
     response_type: String,
     username: Option<String>,
-    as_user: bool,
     channel: Option<String>,
 }
 
@@ -263,7 +262,6 @@ impl SlackClient {
             blocks: None,
             response_type: "ephemeral".to_string(),
             username: None,
-            as_user: true,
             channel: None,
         })
         .map_err(|e| e.into())
@@ -275,7 +273,6 @@ impl SlackClient {
             blocks: None,
             response_type: "in_channel".to_string(),
             username: Some("Waiting for Review".to_string()),
-            as_user: false,
             channel: Some(channel_id.to_string()),
         })?;
 
