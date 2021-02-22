@@ -4,11 +4,41 @@
 <head>
   <meta charset="utf-8" />
   <title>{% block title %}{{title}} - Code Review Bot {% endblock %}</title>
-  <link rel="stylesheet" type="text/css" href="/public/styles.css">
+  <link rel="stylesheet" href="/public/main.css">
 </head>
 
 <body>
-  <div class="content">
-    {% block content %}{% endblock %}
-  </div>
+  <header>
+    <div class="uk-container">
+      <nav class="uk-navbar-transparent" data-uk-navbar>
+        <div class="uk-navbar-left">
+          <a href="/" class="uk-navabr-item uk-logo">CRBot</a>
+        </div>
+
+        <div class="uk-navbar-right">
+          <ul class="uk-navbar-nav">
+            <li>
+              <a href="#" data-uk-icon="icon:user"></a>
+              <div class="uk-navbar-dropdown uk-navbar-dropdown-bottom-left">
+                <ul class="uk-nav uk-navbar-dropdown-nav">
+                  <li class="uk-nav-header uk-text-small uk-text-primary">YOUR ACCOUNT</li>
+
+                  {% include "shared/user_info.html" %}
+                </ul>
+              </div>
+            </li>
+          </ul>
+        </div>
+    </div>
+    </nav>
+    </div>
+  </header>
+
+  <section class="uk-section uk-section-muted">
+    <div class="uk-container">
+      {% block content %}{% endblock %}
+    </div>
+  </section>
+
+  <script src="/public/main.js"></script>
 </body>

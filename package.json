@@ -1,0 +1,38 @@
+{
+  "name": "code_review_bot",
+  "version": "1.0.0",
+  "description": "[![CircleCI](https://circleci.com/gh/vigetlabs/code_review_bot.svg?style=svg&circle-token=35183e609cd216df24f1668009b60bbcdfe13c73)](https://circleci.com/gh/vigetlabs/code_review_bot)",
+  "private": true,
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.prod.js",
+    "watch": "webpack --watch --config webpack.dev.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vigetlabs/code_review_bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vigetlabs/code_review_bot/issues"
+  },
+  "homepage": "https://github.com/vigetlabs/code_review_bot#readme",
+  "devDependencies": {
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "css-loader": "^3.5.3",
+    "file-loader": "^6.0.0",
+    "mini-css-extract-plugin": "^0.9.0",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
+    "webpack-merge": "^4.2.2"
+  },
+  "dependencies": {
+    "uikit": "^3.4.2"
+  }
+}

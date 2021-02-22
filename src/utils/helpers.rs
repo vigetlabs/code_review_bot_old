@@ -11,3 +11,7 @@ pub fn get_current_user(db: &DBExecutor, session: &Session) -> Result<Option<Use
         Ok(None)
     }
 }
+
+pub fn sign_out_current_user(session: &Session) {
+    session.clear()
+}

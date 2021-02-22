@@ -1,14 +1,30 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serializer};
 use std::str::FromStr;
 
 use crate::error::{Result, UrlParseError};
 
+#[derive(Debug, Serialize)]
 pub struct PaginatedResource<T> {
     pub resources: Vec<T>,
+    #[serde(serialize_with = "url_to_string")]
     pub next: Option<url::Url>,
+    #[serde(serialize_with = "url_to_string")]
     pub prev: Option<url::Url>,
+    #[serde(serialize_with = "url_to_string")]
     pub first: Option<url::Url>,
+    #[serde(serialize_with = "url_to_string")]
     pub last: Option<url::Url>,
+}
+
+fn url_to_string<S>(url: &Option<url::Url>, serializer: S) -> std::result::Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    if let Some(url) = url {
+        serializer.serialize_str(url.as_str())
+    } else {
+        serializer.serialize_none()
+    }
 }
 
 impl<T> PaginatedResource<T> {

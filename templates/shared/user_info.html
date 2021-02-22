@@ -1,0 +1,24 @@
+{% match info.current_user %}
+{% when Some with (user) %}
+{% if !user.is_gh_authed() %}
+<li>
+    <a href="https://github.com/login/oauth/authorize?scope=repo+admin:repo_hook&client_id={{info.gh_client_id}}">
+        <span data-uk-icon="icon:sign-in"></span> Connect to Github
+    </a>
+</li>
+{% endif %}
+
+<li class="uk-nav-divider"></li>
+
+<li>
+    <a href="/logout">
+        <span data-uk-icon="icon:sign-out"></span> Sign out
+    </a>
+</li>
+{% when None %}
+<li>
+    <a href="https://slack.com/oauth/authorize?scope=identity.basic&client_id={{info.client_id}}">
+        <span data-uk-icon="icon:sign-in"></span> Sign in with Slack
+    </a>
+</li>
+{% endmatch %}

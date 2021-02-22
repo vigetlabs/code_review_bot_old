@@ -1,6 +1,6 @@
 use actix_web::{
     web::{Data, Json},
-    HttpResponse,
+    HttpRequest, HttpResponse,
 };
 
 use crate::db::DBExecutor;
@@ -32,16 +32,20 @@ async fn handle_pull_request_opened(
         &json.pull_request,
         &state.github,
         user.clone().and_then(|u| u.github_access_token),
-    ).await;
+    )
+    .await;
     let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &db)?;
 
-    let result = state.slack.post_message(
-        &json.pull_request,
-        mappings,
-        &state.slack.channel,
-        &state.app_url,
-        user,
-    ).await?;
+    let result = state
+        .slack
+        .post_message(
+            &json.pull_request,
+            mappings,
+            &state.slack.channel,
+            &state.app_url,
+            user,
+        )
+        .await?;
 
     PullRequest::create(
         &NewPullRequest {
@@ -80,17 +84,21 @@ async fn handle_pull_request_closed(
         &json.pull_request,
         &state.github,
         user.clone().and_then(|u| u.github_access_token),
-    ).await;
+    )
+    .await;
     let mappings = IconMapping::from(pr_files.filenames, pr_files.extensions, &db)?;
 
-    state.slack.update_message(
-        &json.pull_request,
-        mappings,
-        &db_pr.slack_message_id,
-        &db_pr.channel,
-        &state.app_url,
-        user,
-    ).await?;
+    state
+        .slack
+        .update_message(
+            &json.pull_request,
+            mappings,
+            &db_pr.slack_message_id,
+            &db_pr.channel,
+            &state.app_url,
+            user,
+        )
+        .await?;
     Ok(prepare_response(""))
 }
 
@@ -109,6 +117,10 @@ pub async fn pull_request(
             json.action
         ))),
     }
+}
+
+pub async fn ping(_: HttpRequest) -> Result<HttpResponse> {
+    Ok(prepare_response(""))
 }
 
 pub async fn review(
@@ -149,12 +161,15 @@ async fn handle_review_submitted(
     db_pr = db_pr.update(&next_state(&db_pr.state, approved), &db)?;
     Review::create_or_update(&reviewer, &db_pr, &json.review.state.to_string(), &db)?;
 
-    state.slack.add_reaction(
-        &reaction,
-        &db_pr.slack_message_id,
-        &db_pr.channel,
-        reviewer_user,
-    ).await?;
+    state
+        .slack
+        .add_reaction(
+            &reaction,
+            &db_pr.slack_message_id,
+            &db_pr.channel,
+            reviewer_user,
+        )
+        .await?;
 
     Ok(prepare_response(""))
 }

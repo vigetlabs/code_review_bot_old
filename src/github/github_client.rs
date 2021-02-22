@@ -1,7 +1,7 @@
 use serde::de::DeserializeOwned;
 use std::str::FromStr;
 
-use crate::error::{Result, Error};
+use crate::error::{Error, Result};
 use crate::models;
 use crate::utils::paginated_resource::{PaginatedResource, PaginationParams};
 
@@ -18,7 +18,10 @@ pub struct GithubClient {
 
 impl Default for GithubClient {
     fn default() -> Self {
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .user_agent("code-review-bot")
+            .build()
+            .unwrap();
 
         Self {
             url: "https://api.github.com".to_owned(),
@@ -64,7 +67,8 @@ impl GithubClient {
         if let Some(hook) = hooks
             .iter()
             .find(|hook| hook.config.url.contains("github_event"))
-            .cloned() {
+            .cloned()
+        {
             Ok(hook)
         } else {
             let body = serde_json::to_string(&NewWebhook::new(webhook_url)).unwrap();
@@ -96,7 +100,7 @@ impl GithubClient {
         params: &PaginationParams,
     ) -> Result<PaginatedResource<Repo>> {
         let request_url = format!(
-            "{url}/user/repos?sort={sort}&page={page}",
+            "{url}/user/repos?sort={sort}&page={page}&per_page=100",
             url = self.url,
             sort = "updated",
             page = params.page.as_ref().unwrap_or(&"1".to_owned()),
@@ -109,7 +113,9 @@ impl GithubClient {
 
         if let Some(link_str) = link_header {
             let link = hyperx::header::Link::from_str(
-                link_str.to_str().map_err(|_| Error::ServerError("header error".to_string()))?
+                link_str
+                    .to_str()
+                    .map_err(|_| Error::ServerError("header error".to_string()))?,
             )?;
             PaginatedResource::new(resources, link.values())
         } else {
@@ -121,14 +127,19 @@ impl GithubClient {
     where
         T: DeserializeOwned,
     {
-        self.get(url, token).await?.json().await.map_err(|e| e.into())
+        self.get(url, token)
+            .await?
+            .json()
+            .await
+            .map_err(|e| e.into())
     }
 
     async fn get(&self, url: &str, token: &str) -> Result<reqwest::Response> {
         self.client
             .get(url)
             .add_token(token)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()
             .map_err(|e| e.into())
     }
@@ -137,7 +148,8 @@ impl GithubClient {
         self.client
             .delete(url)
             .add_token(token)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()
             .map_err(|e| e.into())
     }
@@ -151,9 +163,11 @@ impl GithubClient {
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .add_token(token)
             .body(body.to_owned())
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json().await
+            .json()
+            .await
             .map_err(|e| e.into())
     }
 }

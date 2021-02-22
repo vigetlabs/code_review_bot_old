@@ -25,13 +25,11 @@ pub struct SlackMessagePost {
     channel: String,
     blocks: Option<Vec<blocks::Block>>,
     username: Option<String>,
-    as_user: bool,
     icon_url: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
 pub struct SlackMessageUpdate {
-    as_user: Option<bool>,
     blocks: Option<Vec<blocks::Block>>,
     channel: String,
     text: Option<String>,
@@ -176,9 +174,7 @@ impl SlackClient {
         user: Option<models::User>,
     ) -> Result<SlackMessagePostResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
-        let as_user = user.is_some();
-
-        let message = serde_json::to_string(&SlackMessagePost {
+        let mut message = SlackMessagePost {
             text: None,
             blocks: Some(blocks::Block::from_pull_request(
                 pull_request,
@@ -187,10 +183,9 @@ impl SlackClient {
                 url,
             )),
             channel: channel.to_string(),
-            username: None,
+            username: Some(pull_request.user.login.to_string()),
             icon_url: Some(pull_request.user.avatar_url.to_string()),
-            as_user,
-        })?;
+        };
 
         let mut request = self
             .client
@@ -201,14 +196,20 @@ impl SlackClient {
                 reqwest::header::AUTHORIZATION,
                 &format!("Bearer {}", user.slack_access_token),
             );
+            message.username = None;
+            message.icon_url = None;
         }
+
+        let message = serde_json::to_string(&message)?;
 
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<SlackMessagePostResponse>().await
+            .json::<SlackMessagePostResponse>()
+            .await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
@@ -223,7 +224,6 @@ impl SlackClient {
         user: Option<models::User>,
     ) -> Result<SlackMessageUpdateResponse> {
         let additions = format!("(+{} -{})", pull_request.additions, pull_request.deletions);
-        let as_user = user.is_some();
 
         let message = serde_json::to_string(&SlackMessageUpdate {
             text: None,
@@ -234,7 +234,6 @@ impl SlackClient {
                 url,
             )),
             channel: channel.to_string(),
-            as_user: Some(as_user),
             ts: ts.to_string(),
         })?;
 
@@ -249,9 +248,11 @@ impl SlackClient {
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json::<SlackMessageUpdateResponse>().await
+            .json::<SlackMessageUpdateResponse>()
+            .await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
@@ -282,7 +283,8 @@ impl SlackClient {
             .post(&format!("{}/{}", self.url, "chat.postMessage"))
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(response)
-            .send().await?;
+            .send()
+            .await?;
 
         Ok(())
     }
@@ -314,9 +316,11 @@ impl SlackClient {
         request
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .body(message)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json().await
+            .json()
+            .await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
@@ -331,12 +335,14 @@ impl SlackClient {
 
         let client = reqwest::Client::new();
         client
-            .post(&format!("{}/{}", self.url, "oauth.access"))
+            .post(&format!("{}/{}", self.url, "oauth.v2.access"))
             .form(&[("code", code)])
             .headers(headers)
-            .send().await?
+            .send()
+            .await?
             .error_for_status()?
-            .json().await
+            .json()
+            .await
             .map_err(|e| e.into())
             .and_then(handle_response)
     }
@@ -345,10 +351,16 @@ impl SlackClient {
 #[derive(Clone, Debug, Deserialize)]
 pub struct SlackAuthResponse {
     pub ok: bool,
-    pub scope: Option<String>,
     pub error: Option<String>,
-    pub access_token: Option<String>,
-    pub user: Option<SlackUserData>,
+    pub authed_user: AuthedUser,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct AuthedUser {
+    pub id: String,
+    pub scope: String,
+    pub access_token: String,
+    pub token_type: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

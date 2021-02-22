@@ -89,7 +89,7 @@ pub struct ReviewPR {
     pub base: Base,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug, Serialize)]
 pub struct User {
     pub id: i32,
     pub login: String,
@@ -97,7 +97,7 @@ pub struct User {
     pub html_url: String,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug, Serialize)]
 pub struct Repo {
     pub id: i32,
     pub owner: User,
@@ -107,7 +107,7 @@ pub struct Repo {
     pub permissions: RepoPermissions,
 }
 
-#[derive(Clone, Deserialize, Debug, Default)]
+#[derive(Clone, Deserialize, Debug, Default, Serialize)]
 pub struct RepoPermissions {
     pub admin: bool,
     pub push: bool,
@@ -238,7 +238,7 @@ impl NewWebhook {
             config: WebhookConfig {
                 url: webhook_url.to_string(),
                 content_type: ContentType::Json,
-                secret: Some("update-only".to_string()),
+                secret: None,
             },
         }
     }
@@ -251,12 +251,17 @@ pub struct PRFiles {
 }
 
 impl PRFiles {
-    pub async fn new(pull_request: &PRResult, client: &GithubClient, token: Option<String>) -> Self {
+    pub async fn new(
+        pull_request: &PRResult,
+        client: &GithubClient,
+        token: Option<String>,
+    ) -> Self {
         if let Some(token) = token {
             let files = client.get_files(pull_request, &token).await;
             files
                 .map(|files| {
-                    files.into_iter()
+                    files
+                        .into_iter()
                         .map(|file| (file.filename(), file.extension()))
                 })
                 .map(|file_info| file_info.unzip())
@@ -270,8 +275,9 @@ impl PRFiles {
                         extensions,
                         filenames,
                     }
-                }).unwrap_or_default()
-        } else  {
+                })
+                .unwrap_or_default()
+        } else {
             Self::default()
         }
     }

@@ -235,7 +235,6 @@ impl Review {
 #[derive(Debug, Insertable)]
 #[table_name = "users"]
 pub struct NewUser {
-    pub username: String,
     pub slack_user_id: String,
     pub slack_access_token: String,
 }
@@ -249,6 +248,13 @@ pub struct User {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub github_access_token: Option<String>,
+}
+
+#[derive(AsChangeset)]
+#[table_name = "users"]
+#[changeset_options(treat_none_as_null = "true")]
+struct RemoveGithubToken<'a> {
+    github_access_token: Option<&'a str>,
 }
 
 impl User {
@@ -308,6 +314,18 @@ impl User {
             .map_err(|e| e.into())
     }
 
+    pub fn logout(&self, db: &DBExecutor) -> Result<()> {
+        use crate::schema::users::dsl::*;
+        let conn = db.0.get()?;
+        diesel::update(users.find(self.id))
+            .set(&RemoveGithubToken {
+                github_access_token: None,
+            })
+            .execute(&conn)
+            .map(|_| ())
+            .map_err(|e| e.into())
+    }
+
     pub fn is_gh_authed(&self) -> bool {
         self.github_access_token.is_some()
     }
@@ -321,7 +339,7 @@ pub struct NewWebhook {
     pub owner: String,
 }
 
-#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable)]
+#[derive(Clone, Debug, Queryable, QueryableByName, Identifiable, Serialize)]
 #[table_name = "webhooks"]
 pub struct Webhook {
     pub id: i32,
