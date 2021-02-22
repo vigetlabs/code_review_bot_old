@@ -1,7 +1,7 @@
 {
   "name": "code_review_bot",
   "version": "1.0.0",
-  "description": "[![CircleCI](https://circleci.com/gh/vigetlabs/code_review_bot.svg?style=svg&circle-token=35183e609cd216df24f1668009b60bbcdfe13c73)](https://circleci.com/gh/vigetlabs/code_review_bot)",
+  "description": "Code Review Bot",
   "private": true,
   "directories": {
     "test": "tests"

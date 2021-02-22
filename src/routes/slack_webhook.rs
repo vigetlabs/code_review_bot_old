@@ -21,8 +21,7 @@ pub async fn review(
         token
     } else {
         let res = state.slack.immediate_response(
-            "To submit a pull request you must first sign in and connect your account to github."
-                .to_string(),
+            format!("To submit a pull request you must first sign in and connect your account to github here {}.", state.app_url),
         )?;
         return Ok(prepare_response(&res));
     };
@@ -37,7 +36,8 @@ pub async fn review(
     let pr_response = state.github.get_pr(&pull_request, &access_token).await?;
     let (filenames, extensions): (Vec<_>, Vec<_>) = state
         .github
-        .get_files(&pr_response, &access_token).await
+        .get_files(&pr_response, &access_token)
+        .await
         .map(|files| {
             files
                 .into_iter()
@@ -50,20 +50,18 @@ pub async fn review(
 
     let mappings = IconMapping::from(filenames, extensions, &db)?;
 
-    state.slack.post_message(
-        &pr_response,
-        mappings,
-        &form.channel_id,
-        &state.app_url,
-        None,
-    ).await?;
-    let message = state.slack.immediate_response(
-        "To have these automatically posted for you see: \
-        <https://github.com/vigetlabs/code_review_bot/blob/master/README.md#adding-a-webhook-recommended\
-        |Find out more>".to_string()
-    )?;
+    state
+        .slack
+        .post_message(
+            &pr_response,
+            mappings,
+            &form.channel_id,
+            &state.app_url,
+            None,
+        )
+        .await?;
 
-    Ok(prepare_response(&message))
+    Ok(prepare_response(""))
 }
 
 pub async fn reviews(
@@ -81,7 +79,8 @@ pub async fn reviews(
 
     state
         .slack
-        .reviews_response(&open_prs.join("\n"), &form.channel_id).await?;
+        .reviews_response(&open_prs.join("\n"), &form.channel_id)
+        .await?;
     Ok(prepare_response(""))
 }
 
