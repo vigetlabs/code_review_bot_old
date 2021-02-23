@@ -20,6 +20,10 @@ actix-rt = "1.0"
 actix-service = "1.0"
 askama = "0.9"
 
+# GraphQl
+juniper = "0.15"
+juniper_actix = "0.2"
+
 # Database
 diesel = { version = "1.4", features = ["postgres", "r2d2", "chrono"] }
 r2d2 = "0.8"
