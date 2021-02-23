@@ -1,10 +1,10 @@
 use actix_web::error::ErrorBadRequest;
 use actix_web::web::Data;
 use actix_web::{dev, Error, FromRequest, HttpRequest};
-use std::sync::{Arc, Mutex};
-use std::pin::Pin;
-use futures::future::{ok, err, Future};
+use futures::future::{err, ok, Future};
 use futures::TryFutureExt;
+use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 
 use crate::github::{GithubClient, GithubOauthClient};
 use crate::slack::SlackClient;

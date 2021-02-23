@@ -83,7 +83,8 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
         web::resource("/setup")
             .route(web::get().to(routes::web::new_setup))
             .route(web::post().to(routes::web::create_setup)),
-    );
+    )
+    .service(web::resource("graphql").route(web::get().to(routes::graphql::playground_route)));
 }
 
 pub async fn start_server(

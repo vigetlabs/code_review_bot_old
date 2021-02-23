@@ -1,5 +1,5 @@
 use actix_service::{Service, Transform};
-use actix_web::{dev::ServiceRequest, dev::ServiceResponse, http, Error, HttpResponse};
+use actix_web::{dev::ServiceRequest, dev::ServiceResponse, http, web::Data, Error, HttpResponse};
 use futures::future::{ok, Either, Future, Ready};
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -49,7 +49,7 @@ where
 
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let config = req
-            .app_data::<AppConfig>()
+            .app_data::<Data<AppConfig>>()
             .expect("AppConfig must be setup");
 
         let app_data = {

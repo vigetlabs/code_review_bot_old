@@ -103,14 +103,14 @@ pub async fn delete_webhook(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
-    path: Path<i32>,
+    Path((webhook_id,)): Path<(i32,)>,
 ) -> Result<HttpResponse> {
     let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
     let access_token = current_user
         .github_access_token
         .ok_or(Error::NotAuthedError)?;
 
-    match Webhook::find(path.0, &db) {
+    match Webhook::find(webhook_id, &db) {
         Ok(webhook) => {
             state.github.delete_webhook(&webhook, &access_token).await?;
             webhook.delete(&db)
