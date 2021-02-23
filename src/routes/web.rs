@@ -108,7 +108,7 @@ pub async fn root(
         LoginTemplate { info: &info }.render()?
     };
 
-    build_response(rendered_template)
+    Ok(build_response(rendered_template))
 }
 
 #[derive(Template)]
@@ -116,7 +116,7 @@ pub async fn root(
 struct NewSetup;
 
 pub async fn new_setup() -> Result<HttpResponse> {
-    build_response(NewSetup.render()?)
+    Ok(build_response(NewSetup.render()?))
 }
 
 #[derive(Deserialize)]
@@ -186,6 +186,6 @@ pub async fn logout(
     Ok(FlashResponse::with_redirect(Flash::info("Signed Out"), "/"))
 }
 
-fn build_response(body: String) -> Result<HttpResponse> {
-    Ok(HttpResponse::Ok().content_type("text/html").body(body))
+fn build_response(body: String) -> HttpResponse {
+    HttpResponse::Ok().content_type("text/html").body(body)
 }

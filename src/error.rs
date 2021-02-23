@@ -1,7 +1,4 @@
 use actix_web::{self, http, HttpResponse, ResponseError};
-use r2d2;
-use reqwest;
-use serde_json;
 
 use crate::utils::prepare_response;
 
@@ -149,9 +146,9 @@ impl From<r2d2::Error> for DatabaseError {
 
 #[derive(Fail, Debug)]
 pub enum UrlParseError {
-    #[fail(display = "Mallformed url")]
+    #[fail(display = "Malformed url")]
     MissingSegment,
 
-    #[fail(display = "Mallformed url")]
+    #[fail(display = "Malformed url")]
     Parse(url::ParseError),
 }

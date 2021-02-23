@@ -103,7 +103,7 @@ pub async fn delete_webhook(
     state: AppData,
     db: Data<DBExecutor>,
     session: Session,
-    path: Path<(i32,)>,
+    path: Path<i32>,
 ) -> Result<HttpResponse> {
     let current_user = get_current_user(&db, &session)?.ok_or(Error::NotAuthedError)?;
     let access_token = current_user
