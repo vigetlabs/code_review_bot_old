@@ -87,6 +87,7 @@ pub async fn root(
 ) -> Result<HttpResponse> {
     let flash = flash_message.map(|flash| flash.into_inner());
     let current_user = get_current_user(&db, &session)?;
+    dbg!(&current_user);
     let is_gh_authed = current_user
         .clone()
         .and_then(|u| if u.is_gh_authed() { Some(u) } else { None })

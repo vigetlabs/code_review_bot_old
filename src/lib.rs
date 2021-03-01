@@ -9,6 +9,7 @@ extern crate failure_derive;
 
 mod error;
 mod github;
+mod graphql;
 mod middlewares;
 mod models;
 mod routes;
@@ -84,7 +85,11 @@ pub fn configure_app(cfg: &mut web::ServiceConfig) {
             .route(web::get().to(routes::web::new_setup))
             .route(web::post().to(routes::web::create_setup)),
     )
-    .service(web::resource("graphql").route(web::get().to(routes::graphql::playground_route)));
+    .service(
+        web::resource("graphql")
+            .route(web::get().to(routes::graphql::playground_route))
+            .route(web::post().to(routes::graphql::graphql_route)),
+    );
 }
 
 pub async fn start_server(
@@ -123,6 +128,7 @@ pub async fn start_dev_server(
             .service(fs::Files::new("/public", "./public"))
             .data(app_config.clone())
             .data(db.clone())
+            .data(graphql::schema::schema())
             .configure(configure_app)
     });
 
