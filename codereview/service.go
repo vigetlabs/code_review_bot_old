@@ -1,31 +1,62 @@
 package codereview
 
 import (
+	"context"
+
 	"github.com/google/go-github/v42/github"
+	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
 )
 
 type Service interface {
-	HandlePullRequestEvent(event github.PullRequestEvent) error
-	HandlePullRequestReviewEvent(event github.PullRequestReviewEvent) error
+	HandlePullRequestEvent(ctx context.Context, event github.PullRequestEvent) error
+	HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error
 }
 
 type service struct {
-	l *zap.SugaredLogger
+	l           *zap.SugaredLogger
+	slackClient slack.Client
 }
 
-func (s *service) HandlePullRequestEvent(event github.PullRequestEvent) error {
+func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullRequestEvent) error {
 	s.l.Infow("HandlePullRequestEvent", "action", event.Action)
 
-	return nil
+	return s.slackClient.SendPullRequestMessage(ctx, pullRequestInfo(event.PullRequest))
 }
 
-func (s *service) HandlePullRequestReviewEvent(event github.PullRequestReviewEvent) error {
+func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error {
 	s.l.Infow("HandlePullRequestReviewEvent", "action", event.Action)
 
 	return nil
 }
 
-func NewService(logger *zap.Logger) Service {
-	return &service{l: logger.Sugar()}
+func NewService(logger *zap.Logger, slackClient slack.Client) Service {
+	return &service{
+		l:           logger.Sugar(),
+		slackClient: slackClient,
+	}
+}
+
+func pullRequestInfo(pullRequest *github.PullRequest) slack.PullRequestInfo {
+	var name string
+	if pullRequest.User.Name != nil {
+		name = *pullRequest.User.Name
+	} else {
+		name = *pullRequest.User.Login
+	}
+
+	return slack.PullRequestInfo{
+		UserName:       name,
+		UserAvatarURL:  *pullRequest.User.AvatarURL,
+		UserLogin:      *pullRequest.User.Login,
+		Title:          *pullRequest.Title,
+		URL:            *pullRequest.HTMLURL,
+		Repo:           *pullRequest.Base.Repo.FullName,
+		Commits:        *pullRequest.Commits,
+		ChangedFiles:   *pullRequest.ChangedFiles,
+		Additions:      *pullRequest.Additions,
+		Deletions:      *pullRequest.Deletions,
+		MergeableState: *pullRequest.MergeableState,
+		State:          *pullRequest.State,
+	}
 }

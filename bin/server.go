@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"github.com/vigetlabs/code_review_bot/codereview"
+	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
 )
 
@@ -31,7 +32,9 @@ func main() {
 		}
 	}
 
-	api := codereview.NewAPI(logger, codereview.NewService(logger))
+	slackClient := slack.New(logger, viper.GetString("slack.token"), viper.GetString("slack.channelID"))
+
+	api := codereview.NewAPI(logger, codereview.NewService(logger, slackClient))
 
 	r := gin.Default()
 
