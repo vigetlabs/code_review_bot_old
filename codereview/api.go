@@ -21,18 +21,15 @@ type api struct {
 
 func (a *api) Payload(c *gin.Context) {
 	eventName := c.GetHeader("X-GitHub-Event")
-	if eventName == "ping" {
+	switch eventName {
+	case "ping":
 		c.Status(http.StatusOK)
-		return
-	} else if eventName == "" || !(eventName == "pull_request" || eventName == "pull_request_review") {
-		c.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-
-	if eventName == "pull_request" {
+	case "pull_request":
 		a.pullRequest(c)
-	} else if eventName == "pull_request_review" {
+	case "pull_request_review":
 		a.pullRequestReview(c)
+	default:
+		c.AbortWithStatus(http.StatusBadRequest)
 	}
 }
 
