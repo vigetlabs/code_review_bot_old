@@ -6,6 +6,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// PullRequestInfo holds the info required to generate a Slack message describing a pull request
 type PullRequestInfo struct {
 	UserName       string
 	UserAvatarURL  string
@@ -21,6 +22,7 @@ type PullRequestInfo struct {
 	State          string
 }
 
+// Blocks constructs the Slack message content blocks for a pull request
 func (i PullRequestInfo) Blocks() []slack.Block {
 	return []slack.Block{
 		slack.NewSectionBlock(

@@ -8,8 +8,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// Service describes code review service methods
 type Service interface {
+	// HandlePullRequestEvent handles pull request events
 	HandlePullRequestEvent(ctx context.Context, event github.PullRequestEvent) error
+	// HandlePullRequestReviewEvent handles pull request review events
 	HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error
 }
 
@@ -30,6 +33,7 @@ func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github
 	return nil
 }
 
+// NewService constructs a code review service
 func NewService(logger *zap.Logger, slackClient slack.Client) Service {
 	return &service{
 		l:           logger.Sugar(),

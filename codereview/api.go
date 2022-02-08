@@ -8,7 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// API describes code review API handlers
 type API interface {
+	// Payload handles a GitHub webhook payload
 	Payload(c *gin.Context)
 }
 
@@ -64,6 +66,7 @@ func (a *api) pullRequestReview(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// NewAPI constructs a code review API
 func NewAPI(logger *zap.Logger, service Service) API {
 	return &api{
 		l: logger.Sugar(),

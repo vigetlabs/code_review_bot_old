@@ -7,7 +7,9 @@ import (
 	"go.uber.org/zap"
 )
 
+// Client describes Slack client methods
 type Client interface {
+	// SendPullRequestMessage constructs and sends a Slack message based on the pull request info
 	SendPullRequestMessage(ctx context.Context, info PullRequestInfo) error
 }
 
@@ -34,6 +36,7 @@ func (c *client) SendPullRequestMessage(ctx context.Context, info PullRequestInf
 	return nil
 }
 
+// New constructs a Slack client
 func New(logger *zap.Logger, token, channelID string) Client {
 	return &client{
 		l:         logger.Sugar(),
