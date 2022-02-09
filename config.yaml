@@ -2,6 +2,8 @@ addr: :8080
 dev: true
 dynamodb:
   url: http://localhost:8000
+github:
+  accessToken: PLACEHOLDER
 slack:
   token: PLACEHOLDER
   channelID: PLACEHOLDER

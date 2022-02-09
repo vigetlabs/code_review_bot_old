@@ -10,11 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v42/github"
 	"github.com/spf13/viper"
 	"github.com/vigetlabs/code_review_bot/codereview"
 	"github.com/vigetlabs/code_review_bot/db"
 	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
+	"golang.org/x/oauth2"
 )
 
 func main() {
@@ -53,10 +55,16 @@ func main() {
 
 	dbc := dynamodb.NewFromConfig(cfg, opts...)
 	db := db.New(dbc)
-
 	slackClient := slack.New(logger, viper.GetString("slack.token"))
 
-	api := codereview.NewAPI(logger, codereview.NewService(logger, db, slackClient, viper.GetString("slack.channelID")))
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: viper.GetString("github.accessToken")},
+	)
+	tc := oauth2.NewClient(context.Background(), ts)
+	githubClient := github.NewClient(tc)
+
+	s := codereview.NewService(logger, db, slackClient, githubClient, viper.GetString("slack.channelID"))
+	api := codereview.NewAPI(logger, s)
 
 	r := gin.Default()
 
