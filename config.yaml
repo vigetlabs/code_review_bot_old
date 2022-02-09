@@ -1,4 +1,7 @@
-addr: ":8080"
+addr: :8080
+dev: true
+dynamodb:
+  url: http://localhost:8000
 slack:
   token: PLACEHOLDER
   channelID: PLACEHOLDER
