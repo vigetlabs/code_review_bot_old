@@ -1,3 +1,4 @@
+// Development server
 package main
 
 import (
@@ -15,17 +16,19 @@ import (
 	"github.com/spf13/viper"
 	"github.com/vigetlabs/code_review_bot/codereview"
 	"github.com/vigetlabs/code_review_bot/db"
-	"github.com/vigetlabs/code_review_bot/languages"
+	"github.com/vigetlabs/code_review_bot/lang"
 	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
 )
 
 func main() {
+	// Configure viper environment variable consumption
 	viper.SetEnvPrefix("code_review_bot")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
+	// Load config.yaml if it exists
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
@@ -35,6 +38,7 @@ func main() {
 		}
 	}
 
+	// Set up logger
 	var logger *zap.Logger
 	if viper.GetBool("dev") {
 		logger, _ = zap.NewDevelopment()
@@ -43,23 +47,25 @@ func main() {
 	}
 	l := logger.Sugar()
 
-	l.Infow("Env vars", "slack.channelID", viper.GetString("slack.channelID"))
+	// Construct language index
+	langIndex := lang.NewIndex()
 
 	data, err := ioutil.ReadFile("languages.yml")
 	if err != nil {
 		l.Fatalw("Failed to read languages.yml", "err", err)
 	}
 
-	languages, err := languages.Parse(data)
-	if err != nil {
-		l.Fatalw("Failed to parse languages", "err", err)
+	if err := langIndex.Load(data); err != nil {
+		l.Fatalw("Failed to load languages", "err", err)
 	}
 
+	// AWS config
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		log.Fatalf("Unable to load SDK config, %v", err)
 	}
 
+	// Set up DynamoDB client
 	var opts []func(*dynamodb.Options)
 	if viper.GetString("dynamodb.url") != "" {
 		opts = append(opts, dynamodb.WithEndpointResolver(dynamodb.EndpointResolverFromURL(viper.GetString("dynamodb.url"))))
@@ -67,17 +73,22 @@ func main() {
 
 	dbc := dynamodb.NewFromConfig(cfg, opts...)
 	db := db.New(dbc)
+
+	// Set up Slack client
 	slackClient := slack.New(logger, viper.GetString("slack.token"))
 
+	// Set up GitHub client
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: viper.GetString("github.accessToken")},
 	)
 	tc := oauth2.NewClient(context.Background(), ts)
 	githubClient := github.NewClient(tc)
 
-	s := codereview.NewService(logger, db, slackClient, githubClient, viper.GetString("slack.channelID"), languages)
+	// Set up API
+	s := codereview.NewService(logger, db, slackClient, githubClient, langIndex, viper.GetString("slack.channelID"))
 	api := codereview.NewAPI(logger, s)
 
+	// Set up gin server
 	r := gin.Default()
 
 	r.Use(ginzap.Ginzap(logger, time.RFC3339, true))
@@ -85,5 +96,6 @@ func main() {
 
 	r.POST("/payload", api.Payload)
 
+	// Run server
 	l.Fatal(r.Run(viper.GetString("addr")))
 }

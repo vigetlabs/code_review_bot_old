@@ -21,21 +21,21 @@ type PullRequestInfo struct {
 	Deletions        int
 	State            string
 	Merged           bool
-	FileTypes        []string
-	FilesErrorStatus string
+	Langs            []string
+	LangsErrorStatus string
 }
 
 // Blocks constructs the Slack message content blocks for a pull request
 func (i PullRequestInfo) Blocks() []slack.Block {
-	var files string
-	if i.FilesErrorStatus == "" {
-		if len(i.FileTypes) > 0 {
-			files = strings.Join(i.FileTypes, ", ")
+	var langs string
+	if i.LangsErrorStatus == "" {
+		if len(i.Langs) > 0 {
+			langs = strings.Join(i.Langs, ", ")
 		} else {
-			files = "unknown file types"
+			langs = "unknown languages"
 		}
 	} else {
-		files = fmt.Sprintf("GH request failed with %s status", i.FilesErrorStatus)
+		langs = fmt.Sprintf("GH request failed with %s status", i.LangsErrorStatus)
 	}
 
 	var state string
@@ -83,7 +83,7 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 			),
 			slack.NewTextBlockObject(
 				slack.PlainTextType,
-				files,
+				langs,
 				true,
 				false,
 			),
