@@ -13,6 +13,8 @@ type Client interface {
 	SendPullRequestMessage(ctx context.Context, channelID string, info PullRequestInfo) (string, string, error)
 	// UpdatePullRequestMessage updates an existing Slack message with a newly constructed message based on the pull request info. Returns the channel id and timestamp.
 	UpdatePullRequestMessage(ctx context.Context, channelID, timestamp string, info PullRequestInfo) error
+	// AddReaction adds a reaction
+	AddReaction(ctx context.Context, channelID, timestamp string) error
 }
 
 type client struct {
@@ -53,6 +55,12 @@ func (c *client) UpdatePullRequestMessage(ctx context.Context, channelID, timest
 	}
 
 	return nil
+}
+
+func (c *client) AddReaction(ctx context.Context, channelID, timestamp string) error {
+	c.l.Debugw("AddReaction", "channelID", channelID, "timestamp", timestamp)
+
+	return c.c.AddReactionContext(ctx, "white_check_mark", slack.NewRefToMessage(channelID, timestamp))
 }
 
 // New constructs a Slack client

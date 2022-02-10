@@ -2,10 +2,12 @@ package codereview
 
 import (
 	"context"
+	"sort"
 	"strings"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/vigetlabs/code_review_bot/db"
+	"github.com/vigetlabs/code_review_bot/languages"
 	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
 )
@@ -24,6 +26,7 @@ type service struct {
 	slackClient    slack.Client
 	githubClient   *github.Client
 	slackChannelID string
+	languageIndex  map[string]*languages.Language
 }
 
 func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullRequestEvent) error {
@@ -52,8 +55,27 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 	}
 
 	exts := fileExtensions(files)
+	fileTypesMap := make(map[string]bool)
+	var fileTypes []string
+	for _, ext := range exts {
+		if l, ok := s.languageIndex[ext]; ok {
+			if _, ok := fileTypesMap[l.Name]; !ok {
+				fileTypesMap[l.Name] = true
 
-	info := pullRequestInfo(event.PullRequest, exts, filesErrorStatus)
+				str := l.Name
+				if emoji, ok := languages.Emojis[l.Name]; ok {
+					str = emoji
+				} else if l.Group != "" {
+					if emoji, ok := languages.Emojis[l.Group]; ok {
+						str = emoji
+					}
+				}
+				fileTypes = append(fileTypes, str)
+			}
+		}
+	}
+
+	info := pullRequestInfo(event.PullRequest, fileTypes, filesErrorStatus)
 	if pr == nil {
 		channelID, timestamp, err := s.slackClient.SendPullRequestMessage(ctx, s.slackChannelID, info)
 		if err != nil {
@@ -74,22 +96,53 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error {
 	s.l.Infow("HandlePullRequestReviewEvent", "action", event.Action)
 
+	repoID := *event.PullRequest.Base.Repo.ID
+	pullRequestID := *event.PullRequest.ID
+
+	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID)
+	if err != nil {
+		return err
+	}
+
+	if pr != nil {
+		return s.slackClient.AddReaction(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp)
+	}
+
 	return nil
 }
 
 // NewService constructs a code review service
-func NewService(logger *zap.Logger, db db.DB, slackClient slack.Client, githubClient *github.Client, slackChannelID string) Service {
+func NewService(logger *zap.Logger, db db.DB, slackClient slack.Client, githubClient *github.Client, slackChannelID string, languages []*languages.Language) Service {
 	return &service{
 		l:              logger.Sugar(),
 		db:             db,
 		slackClient:    slackClient,
 		githubClient:   githubClient,
 		slackChannelID: slackChannelID,
+		languageIndex:  indexLanguages(languages),
 	}
 }
 
-func fileExtensions(files []*github.CommitFile) map[string]int {
-	exts := make(map[string]int)
+func indexLanguages(ls []*languages.Language) map[string]*languages.Language {
+	index := make(map[string]*languages.Language)
+	for _, l := range ls {
+		for _, ext := range l.Extensions {
+			trimmed := ext[1:]
+			if c, ok := index[trimmed]; ok {
+				if len(c.Extensions) <= len(l.Extensions) {
+					continue
+				}
+			}
+
+			index[trimmed] = l
+		}
+	}
+
+	return index
+}
+
+func fileExtensions(files []*github.CommitFile) []string {
+	m := make(map[string]int)
 	for _, f := range files {
 		containsDot := strings.Contains(*f.Filename, ".")
 		if !containsDot {
@@ -98,13 +151,25 @@ func fileExtensions(files []*github.CommitFile) map[string]int {
 
 		p := strings.Split(*f.Filename, ".")
 		ext := p[len(p)-1]
-		exts[ext]++
+		m[ext]++
 	}
+
+	exts := make([]string, len(m))
+	i := 0
+	for ext := range m {
+		exts[i] = ext
+		i++
+	}
+
+	// Order extension in descending order by file count
+	sort.Slice(exts, func(i, j int) bool {
+		return m[exts[i]] > m[exts[j]]
+	})
 
 	return exts
 }
 
-func pullRequestInfo(pullRequest *github.PullRequest, fileExtensions map[string]int, filesErrorStatus string) slack.PullRequestInfo {
+func pullRequestInfo(pullRequest *github.PullRequest, fileTypes []string, filesErrorStatus string) slack.PullRequestInfo {
 	var name string
 	if pullRequest.User.Name != nil {
 		name = *pullRequest.User.Name
@@ -125,7 +190,7 @@ func pullRequestInfo(pullRequest *github.PullRequest, fileExtensions map[string]
 		Deletions:        *pullRequest.Deletions,
 		State:            *pullRequest.State,
 		Merged:           *pullRequest.Merged,
-		FileExtensions:   fileExtensions,
+		FileTypes:        fileTypes,
 		FilesErrorStatus: filesErrorStatus,
 	}
 }

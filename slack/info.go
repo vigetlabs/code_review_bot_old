@@ -21,7 +21,7 @@ type PullRequestInfo struct {
 	Deletions        int
 	State            string
 	Merged           bool
-	FileExtensions   map[string]int
+	FileTypes        []string
 	FilesErrorStatus string
 }
 
@@ -29,23 +29,22 @@ type PullRequestInfo struct {
 func (i PullRequestInfo) Blocks() []slack.Block {
 	var files string
 	if i.FilesErrorStatus == "" {
-		if len(i.FileExtensions) > 0 {
-			var exts []string
-			for ext := range i.FileExtensions {
-				md := fmt.Sprintf("`%s`", ext)
-				exts = append(exts, md)
-			}
-
-			files = strings.Join(exts, ", ")
+		if len(i.FileTypes) > 0 {
+			files = strings.Join(i.FileTypes, ", ")
 		} else {
 			files = "unknown file types"
 		}
 	} else {
 		files = fmt.Sprintf("GH request failed with %s status", i.FilesErrorStatus)
 	}
-	var exts []string
-	for ext := range i.FileExtensions {
-		exts = append(exts, ext)
+
+	var state string
+	if i.Merged {
+		state = "merged-pull-request"
+	} else if i.State == "closed" {
+		state = "closed-pull-request"
+	} else {
+		state = "open-pull-request"
 	}
 
 	return []slack.Block{
@@ -71,15 +70,21 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 		slack.NewContextBlock(
 			"files",
 			slack.NewTextBlockObject(
+				slack.PlainTextType,
+				fmt.Sprintf(":%s:", state),
+				true,
+				false,
+			),
+			slack.NewTextBlockObject(
 				slack.MarkdownType,
 				fmt.Sprintf("(+%d, -%d)", i.Additions, i.Deletions),
 				false,
 				false,
 			),
 			slack.NewTextBlockObject(
-				slack.MarkdownType,
+				slack.PlainTextType,
 				files,
-				false,
+				true,
 				false,
 			),
 		),

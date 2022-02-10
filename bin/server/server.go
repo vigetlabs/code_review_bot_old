@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/vigetlabs/code_review_bot/codereview"
 	"github.com/vigetlabs/code_review_bot/db"
+	"github.com/vigetlabs/code_review_bot/languages"
 	"github.com/vigetlabs/code_review_bot/slack"
 	"go.uber.org/zap"
 	"golang.org/x/oauth2"
@@ -43,6 +45,16 @@ func main() {
 
 	l.Infow("Env vars", "slack.channelID", viper.GetString("slack.channelID"))
 
+	data, err := ioutil.ReadFile("languages.yml")
+	if err != nil {
+		l.Fatalw("Failed to read languages.yml", "err", err)
+	}
+
+	languages, err := languages.Parse(data)
+	if err != nil {
+		l.Fatalw("Failed to parse languages", "err", err)
+	}
+
 	cfg, err := config.LoadDefaultConfig(context.Background())
 	if err != nil {
 		log.Fatalf("Unable to load SDK config, %v", err)
@@ -63,7 +75,7 @@ func main() {
 	tc := oauth2.NewClient(context.Background(), ts)
 	githubClient := github.NewClient(tc)
 
-	s := codereview.NewService(logger, db, slackClient, githubClient, viper.GetString("slack.channelID"))
+	s := codereview.NewService(logger, db, slackClient, githubClient, viper.GetString("slack.channelID"), languages)
 	api := codereview.NewAPI(logger, s)
 
 	r := gin.Default()
