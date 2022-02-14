@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"errors"
 
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
@@ -14,7 +15,7 @@ type Client interface {
 	// UpdatePullRequestMessage updates an existing Slack message with a newly constructed message based on the pull request info. Returns the channel id and timestamp.
 	UpdatePullRequestMessage(ctx context.Context, channelID, timestamp string, info PullRequestInfo) error
 	// AddReaction adds a reaction
-	AddReaction(ctx context.Context, channelID, timestamp string) error
+	AddReaction(ctx context.Context, channelID, timestamp, emojiName string) error
 }
 
 type client struct {
@@ -57,10 +58,18 @@ func (c *client) UpdatePullRequestMessage(ctx context.Context, channelID, timest
 	return nil
 }
 
-func (c *client) AddReaction(ctx context.Context, channelID, timestamp string) error {
-	c.l.Debugw("AddReaction", "channelID", channelID, "timestamp", timestamp)
+func (c *client) AddReaction(ctx context.Context, channelID, timestamp, emojiName string) error {
+	c.l.Debugw("AddReaction", "channelID", channelID, "timestamp", timestamp, "emojiName", emojiName)
 
-	return c.c.AddReactionContext(ctx, "white_check_mark", slack.NewRefToMessage(channelID, timestamp))
+	err := c.c.AddReactionContext(ctx, emojiName, slack.NewRefToMessage(channelID, timestamp))
+	var slackErr slack.SlackErrorResponse
+	if errors.As(err, &slackErr) {
+		if slackErr.Err == "already_reacted" {
+			return nil
+		}
+	}
+
+	return err
 }
 
 // New constructs a Slack client

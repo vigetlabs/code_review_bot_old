@@ -62,7 +62,7 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 			"changes",
 			slack.NewTextBlockObject(
 				slack.MarkdownType,
-				fmt.Sprintf("%d commits, %d %s changed", i.Commits, i.ChangedFiles, fileStr(i.ChangedFiles)),
+				fmt.Sprintf("%d %s, %d %s changed", i.Commits, commitStr(i.Commits), i.ChangedFiles, fileStr(i.ChangedFiles)),
 				false,
 				false,
 			),
@@ -89,6 +89,13 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 			),
 		),
 	}
+}
+
+func commitStr(commits int) string {
+	if commits == 1 {
+		return "commit"
+	}
+	return "commits"
 }
 
 func fileStr(changedFiles int) string {

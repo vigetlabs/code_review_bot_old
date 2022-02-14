@@ -29,7 +29,13 @@ type service struct {
 }
 
 func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullRequestEvent) error {
-	s.l.Infow("HandlePullRequestEvent", "action", event.Action)
+	action := *event.Action
+
+	s.l.Debugw("HandlePullRequestEvent", "action", action)
+
+	if !(action == "closed" || action == "edited" || action == "opened" || action == "reopened" || action == "synchronize") {
+		return nil
+	}
 
 	repoID := *event.PullRequest.Base.Repo.ID
 	pullRequestID := *event.PullRequest.ID
@@ -42,6 +48,8 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 	ls, langsErrorStatus := s.langs(ctx, event.PullRequest)
 
 	info := pullRequestInfo(event.PullRequest, ls, langsErrorStatus)
+
+	// If the PR isn't in the db, send a new message, otherwise update the existing message
 	if pr == nil {
 		channelID, timestamp, err := s.slackClient.SendPullRequestMessage(ctx, s.slackChannelID, info)
 		if err != nil {
@@ -60,7 +68,13 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 }
 
 func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error {
-	s.l.Infow("HandlePullRequestReviewEvent", "action", event.Action)
+	action := *event.Action
+
+	s.l.Debugw("HandlePullRequestReviewEvent", "action", action, "state", *event.Review.State)
+
+	if !(action == "submitted") {
+		return nil
+	}
 
 	repoID := *event.PullRequest.Base.Repo.ID
 	pullRequestID := *event.PullRequest.ID
@@ -68,13 +82,18 @@ func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github
 	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID)
 	if err != nil {
 		return err
+	} else if pr == nil {
+		return nil
 	}
 
-	if pr != nil {
-		return s.slackClient.AddReaction(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp)
+	var reaction string
+	if *event.Review.State == "approved" {
+		reaction = "approved-pull-request"
+	} else {
+		reaction = "memo"
 	}
 
-	return nil
+	return s.slackClient.AddReaction(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, reaction)
 }
 
 func (s *service) langs(ctx context.Context, pr *github.PullRequest) ([]string, string) {
@@ -132,7 +151,7 @@ func (s *service) langs(ctx context.Context, pr *github.PullRequest) ([]string, 
 		return langMap[langs[i]] > langMap[langs[j]]
 	})
 
-	return nil, ""
+	return langs, ""
 }
 
 // NewService constructs a code review service
