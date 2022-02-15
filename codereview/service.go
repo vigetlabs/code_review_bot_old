@@ -181,6 +181,8 @@ func pullRequestInfo(pullRequest *github.PullRequest, langs []string, langsError
 		Title:            *pullRequest.Title,
 		URL:              *pullRequest.HTMLURL,
 		Repo:             *pullRequest.Base.Repo.FullName,
+		BaseRef:          *pullRequest.Base.Ref,
+		HeadRef:          *pullRequest.Head.Ref,
 		Commits:          *pullRequest.Commits,
 		ChangedFiles:     *pullRequest.ChangedFiles,
 		Additions:        *pullRequest.Additions,

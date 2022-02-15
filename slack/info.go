@@ -15,6 +15,8 @@ type PullRequestInfo struct {
 	Title            string
 	URL              string
 	Repo             string
+	BaseRef          string
+	HeadRef          string
 	Commits          int
 	ChangedFiles     int
 	Additions        int
@@ -30,7 +32,7 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 	var langs string
 	if i.LangsErrorStatus == "" {
 		if len(i.Langs) > 0 {
-			langs = strings.Join(i.Langs, ", ")
+			langs = strings.Join(i.Langs, "   ")
 		} else {
 			langs = "unknown languages"
 		}
@@ -51,7 +53,7 @@ func (i PullRequestInfo) Blocks() []slack.Block {
 		slack.NewSectionBlock(
 			slack.NewTextBlockObject(
 				slack.MarkdownType,
-				fmt.Sprintf("*%s*\n<%s|%s> by %s", i.Title, i.URL, i.Repo, i.UserLogin),
+				fmt.Sprintf("*%s*  `%s` ← `%s`\n<%s|%s> by %s", i.Title, i.BaseRef, i.HeadRef, i.URL, i.Repo, i.UserLogin),
 				false,
 				false,
 			),

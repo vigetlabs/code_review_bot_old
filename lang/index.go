@@ -23,6 +23,7 @@ var emojis = map[string]string{
 	"Swift":      ":swift:",
 	"TypeScript": ":typescript:",
 	"Vue":        ":vue:",
+	"YAML":       ":yaml:",
 }
 
 // A Lang represents a programming language
