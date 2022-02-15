@@ -8,14 +8,21 @@ import (
 
 var emojis = map[string]string{
 	"CSS":        ":css:",
+	"Elixir":     ":elixir:",
+	"Go":         ":golang:",
 	"HTML":       ":html:",
+	"INI":        ":terminal:",
 	"JavaScript": ":js:",
 	"JSON":       ":json:",
-	"JSX":        ":react:",
+	"Kotlin":     ":kotlin:",
+	"PHP":        ":php:",
+	"Python":     ":python:",
 	"Ruby":       ":ruby:",
 	"Rust":       ":rust:",
 	"Shell":      ":terminal:",
+	"Swift":      ":swift:",
 	"TypeScript": ":typescript:",
+	"Vue":        ":vue:",
 }
 
 // A Lang represents a programming language
