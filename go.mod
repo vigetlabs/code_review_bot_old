@@ -3,6 +3,7 @@ module github.com/vigetlabs/code_review_bot
 go 1.17
 
 require (
+	github.com/aws/aws-lambda-go v1.28.0
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.13.0
 	github.com/gin-contrib/zap v0.0.2
