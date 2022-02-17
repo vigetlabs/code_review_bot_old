@@ -7,22 +7,24 @@ import (
 )
 
 var emojis = map[string]string{
-	"CSS":        ":css:",
-	"Elixir":     ":elixir:",
-	"Go":         ":golang:",
-	"HTML":       ":html:",
-	"JavaScript": ":js:",
-	"JSON":       ":json:",
-	"Kotlin":     ":kotlin:",
-	"PHP":        ":php:",
-	"Python":     ":python:",
-	"Ruby":       ":ruby:",
-	"Rust":       ":rust:",
-	"Shell":      ":terminal:",
-	"Swift":      ":swift:",
-	"TypeScript": ":typescript:",
-	"Vue":        ":vue:",
-	"YAML":       ":yaml:",
+	"CSS":                     ":css:",
+	"Elixir":                  ":elixir:",
+	"GCC Machine Description": ":notebook:", // .md (Markdown) is recognized as this :o
+	"Go":                      ":golang:",
+	"HTML":                    ":html:",
+	"JavaScript":              ":js:",
+	"JSON":                    ":json:",
+	"Kotlin":                  ":kotlin:",
+	"Markdown":                ":notebook:",
+	"PHP":                     ":php:",
+	"Python":                  ":python:",
+	"Ruby":                    ":ruby:",
+	"Rust":                    ":rust:",
+	"Shell":                   ":terminal:",
+	"Swift":                   ":swift:",
+	"TypeScript":              ":typescript:",
+	"Vue":                     ":vue:",
+	"YAML":                    ":yaml:",
 }
 
 // A Lang represents a programming language
