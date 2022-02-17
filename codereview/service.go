@@ -40,14 +40,34 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 	repoID := *event.PullRequest.Base.Repo.ID
 	pullRequestID := *event.PullRequest.ID
 
-	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID)
+	getFiles := action != "synchronize"
+	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID, false, getFiles, true)
 	if err != nil {
 		return err
 	}
 
-	ls, langsErrorStatus := s.langs(ctx, event.PullRequest)
+	// Fetch files if new PR, changed PR content (synchronize), or no DB files, otherwise use DB files
+	var (
+		files          []*github.CommitFile
+		filesErrStatus string
+	)
+	fetchFiles := pr == nil || action == "synchronize" || pr.Files == nil
+	if fetchFiles {
+		files, filesErrStatus, err = s.fetchFiles(ctx, event.PullRequest)
+		if err != nil {
+			s.l.Errorw("fetchFiles", "status", filesErrStatus, "err", err)
+		}
+	} else {
+		files = pr.Files
+	}
 
-	info := pullRequestInfo(event.PullRequest, ls, langsErrorStatus)
+	var approvals []*github.User
+	if pr != nil {
+		approvals = pr.Approvals
+	}
+
+	langs := s.langsForFiles(files)
+	info := pullRequestInfo(event.PullRequest, langs, filesErrStatus, approvals)
 
 	// If the PR isn't in the db, send a new message, otherwise update the existing message
 	if pr == nil {
@@ -56,15 +76,27 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 			return err
 		}
 
+		if err := s.slackClient.AddReactionIfNotExists(ctx, channelID, timestamp, "eyes"); err != nil {
+			return err
+		}
+
 		return s.db.PutPullRequest(ctx, &db.PullRequest{
 			RepoID:                repoID,
 			PullRequestID:         pullRequestID,
 			SlackChannelID:        channelID,
 			SlackMessageTimestamp: timestamp,
+			Files:                 files,
+			Approvals:             nil,
 		})
 	}
 
-	return s.slackClient.UpdatePullRequestMessage(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, info)
+	if err := s.slackClient.UpdatePullRequestMessage(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, info); err != nil {
+		return err
+	}
+
+	pr.PR = event.PullRequest
+	pr.Files = files
+	return s.db.UpdatePullRequest(ctx, pr, true, fetchFiles, false)
 }
 
 func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github.PullRequestReviewEvent) error {
@@ -79,24 +111,58 @@ func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github
 	repoID := *event.PullRequest.Base.Repo.ID
 	pullRequestID := *event.PullRequest.ID
 
-	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID)
+	pr, err := s.db.PullRequest(ctx, repoID, pullRequestID, true, true, true)
 	if err != nil {
 		return err
 	} else if pr == nil {
 		return nil
 	}
 
-	var reaction string
-	if *event.Review.State == "approved" {
-		reaction = "approved-pull-request"
-	} else {
-		reaction = "memo"
+	state := *event.Review.State
+	if state != "approved" {
+		if err := s.slackClient.AddReactionIfNotExists(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, "memo"); err != nil {
+			return err
+		}
 	}
 
-	return s.slackClient.AddReaction(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, reaction)
+	updateApprovals := false
+	if state == "approved" {
+		login := *event.Review.User.Login
+		updateApprovals = true
+		for _, l := range pr.Approvals {
+			if *l.Login == login {
+				updateApprovals = false
+				break
+			}
+		}
+
+		if updateApprovals {
+			pr.Approvals = append(pr.Approvals, event.Review.User)
+		}
+	}
+
+	if len(pr.Approvals) >= 2 {
+		if err := s.slackClient.AddReactionIfNotExists(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, "shipit"); err != nil {
+			return err
+		}
+	}
+
+	if updateApprovals {
+		langs := s.langsForFiles(pr.Files)
+		info := pullRequestInfo(pr.PR, langs, "", pr.Approvals)
+		if err := s.slackClient.UpdatePullRequestMessage(ctx, pr.SlackChannelID, pr.SlackMessageTimestamp, info); err != nil {
+			return err
+		}
+
+		if err := s.db.UpdatePullRequest(ctx, pr, false, false, true); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (s *service) langs(ctx context.Context, pr *github.PullRequest) ([]string, string) {
+func (s *service) fetchFiles(ctx context.Context, pr *github.PullRequest) ([]*github.CommitFile, string, error) {
 	owner := *pr.Base.Repo.Owner.Login
 	repo := *pr.Base.Repo.Name
 	number := *pr.Number
@@ -104,11 +170,15 @@ func (s *service) langs(ctx context.Context, pr *github.PullRequest) ([]string, 
 	files, resp, err := s.githubClient.PullRequests.ListFiles(ctx, owner, repo, number, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		if resp != nil {
-			return nil, resp.Status
+			return nil, resp.Status, err
 		}
-		return nil, "unknown"
+		return nil, "unknown", err
 	}
 
+	return files, "", nil
+}
+
+func (s *service) langsForFiles(files []*github.CommitFile) []string {
 	changes := make(map[*lang.Lang]int)
 	for _, f := range files {
 		l := s.langIndex.LangForFile(*f.Filename)
@@ -151,7 +221,7 @@ func (s *service) langs(ctx context.Context, pr *github.PullRequest) ([]string, 
 		return langMap[langs[i]] > langMap[langs[j]]
 	})
 
-	return langs, ""
+	return langs
 }
 
 // NewService constructs a code review service
@@ -166,7 +236,7 @@ func NewService(logger *zap.Logger, db db.DB, slackClient slack.Client, githubCl
 	}
 }
 
-func pullRequestInfo(pullRequest *github.PullRequest, langs []string, langsErrorStatus string) slack.PullRequestInfo {
+func pullRequestInfo(pullRequest *github.PullRequest, langs []string, filesErrStatus string, approvals []*github.User) slack.PullRequestInfo {
 	var name string
 	if pullRequest.User.Name != nil {
 		name = *pullRequest.User.Name
@@ -174,22 +244,31 @@ func pullRequestInfo(pullRequest *github.PullRequest, langs []string, langsError
 		name = *pullRequest.User.Login
 	}
 
+	users := make([]slack.PullRequestApprovalUser, len(approvals))
+	for i, u := range approvals {
+		users[i] = slack.PullRequestApprovalUser{
+			AvatarURL: *u.AvatarURL,
+			Login:     *u.Login,
+		}
+	}
+
 	return slack.PullRequestInfo{
-		UserName:         name,
-		UserAvatarURL:    *pullRequest.User.AvatarURL,
-		UserLogin:        *pullRequest.User.Login,
-		Title:            *pullRequest.Title,
-		URL:              *pullRequest.HTMLURL,
-		Repo:             *pullRequest.Base.Repo.FullName,
-		BaseRef:          *pullRequest.Base.Ref,
-		HeadRef:          *pullRequest.Head.Ref,
-		Commits:          *pullRequest.Commits,
-		ChangedFiles:     *pullRequest.ChangedFiles,
-		Additions:        *pullRequest.Additions,
-		Deletions:        *pullRequest.Deletions,
-		State:            *pullRequest.State,
-		Merged:           *pullRequest.Merged,
-		Langs:            langs,
-		LangsErrorStatus: langsErrorStatus,
+		UserName:       name,
+		UserAvatarURL:  *pullRequest.User.AvatarURL,
+		UserLogin:      *pullRequest.User.Login,
+		Title:          *pullRequest.Title,
+		URL:            *pullRequest.HTMLURL,
+		Repo:           *pullRequest.Base.Repo.FullName,
+		BaseRef:        *pullRequest.Base.Ref,
+		HeadRef:        *pullRequest.Head.Ref,
+		Commits:        *pullRequest.Commits,
+		ChangedFiles:   *pullRequest.ChangedFiles,
+		Additions:      *pullRequest.Additions,
+		Deletions:      *pullRequest.Deletions,
+		State:          *pullRequest.State,
+		Merged:         *pullRequest.Merged,
+		Langs:          langs,
+		FilesErrStatus: filesErrStatus,
+		Approvals:      users,
 	}
 }

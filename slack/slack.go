@@ -14,8 +14,8 @@ type Client interface {
 	SendPullRequestMessage(ctx context.Context, channelID string, info PullRequestInfo) (string, string, error)
 	// UpdatePullRequestMessage updates an existing Slack message with a newly constructed message based on the pull request info. Returns the channel id and timestamp.
 	UpdatePullRequestMessage(ctx context.Context, channelID, timestamp string, info PullRequestInfo) error
-	// AddReaction adds a reaction
-	AddReaction(ctx context.Context, channelID, timestamp, emojiName string) error
+	// AddReactionIfNotExists adds a reaction
+	AddReactionIfNotExists(ctx context.Context, channelID, timestamp, emojiName string) error
 }
 
 type client struct {
@@ -58,8 +58,8 @@ func (c *client) UpdatePullRequestMessage(ctx context.Context, channelID, timest
 	return nil
 }
 
-func (c *client) AddReaction(ctx context.Context, channelID, timestamp, emojiName string) error {
-	c.l.Debugw("AddReaction", "channelID", channelID, "timestamp", timestamp, "emojiName", emojiName)
+func (c *client) AddReactionIfNotExists(ctx context.Context, channelID, timestamp, emojiName string) error {
+	c.l.Debugw("AddReactionIfNotExists", "channelID", channelID, "timestamp", timestamp, "emojiName", emojiName)
 
 	err := c.c.AddReactionContext(ctx, emojiName, slack.NewRefToMessage(channelID, timestamp))
 	var slackErr slack.SlackErrorResponse

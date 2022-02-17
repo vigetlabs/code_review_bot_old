@@ -11,7 +11,6 @@ var emojis = map[string]string{
 	"Elixir":     ":elixir:",
 	"Go":         ":golang:",
 	"HTML":       ":html:",
-	"INI":        ":terminal:",
 	"JavaScript": ":js:",
 	"JSON":       ":json:",
 	"Kotlin":     ":kotlin:",
