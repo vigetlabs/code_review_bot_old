@@ -33,7 +33,13 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 
 	s.l.Debugw("HandlePullRequestEvent", "action", action)
 
-	if !(action == "closed" || action == "edited" || action == "opened" || action == "reopened" || action == "synchronize") {
+	if !(action == "closed" || action == "edited" || action == "opened" || action == "ready_for_review" || action == "reopened" || action == "synchronize") {
+		return nil
+	}
+
+	if *event.PullRequest.Draft {
+		s.l.Debug("Ignoring draft pull request")
+
 		return nil
 	}
 
