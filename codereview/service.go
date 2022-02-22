@@ -2,7 +2,9 @@ package codereview
 
 import (
 	"context"
+	"net/http"
 	"sort"
+	"time"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/vigetlabs/code_review_bot/db"
@@ -59,7 +61,17 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 	)
 	fetchFiles := pr == nil || action == "synchronize" || pr.Files == nil
 	if fetchFiles {
-		files, filesErrStatus, err = s.fetchFiles(ctx, event.PullRequest)
+		var statusCode int
+		files, filesErrStatus, statusCode, err = s.fetchFiles(ctx, event.PullRequest)
+
+		// Sleep for a second and retry on 404
+		if err != nil && statusCode == http.StatusNotFound {
+			s.l.Warn("Retrying fetch files after 404...")
+
+			time.Sleep(1 * time.Second)
+			files, filesErrStatus, statusCode, err = s.fetchFiles(ctx, event.PullRequest)
+		}
+
 		if err != nil {
 			s.l.Errorw("fetchFiles", "status", filesErrStatus, "err", err)
 		}
@@ -168,7 +180,7 @@ func (s *service) HandlePullRequestReviewEvent(ctx context.Context, event github
 	return nil
 }
 
-func (s *service) fetchFiles(ctx context.Context, pr *github.PullRequest) ([]*github.CommitFile, string, error) {
+func (s *service) fetchFiles(ctx context.Context, pr *github.PullRequest) ([]*github.CommitFile, string, int, error) {
 	owner := *pr.Base.Repo.Owner.Login
 	repo := *pr.Base.Repo.Name
 	number := *pr.Number
@@ -176,12 +188,12 @@ func (s *service) fetchFiles(ctx context.Context, pr *github.PullRequest) ([]*gi
 	files, resp, err := s.githubClient.PullRequests.ListFiles(ctx, owner, repo, number, &github.ListOptions{PerPage: 100})
 	if err != nil {
 		if resp != nil {
-			return nil, resp.Status, err
+			return nil, resp.Status, resp.StatusCode, err
 		}
-		return nil, "unknown", err
+		return nil, "unknown", 0, err
 	}
 
-	return files, "", nil
+	return files, "", 0, nil
 }
 
 func (s *service) langsForFiles(files []*github.CommitFile) []string {
