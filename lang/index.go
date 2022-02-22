@@ -6,25 +6,38 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+var overrides = map[string]string{
+	"asm":        "Assembly",
+	"cake":       "C#",
+	"cfg":        "INI",
+	"md":         "Markdown",
+	"php":        "PHP",
+	"properties": "INI",
+	"rs":         "Rust",
+	"sql":        "SQL",
+	"ts":         "TypeScript",
+	"tsx":        "TSX",
+	"txt":        "Text",
+}
+
 var emojis = map[string]string{
-	"CSS":                     ":css:",
-	"Elixir":                  ":elixir:",
-	"GCC Machine Description": ":notebook:", // .md (Markdown) is recognized as this :o
-	"Go":                      ":golang:",
-	"HTML":                    ":html:",
-	"JavaScript":              ":js:",
-	"JSON":                    ":json:",
-	"Kotlin":                  ":kotlin:",
-	"Markdown":                ":notebook:",
-	"PHP":                     ":php:",
-	"Python":                  ":python:",
-	"Ruby":                    ":ruby:",
-	"Rust":                    ":rust:",
-	"Shell":                   ":terminal:",
-	"Swift":                   ":swift:",
-	"TypeScript":              ":typescript:",
-	"Vue":                     ":vue:",
-	"YAML":                    ":yaml:",
+	"CSS":        ":css:",
+	"Elixir":     ":elixir:",
+	"Go":         ":golang:",
+	"HTML":       ":html:",
+	"JavaScript": ":js:",
+	"JSON":       ":json:",
+	"Kotlin":     ":kotlin:",
+	"Markdown":   ":notebook:",
+	"PHP":        ":php:",
+	"Python":     ":python:",
+	"Ruby":       ":ruby:",
+	"Rust":       ":rust:",
+	"Shell":      ":terminal:",
+	"Swift":      ":swift:",
+	"TypeScript": ":typescript:",
+	"Vue":        ":vue:",
+	"YAML":       ":yaml:",
 }
 
 // A Lang represents a programming language
@@ -62,8 +75,10 @@ func (i *Index) Load(data []byte) error {
 		for _, s := range l.Extensions {
 			ext := s[1:] // Trim leading "."
 
-			// If the ext is used by more than one lang, choose the one with the least extensions
-			if cl, ok := i.extIndex[ext]; ok {
+			// If the ext is used by more than one lang, choose based on overrides or the one with the least extensions
+			if ol, ok := overrides[ext]; ok && ol != l.Name {
+				continue
+			} else if cl, ok := i.extIndex[ext]; ok {
 				if len(cl.Extensions) <= len(l.Extensions) {
 					continue
 				}
