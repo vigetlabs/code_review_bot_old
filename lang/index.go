@@ -28,7 +28,7 @@ var emojis = map[string]string{
 	"JavaScript": ":js:",
 	"JSON":       ":json:",
 	"Kotlin":     ":kotlin:",
-	"Markdown":   ":notebook:",
+	"Markdown":   ":markdown:",
 	"PHP":        ":php:",
 	"Python":     ":python:",
 	"Ruby":       ":ruby:",
