@@ -6,3 +6,40 @@ services:
     container_name: dynamodb-local
     ports:
       - "8000:8000"
+  migrate:
+    build:
+      context: ./
+      dockerfile: migrate.Dockerfile
+    depends_on:
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - CODE_REVIEW_BOT_DYNAMODB_URL=http://dynamodb-local:8000
+  server:
+    build:
+      context: ./
+      dockerfile: server.Dockerfile
+    depends_on:
+      - dynamodb-local
+    environment:
+      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - CODE_REVIEW_BOT_GITHUB_ACCESSTOKEN=$CODE_REVIEW_BOT_GITHUB_ACCESSTOKEN
+      - CODE_REVIEW_BOT_SLACK_TOKEN=$CODE_REVIEW_BOT_SLACK_TOKEN
+      - CODE_REVIEW_BOT_SLACK_CHANNELID=$CODE_REVIEW_BOT_SLACK_CHANNELID
+      - CODE_REVIEW_BOT_ADDR=:8080
+      - CODE_REVIEW_BOT_DEV=true
+      - CODE_REVIEW_BOT_DYNAMODB_URL=http://dynamodb-local:8000
+    ports:
+      - "8080:8080"
+    restart: always
+  ngrok:
+    command: http http://server:8080
+    depends_on:
+      - server
+    environment:
+      - NGROK_AUTHTOKEN=$NGROK_AUTHTOKEN
+    image: ngrok/ngrok
+    ports:
+      - "4040:4040"

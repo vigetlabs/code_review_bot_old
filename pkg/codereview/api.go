@@ -41,6 +41,8 @@ func (a *api) pullRequest(c *gin.Context) {
 	}
 
 	if err := a.s.HandlePullRequestEvent(c, event); err != nil {
+		a.l.Errorw("pullRequest", "err", err)
+
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
@@ -56,6 +58,8 @@ func (a *api) pullRequestReview(c *gin.Context) {
 	}
 
 	if err := a.s.HandlePullRequestReviewEvent(c, event); err != nil {
+		a.l.Errorw("pullRequestReview", "err", err)
+
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}

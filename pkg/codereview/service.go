@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/google/go-github/v42/github"
-	"github.com/vigetlabs/code_review_bot/db"
-	"github.com/vigetlabs/code_review_bot/lang"
-	"github.com/vigetlabs/code_review_bot/slack"
+	"github.com/vigetlabs/code_review_bot/pkg/db"
+	"github.com/vigetlabs/code_review_bot/pkg/lang"
+	"github.com/vigetlabs/code_review_bot/pkg/slack"
 	"go.uber.org/zap"
 )
 
