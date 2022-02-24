@@ -101,6 +101,7 @@ func (s *service) HandlePullRequestEvent(ctx context.Context, event github.PullR
 		return s.db.PutPullRequest(ctx, &db.PullRequest{
 			RepoID:                repoID,
 			PullRequestID:         pullRequestID,
+			PR:                    event.PullRequest,
 			SlackChannelID:        channelID,
 			SlackMessageTimestamp: timestamp,
 			Files:                 files,

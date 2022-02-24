@@ -104,11 +104,14 @@ func (d *db) PutPullRequest(ctx context.Context, pr *PullRequest) error {
 	files := string(b)
 	b, _ = json.Marshal(pr.Approvals)
 	approvals := string(b)
+	b, _ = json.Marshal(pr.PR)
+	prJSON := string(b)
 
 	_, err := d.c.PutItem(ctx, &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
 			attributeRepoID:                &types.AttributeValueMemberN{Value: strconv.FormatInt(pr.RepoID, 10)},
 			attributePRID:                  &types.AttributeValueMemberN{Value: strconv.FormatInt(pr.PullRequestID, 10)},
+			attributePR:                    &types.AttributeValueMemberS{Value: prJSON},
 			attributeSlackChannelID:        &types.AttributeValueMemberS{Value: pr.SlackChannelID},
 			attributeSlackMessageTimestamp: &types.AttributeValueMemberS{Value: pr.SlackMessageTimestamp},
 			attributeFiles:                 &types.AttributeValueMemberS{Value: files},
