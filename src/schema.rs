@@ -89,6 +89,10 @@ table! {
 
 joinable!(file_extensions -> icon_mappings (icon_mapping_id));
 joinable!(file_names -> icon_mappings (icon_mapping_id));
+joinable!(github_users -> users (user_id));
+joinable!(pull_requests -> github_users (github_user_id));
+joinable!(reviews -> github_users (github_user_id));
+joinable!(reviews -> pull_requests (pull_request_id));
 
 allow_tables_to_appear_in_same_query!(
     configs,

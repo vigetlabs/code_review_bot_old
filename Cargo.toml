@@ -5,38 +5,50 @@ authors = ["Joe Jackson <cpmhjoe@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+# Serialization
 serde = "1.0"
 serde_derive = "1.0"
 serde_json = "1.0"
 serde_yaml = "0.8"
-regex = "1"
-lazy_static = "1.4"
-base64 = "0.12"
-rand = "0.7"
 
+# Web Framework
 actix-session = "0.4"
 actix-files = "0.5"
 actix-web-flash = { version = "0.5.0", git = "https://github.com/joeyjoejoejr/actix-web-flash" }
 actix-web = "3"
 actix-rt = "1.0"
 actix-service = "1.0"
+askama = "0.9"
+
+# GraphQl
+juniper = "0.15"
+juniper_actix = "0.2"
+
+# Database
+diesel = { version = "1.4", features = ["postgres", "r2d2", "chrono"] }
+r2d2 = "0.8"
+chrono = "0.4"
+
+# Testing
+mockito = "0.14.0"
+url = "2.1"
+hyperx = "1.0"
+
+# Util
+regex = "1"
+lazy_static = "1.4"
+base64 = "0.12"
+rand = "0.7"
 log = "0.4"
 env_logger = "0.7"
 futures = "0.3"
 failure = "0.1"
 failure_derive = "0.1"
-askama = "0.9"
-
 reqwest = { version = "0.10", features = ["json"] }
-mockito = "0.14.0"
-url = "2.1"
-hyperx = "1.0"
 
+# Development
 structopt = "0.3"
 listenfd = "0.3"
 dotenv = "0.15"
 
-diesel = { version = "1.4", features = ["postgres", "r2d2", "chrono"] }
-r2d2 = "0.8"
-chrono = "0.4"
 

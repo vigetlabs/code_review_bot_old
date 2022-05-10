@@ -57,7 +57,7 @@ async fn handle_pull_request_opened(
             slack_message_id: result.ts.unwrap_or_else(|| "".to_string()),
             channel: result.channel.unwrap_or_else(|| "".to_string()),
             display_text: format!("{}", json.pull_request),
-            github_user_id: requester.github_id,
+            github_user_id: requester.id,
         },
         &db,
     )?;

@@ -24,7 +24,7 @@ pub async fn slack(
 ) -> Result<HttpResponse> {
     let response = state.slack.get_token(&query.code).await?;
     let user_data = response.authed_user;
-    let user = User::create_or_udpate(
+    let (created, user) = User::create_or_update(
         &NewUser {
             slack_user_id: user_data.id,
             slack_access_token: user_data.access_token,
@@ -46,6 +46,7 @@ pub async fn github(
     let github_user = state.github.get_user(&response.access_token).await?;
     let user =
         helpers::get_current_user(&db, &session)?.ok_or(crate::error::Error::NotFoundError)?;
+    dbg!(&user);
     user.connect_to_github_user(&response.access_token, &github_user, &db)?;
 
     Ok(redirect_to("/"))

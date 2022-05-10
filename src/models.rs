@@ -111,7 +111,7 @@ impl PullRequest {
         let conn = db.0.get()?;
 
         let gh_user = github_users
-            .filter(github_id.eq(self.github_user_id))
+            .filter(id.eq(self.github_user_id))
             .first::<GithubUser>(&conn)?;
 
         gh_user.user(db)
@@ -258,24 +258,29 @@ struct RemoveGithubToken<'a> {
 }
 
 impl User {
-    pub fn create_or_udpate(new_user: &NewUser, db: &DBExecutor) -> Result<User> {
+    pub fn create_or_update(new_user: &NewUser, db: &DBExecutor) -> Result<(bool, User)> {
         use crate::schema::users::dsl::*;
         let conn = db.0.get()?;
+        let mut created = false;
 
         let user_res: Result<User> = users
             .filter(slack_user_id.eq(&new_user.slack_user_id))
             .first(&conn)
             .map_err(|e| e.into());
 
-        match user_res {
-            Ok(user) => diesel::update(users.find(user.id))
-                .set(slack_access_token.eq(&new_user.slack_access_token))
-                .get_result(&conn),
+        let user = match user_res {
+            Ok(user) => {
+                created = true;
+                diesel::update(users.find(user.id))
+                    .set(slack_access_token.eq(&new_user.slack_access_token))
+                    .get_result(&conn)
+            }
             Err(_) => diesel::insert_into(users)
                 .values(new_user)
                 .get_result(&conn),
-        }
-        .map_err(|e| e.into())
+        }?;
+
+        Ok((created, user))
     }
 
     pub fn find(find_id: i32, db: &DBExecutor) -> Result<Option<User>> {
