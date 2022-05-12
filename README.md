@@ -1,6 +1,9 @@
 [![CircleCI](https://circleci.com/gh/vigetlabs/code_review_bot.svg?style=svg&circle-token=35183e609cd216df24f1668009b60bbcdfe13c73)](https://circleci.com/gh/vigetlabs/code_review_bot)
 
 # Code Review Bot
+
+*This is the old `code_review_bot`. The new bot lives at [https://github.com/vigetlabs/code_review_bot](https://github.com/vigetlabs/code_review_bot).*
+
 A bot that posts your PRs for code review in slack and automatically updates the message with the pr status (reviewed, approved, closed, or merged).
 
 ## Adding A Webhook (recommended)
